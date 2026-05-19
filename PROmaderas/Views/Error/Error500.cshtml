@@ -1,0 +1,73 @@
+@{
+    ViewData["Title"] = "Error 500 - Error Interno del Servidor";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 text-center">
+            <div class="error-template">
+                <h1 class="display-1 text-danger">@ViewBag.ErrorCode</h1>
+                <h2 class="mb-4">@ViewBag.ErrorMessage</h2>
+                <p class="lead text-muted mb-4">@ViewBag.ErrorDescription</p>
+                
+                <div class="alert alert-warning" role="alert">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    <strong>¡Disculpas!</strong> Estamos trabajando para resolver este inconveniente.
+                </div>
+                
+                <div class="error-actions">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <a asp-controller="Productos" asp-action="Index" class="btn btn-primary btn-lg">
+                                <i class="bi bi-house-door"></i> Ir al Inicio
+                            </a>
+                        </div>
+                        <div class="col-md-6">
+                            <button onclick="location.reload()" class="btn btn-secondary btn-lg">
+                                <i class="bi bi-arrow-clockwise"></i> Reintentar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-5">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Información Técnica</h5>
+                            <p class="card-text text-muted">
+                                Si eres administrador del sistema:
+                            </p>
+                            <ul class="list-unstyled text-start">
+                                <li><i class="bi bi-dot"></i> Revisa los logs del servidor para más detalles</li>
+                                <li><i class="bi bi-dot"></i> Verifica la conectividad con la base de datos</li>
+                                <li><i class="bi bi-dot"></i> Comprueba la configuración del servidor</li>
+                                <li><i class="bi bi-dot"></i> Reinicia los servicios si es necesario</li>
+                            </ul>
+                            <small class="text-muted">
+                                <strong>Código de seguimiento:</strong> @ViewContext.HttpContext.TraceIdentifier
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .error-template {
+        padding: 40px 15px;
+    }
+    .error-actions {
+        margin-top: 15px;
+        margin-bottom: 15px;
+    }
+    .error-actions .btn {
+        margin: 5px;
+    }
+    .display-1 {
+        font-size: 8rem;
+        font-weight: 300;
+        line-height: 1;
+    }
+</style>

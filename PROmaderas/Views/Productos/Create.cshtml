@@ -1,0 +1,78 @@
+﻿@model PROmaderas.Abstracciones.Models.ProductoAD
+
+@{
+    ViewData["Title"] = "Crear Producto";
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <h2>Crear Nuevo Producto</h2>
+            <hr />
+
+            <form asp-action="Create" method="post" enctype="multipart/form-data">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                <div class="mb-3">
+                    <label asp-for="Nombre" class="form-label"></label>
+                    <input asp-for="Nombre" class="form-control" />
+                    <span asp-validation-for="Nombre" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="CategoriaId" class="form-label"></label>
+                    <select asp-for="CategoriaId" class="form-select">
+                        <option value="">-- Seleccione una categoría --</option>
+                        @foreach (var cat in ViewBag.Categorias)
+                        {
+                            <option value="@cat.Id">@cat.Nombre</option>
+                        }
+                    </select>
+                    <span asp-validation-for="CategoriaId" class="text-danger"></span>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="Precio" class="form-label"></label>
+                        <input asp-for="Precio" class="form-control" type="number" step="0.01" />
+                        <span asp-validation-for="Precio" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="ImpuestoPorc" class="form-label"></label>
+                        <input asp-for="ImpuestoPorc" class="form-control" type="number" step="0.01" />
+                        <span asp-validation-for="ImpuestoPorc" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Stock" class="form-label"></label>
+                    <input asp-for="Stock" class="form-control" type="number" />
+                    <span asp-validation-for="Stock" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label for="imagen" class="form-label">Imagen del Producto *</label>
+                    <input type="file" name="imagen" id="imagen" class="form-control" accept="image/*" required />
+                    <small class="form-text text-muted">Formatos permitidos: JPG, PNG, GIF</small>
+                </div>
+
+                <div class="mb-3 form-check">
+                    <input asp-for="Activo" class="form-check-input" type="checkbox" checked />
+                    <label asp-for="Activo" class="form-check-label"></label>
+                </div>
+
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                    <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+                    <button type="submit" class="btn btn-primary">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

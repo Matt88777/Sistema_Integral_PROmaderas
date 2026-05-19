@@ -1,0 +1,11 @@
+﻿@model PROmaderas.Abstracciones.Models.FacturacionAD
+
+<h2>Eliminar Factura</h2>
+
+<p>¿Seguro que desea eliminar esta factura?</p>
+
+<form asp-action="Delete">
+    <input type="hidden" asp-for="Id" />
+    <button type="submit" class="btn btn-danger">Eliminar</button>
+    <a asp-action="Index">Cancelar</a>
+</form>

@@ -1,0 +1,37 @@
+﻿@model PROmaderas.Abstracciones.Models.ProductoAD
+
+@{
+    ViewData["Title"] = "Ajustar Stock";
+}
+
+<h1>Ajustar Stock</h1>
+
+@if (ViewBag.Error != null)
+{
+    <div class="alert alert-danger">
+        @ViewBag.Error
+    </div>
+}
+
+<div class="card">
+    <div class="card-body">
+        <h4>@Model.Nombre</h4>
+        <p><strong>Stock actual:</strong> @Model.Stock</p>
+        <p><strong>Precio:</strong> ₡@Model.Precio.ToString("N2")</p>
+
+        <form asp-action="AjustarStock" method="post">
+            <input type="hidden" name="id" value="@Model.Id" />
+
+            <div class="mb-3">
+                <label class="form-label">Cantidad a ajustar</label>
+                <input type="number" name="cantidad" class="form-control" required />
+                <small class="text-muted">
+                    Usa números positivos para sumar y negativos para restar.
+                </small>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Guardar ajuste</button>
+            <a asp-action="Index" class="btn btn-secondary">Volver</a>
+        </form>
+    </div>
+</div>

@@ -1,0 +1,29 @@
+﻿@model PROmaderas.Abstracciones.Models.FacturacionAD
+
+<h2>Editar Factura</h2>
+
+<form asp-action="Edit">
+    <input type="hidden" asp-for="Id" />
+
+    <div class="form-group">
+        <label>Cliente ID</label>
+        <input asp-for="ClienteId" class="form-control" />
+    </div>
+
+    <div class="form-group">
+        <label>Pedido ID</label>
+        <input asp-for="PedidoId" class="form-control" />
+    </div>
+
+    <div class="form-group">
+        <label>Total</label>
+        <input asp-for="Total" class="form-control" />
+    </div>
+
+    <div class="form-group">
+        <label>Estado</label>
+        <input asp-for="Estado" class="form-control" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Actualizar</button>
+</form>

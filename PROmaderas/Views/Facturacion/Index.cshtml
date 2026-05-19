@@ -1,0 +1,41 @@
+﻿@model IEnumerable<PROmaderas.Abstracciones.Models.FacturacionAD>
+
+@{
+    ViewData["Title"] = "Facturación";
+}
+
+<h2>Facturación</h2>
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">Nueva Factura</a>
+</p>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Cliente</th>
+            <th>Pedido</th>
+            <th>Fecha</th>
+            <th>Total</th>
+            <th>Estado</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.ClienteId</td>
+                <td>@item.PedidoId</td>
+                <td>@item.Fecha.ToShortDateString()</td>
+                <td>@item.Total</td>
+                <td>@item.Estado</td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@item.Id">Editar</a> |
+                    <a asp-action="Details" asp-route-id="@item.Id">Detalle</a> |
+                    <a asp-action="Delete" asp-route-id="@item.Id">Eliminar</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

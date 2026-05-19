@@ -1,0 +1,68 @@
+﻿@model PROmaderas.Abstracciones.Models.ProductoAD
+
+@{
+    ViewData["Title"] = "Detalles del Producto";
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <h2>Detalles del Producto</h2>
+            <hr />
+
+            <div class="row">
+                <div class="col-md-6">
+                    <img src="@Model.ImagenUrl" alt="@Model.Nombre" class="img-fluid rounded" />
+                </div>
+                <div class="col-md-6">
+                    <dl class="row">
+                        <dt class="col-sm-4">@Html.DisplayNameFor(model => model.Nombre)</dt>
+                        <dd class="col-sm-8">@Model.Nombre</dd>
+
+                        <dt class="col-sm-4">Categoría</dt>
+                        <dd class="col-sm-8">@Model.Categoria?.Nombre</dd>
+
+                        <dt class="col-sm-4">@Html.DisplayNameFor(model => model.Precio)</dt>
+                        <dd class="col-sm-8">₡@Model.Precio.ToString("N2")</dd>
+
+                        <dt class="col-sm-4">@Html.DisplayNameFor(model => model.ImpuestoPorc)</dt>
+                        <dd class="col-sm-8">@Model.ImpuestoPorc%</dd>
+
+                        <dt class="col-sm-4">@Html.DisplayNameFor(model => model.Stock)</dt>
+                        <dd class="col-sm-8">
+                            @if (Model.Stock <= 0)
+                            {
+                                <span class="badge bg-danger">Agotado</span>
+                            }
+                            else if (Model.Stock < 10)
+                            {
+                                <span class="badge bg-warning text-dark">@Model.Stock unidades</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-success">@Model.Stock unidades</span>
+                            }
+                        </dd>
+
+                        <dt class="col-sm-4">@Html.DisplayNameFor(model => model.Activo)</dt>
+                        <dd class="col-sm-8">
+                            @if (Model.Activo)
+                            {
+                                <span class="badge bg-success">Activo</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">Inactivo</span>
+                            }
+                        </dd>
+                    </dl>
+
+                    <div class="d-grid gap-2">
+                        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">Editar</a>
+                        <a asp-action="Index" class="btn btn-secondary">Volver al Listado</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

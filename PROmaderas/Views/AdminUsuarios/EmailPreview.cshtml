@@ -1,0 +1,36 @@
+@model PROmaderas.UI.Services.MailMessage
+@{
+    ViewData["Title"] = "Vista previa del correo";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h2>Vista previa del correo</h2>
+            <p class="text-muted mb-0">Vista previa del correo de invitacion enviado al usuario.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a asp-action="Inbox" class="btn btn-outline-secondary">Bandeja de correo</a>
+            <a asp-action="Index" class="btn btn-outline-secondary">Usuarios</a>
+        </div>
+    </div>
+
+    <div class="card shadow-sm mb-3">
+        <div class="card-body">
+            <div class="mb-2"><strong>Para:</strong> @Model.To</div>
+            <div class="mb-2"><strong>Asunto:</strong> @Model.Subject</div>
+            <div class="mb-3"><strong>Generado:</strong> @Model.CreatedAtUtc.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</div>
+
+            <div class="alert alert-light border">
+                <div class="mb-2"><strong>Link directo de activacion:</strong></div>
+                <a href="@Model.ActionUrl" target="_blank">@Model.ActionUrl</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body bg-light">
+            @Html.Raw(Model.HtmlBody)
+        </div>
+    </div>
+</div>

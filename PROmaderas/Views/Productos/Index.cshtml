@@ -1,0 +1,203 @@
+﻿@model IEnumerable<PROmaderas.Abstracciones.Models.ProductoAD>
+
+@{
+    ViewData["Title"] = "Productos";
+}
+
+<div class="container mt-4">
+    <div class="row mb-3">
+        <div class="col">
+            <h2>Catálogo de Productos</h2>
+        </div>
+        <div class="col text-end">
+            @if (User.IsInRole("Administrador"))
+            {
+            <a asp-action="Create" class="btn btn-primary">
+                <i class="bi bi-box-seam"></i> Nuevo Producto
+            </a>
+            }
+        </div>
+    </div>
+
+    @if (TempData["Mensaje"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["Mensaje"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+   
+    <form method="get" class="row g-3 mb-4">
+        <div class="col-md-4" style="position: relative;">
+            <input type="text" id="filtroNombreInput" name="filtroNombre" class="form-control" placeholder="Buscar por nombre..." value="@ViewBag.FiltroNombre" autocomplete="off" />
+            <ul id="sugerenciasProductos" class="list-group mt-1" style="position:absolute; z-index:1000; display:none; max-height:200px; overflow:auto; width:100%;"></ul>
+        </div>
+        <div class="col-md-4">
+            <select name="categoriaId" class="form-select">
+                <option value="">Todas las categorías</option>
+                @foreach (var cat in ViewBag.Categorias)
+                {
+                    <option value="@cat.Id" selected="@(cat.Id == ViewBag.CategoriaId)">@cat.Nombre</option>
+                }
+            </select>
+        </div>
+        <div class="col-md-4">
+            <button type="submit" class="btn btn-secondary">
+                <i class="bi bi-search"></i> Filtrar
+            </button>
+            <a asp-action="Index" class="btn btn-outline-secondary">Limpiar</a>
+        </div>
+    </form>
+
+   
+    <div class="table-responsive">
+        <table class="table table-striped table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th>Imagen</th>
+                    <th>Nombre</th>
+                    <th>Categoría</th>
+                    <th>Precio</th>
+                    <th>Impuesto %</th>
+                    <th>Stock</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>
+                            <img src="@item.ImagenUrl" alt="@item.Nombre" style="width: 60px; height: 60px; object-fit: cover;" class="rounded" />
+                        </td>
+                        <td>@item.Nombre</td>
+                        <td>@item.Categoria?.Nombre</td>
+                        <td>₡@item.Precio.ToString("N2")</td>
+                        <td>@item.ImpuestoPorc%</td>
+                        <td>
+                            @if (item.Stock <= 0)
+                            {
+                                <span class="badge bg-danger">Agotado</span>
+                            }
+                            else if (item.Stock < 10)
+                            {
+                                <span class="badge bg-warning text-dark">@item.Stock</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-success">@item.Stock</span>
+                            }
+                        </td>
+                        <td>
+                            @if (item.Activo)
+                            {
+                                <span class="badge bg-success">Activo</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">Inactivo</span>
+                            }
+                        </td>
+                        <td>
+                            <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info" title="Ver detalles">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                            @if (User.IsInRole("Administrador"))
+                            {
+                            <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning" title="Editar">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            }
+                            @if (User.IsInRole("Administrador") || User.IsInRole("Operador de Planta"))
+                            {
+                            <a asp-action="AjustarStock" asp-route-id="@item.Id" class="btn btn-sm btn-secondary" title="Ajustar stock">
+                                <i class="bi bi-plus-slash-minus"></i>
+                            </a>
+                            }
+                            @if (User.IsInRole("Administrador"))
+                            {
+                            <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger" title="Eliminar">
+                                <i class="bi bi-trash"></i>
+                            </a>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    @if (Model == null || !Model.Any())
+    {
+        <div class="alert alert-info text-center">
+            No se encontraron productos.
+        </div>
+    }
+
+    
+    @if (ViewBag.TotalPaginas > 1)
+    {
+        <nav aria-label="Paginación de productos">
+            <ul class="pagination justify-content-center">
+                @for (int i = 1; i <= ViewBag.TotalPaginas; i++)
+                {
+                    <li class="page-item @(i == ViewBag.PaginaActual ? "active" : "")">
+                        <a class="page-link" asp-action="Index" asp-route-pagina="@i" asp-route-filtroNombre="@ViewBag.FiltroNombre" asp-route-categoriaId="@ViewBag.CategoriaId">
+                            @i
+                        </a>
+                    </li>
+                }
+            </ul>
+        </nav>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        $(function () {
+            var debounceTimer = null;
+            var $input = $('#filtroNombreInput');
+            var $sugerencias = $('#sugerenciasProductos');
+            var $form = $input.closest('form');
+
+            $input.on('input', function () {
+                var q = $(this).val().trim();
+                clearTimeout(debounceTimer);
+                if (q.length < 2) { $sugerencias.hide().empty(); return; }
+
+                debounceTimer = setTimeout(function () {
+                    $.get('/api/productos/buscar', { q: q }, function (data) {
+                        $sugerencias.empty();
+                        if (!data || data.length === 0) { $sugerencias.hide(); return; }
+                        data.forEach(function (p) {
+                            var $li = $('<li class="list-group-item list-group-item-action" style="cursor:pointer;"></li>').text(p.nombre);
+                            $li.on('click', function () {
+                                $input.val(p.nombre);
+                                $sugerencias.hide().empty();
+                                $form.submit();
+                            });
+                            $sugerencias.append($li);
+                        });
+                        $sugerencias.show();
+                    }).fail(function () { $sugerencias.hide(); });
+                }, 250);
+            });
+
+            $(document).on('click', function (e) {
+                if (!$(e.target).closest('#sugerenciasProductos, #filtroNombreInput').length) {
+                    $sugerencias.hide();
+                }
+            });
+        });
+    </script>
+}

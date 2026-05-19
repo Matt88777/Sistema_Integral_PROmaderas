@@ -1,0 +1,37 @@
+﻿@model PROmaderas.Abstracciones.Models.FacturacionAD
+
+<h2>Crear Factura</h2>
+
+<form asp-action="Create">
+    <div class="form-group">
+        <label>Cliente ID</label>
+        <input asp-for="ClienteId" class="form-control" />
+    </div>
+
+    <div class="form-group">
+        <label>Pedido ID</label>
+        <input asp-for="PedidoId" class="form-control" />
+    </div>
+
+    <div class="form-group">
+        <label>Subtotal</label>
+        <input asp-for="Subtotal" class="form-control" />
+    </div>
+
+    <div class="form-group">
+        <label>Impuestos</label>
+        <input asp-for="Impuestos" class="form-control" />
+    </div>
+
+    <div class="form-group">
+        <label>Total</label>
+        <input asp-for="Total" class="form-control" />
+    </div>
+
+    <div class="form-group">
+        <label>Método de Pago</label>
+        <input asp-for="MetodoPago" class="form-control" />
+    </div>
+
+    <button type="submit" class="btn btn-success">Guardar</button>
+</form>

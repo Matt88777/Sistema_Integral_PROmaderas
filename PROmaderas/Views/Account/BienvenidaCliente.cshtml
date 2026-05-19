@@ -1,0 +1,33 @@
+﻿@{
+    ViewData["Title"] = "Bienvenido";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow rounded-4">
+                <div class="card-body text-center p-5">
+                    <h1 class="mb-4">¡Bienvenido a PROmaderas!</h1>
+
+                    <p class="lead">
+                        Tu cuenta de cliente está activa.
+                    </p>
+
+                    <p>
+                        Desde aquí puedes consultar y actualizar tu información personal.
+                    </p>
+
+                    <div class="mt-4 d-flex justify-content-center gap-2">
+                        <a asp-controller="Account" asp-action="MiPerfil" class="btn btn-primary">
+                            Ver / Editar mi perfil
+                        </a>
+
+                        <a asp-controller="Account" asp-action="EliminarCuenta" class="btn btn-outline-danger">
+                            Eliminar cuenta
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

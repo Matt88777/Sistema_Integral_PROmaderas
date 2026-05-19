@@ -1,0 +1,12 @@
+﻿@model PROmaderas.Abstracciones.Models.PlanillaAD
+
+<h2>Agregar Empleado</h2>
+
+<form asp-action="Create">
+    <input asp-for="NombreEmpleado" class="form-control" placeholder="Nombre" />
+    <input asp-for="Cedula" class="form-control" placeholder="Cédula" />
+    <input asp-for="Puesto" class="form-control" placeholder="Puesto" />
+    <input asp-for="SalarioBase" class="form-control" placeholder="Salario Base" />
+
+    <button type="submit" class="btn btn-success">Guardar</button>
+</form>

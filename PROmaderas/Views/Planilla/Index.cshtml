@@ -1,0 +1,35 @@
+﻿@model IEnumerable<PROmaderas.Abstracciones.Models.PlanillaAD>
+
+<h2>Planilla</h2>
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">Nuevo Empleado</a>
+</p>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Nombre</th>
+            <th>Cédula</th>
+            <th>Puesto</th>
+            <th>Salario Neto</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.NombreEmpleado</td>
+                <td>@item.Cedula</td>
+                <td>@item.Puesto</td>
+                <td>@item.SalarioNeto</td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@item.Id">Editar</a> |
+                    <a asp-action="Details" asp-route-id="@item.Id">Detalle</a> |
+                    <a asp-action="Delete" asp-route-id="@item.Id">Eliminar</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

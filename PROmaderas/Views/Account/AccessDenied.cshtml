@@ -1,0 +1,114 @@
+@{
+    ViewData["Title"] = "Acceso Denegado";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 text-center">
+            <div class="access-denied-template">
+                <h1 class="display-4 text-warning">
+                    <i class="bi bi-shield-exclamation"></i>
+                </h1>
+                <h2 class="mb-4">Acceso Denegado</h2>
+                <p class="lead text-muted mb-4">
+                    No tienes permisos suficientes para acceder a esta página.
+                </p>
+                
+                <div class="alert alert-warning" role="alert">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    <strong>Sin Permisos:</strong> Esta funcionalidad requiere privilegios especiales que tu cuenta actual no posee.
+                </div>
+                
+                <div class="access-denied-actions">
+                    <div class="row">
+                        <div class="col-md-6">
+                            @if (User.IsInRole("Administrador"))
+                            {
+                                <a asp-controller="Productos" asp-action="Index" class="btn btn-primary btn-lg">
+                                    <i class="bi bi-house-door"></i> Ir al Inicio
+                                </a>
+                            }
+                            else if (User.IsInRole("Vendedor"))
+                            {
+                                <a asp-controller="Pedidos" asp-action="Index" class="btn btn-primary btn-lg">
+                                    <i class="bi bi-house-door"></i> Ir al Inicio
+                                </a>
+                            }
+                            else if (User.IsInRole("Operador de Planta"))
+                            {
+                                <a asp-controller="Productos" asp-action="Index" class="btn btn-primary btn-lg">
+                                    <i class="bi bi-house-door"></i> Ir al Inicio
+                                </a>
+                            }
+                            else if (User.IsInRole("Cliente"))
+                            {
+                                @* Rol "Cliente" eliminado en Sprint 0 — bloque inalcanzable *@
+                                <a asp-controller="Account" asp-action="BienvenidaCliente" class="btn btn-primary btn-lg">
+                                    <i class="bi bi-house-door"></i> Ir al Inicio
+                                </a>
+                            }
+                            else
+                            {
+                                <a asp-controller="Account" asp-action="Login" class="btn btn-primary btn-lg">
+                                    <i class="bi bi-house-door"></i> Ir al Inicio
+                                </a>
+                            }
+                        </div>
+                        <div class="col-md-6">
+                            <a href="javascript:history.back()" class="btn btn-secondary btn-lg">
+                                <i class="bi bi-arrow-left"></i> Volver Atrás
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-5">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Información de tu cuenta</h5>
+                            <p class="card-text text-muted">
+                                Estás conectado como: <strong>@User.Identity?.Name</strong><br>
+                                @if (User.IsInRole("Administrador"))
+                                {
+                                    <span class="badge bg-danger">Administrador</span>
+                                }
+                                else if (User.IsInRole("Gerente"))
+                                {
+                                    <span class="badge bg-primary">Gerente</span>
+                                }
+                                else if (User.IsInRole("Contador"))
+                                {
+                                    <span class="badge bg-warning text-dark">Contador</span>
+                                }
+                                else if (User.IsInRole("Vendedor"))
+                                {
+                                    <span class="badge bg-info">Vendedor</span>
+                                }
+                                else if (User.IsInRole("Operador de Planta"))
+                                {
+                                    <span class="badge bg-success">Operador de Planta</span>
+                                }
+                            </p>
+                            <small class="text-muted">
+                                Si crees que deberías tener acceso a esta función, contacta al administrador del sistema.
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .access-denied-template {
+        padding: 40px 15px;
+    }
+    .access-denied-actions {
+        margin-top: 15px;
+        margin-bottom: 15px;
+    }
+    .access-denied-actions .btn {
+        margin: 5px;
+    }
+</style>

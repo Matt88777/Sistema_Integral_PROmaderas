@@ -1,0 +1,144 @@
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using PROmaderas.Abstracciones.LogicaDeNegocio;
+using PROmaderas.Abstracciones.Models;
+using PROmaderas.UI.Seguridad;
+
+namespace PROmaderas.UI.Controllers
+{
+	[Authorize(Roles = Roles.Administrador + "," + Roles.Vendedor)]
+	public class ClientesController : Controller
+	{
+		private readonly IClienteLogica _clienteLogica;
+
+		public ClientesController(IClienteLogica clienteLogica)
+		{
+			_clienteLogica = clienteLogica;
+		}
+
+		public async Task<IActionResult> Index(string? filtroNombre, int pagina = 1)
+		{
+			int registrosPorPagina = 10;
+
+			var (clientes, totalRegistros) = await _clienteLogica.ObtenerPaginado(
+				pagina,
+				registrosPorPagina,
+				filtroNombre);
+
+			ViewBag.FiltroNombre = filtroNombre;
+			ViewBag.PaginaActual = pagina;
+			ViewBag.TotalPaginas = (int)Math.Ceiling(totalRegistros / (double)registrosPorPagina);
+
+			return View(clientes);
+		}
+
+		public async Task<IActionResult> Details(int? id)
+		{
+			if (id == null)
+				return NotFound();
+
+			var cliente = await _clienteLogica.ObtenerPorId(id.Value);
+			if (cliente == null)
+				return NotFound();
+
+			return View(cliente);
+		}
+
+		public IActionResult Create()
+		{
+			return View();
+		}
+
+		[HttpPost]
+		[ValidateAntiForgeryToken]
+		public async Task<IActionResult> Create(ClienteAD cliente)
+		{
+			if (ModelState.IsValid)
+			{
+				try
+				{
+					await _clienteLogica.Crear(cliente);
+					TempData["Mensaje"] = "Cliente creado exitosamente";
+					return RedirectToAction(nameof(Index));
+				}
+				catch (Exception ex)
+				{
+					ModelState.AddModelError("", $"Error al crear el cliente: {ex.Message}");
+				}
+			}
+
+			return View(cliente);
+		}
+
+		public async Task<IActionResult> Edit(int? id)
+		{
+			if (id == null)
+				return NotFound();
+
+			var cliente = await _clienteLogica.ObtenerPorId(id.Value);
+			if (cliente == null)
+				return NotFound();
+
+			return View(cliente);
+		}
+
+		[HttpPost]
+		[ValidateAntiForgeryToken]
+		public async Task<IActionResult> Edit(int id, ClienteAD cliente)
+		{
+			if (id != cliente.Id)
+				return NotFound();
+
+			if (ModelState.IsValid)
+			{
+				try
+				{
+					await _clienteLogica.Actualizar(cliente);
+					TempData["Mensaje"] = "Cliente actualizado exitosamente";
+					return RedirectToAction(nameof(Index));
+				}
+				catch (Exception ex)
+				{
+					ModelState.AddModelError("", $"Error al actualizar el cliente: {ex.Message}");
+				}
+			}
+
+			return View(cliente);
+		}
+
+		[Authorize(Roles = Roles.Administrador)]
+		public async Task<IActionResult> Delete(int? id)
+		{
+			if (id == null)
+				return NotFound();
+
+			var cliente = await _clienteLogica.ObtenerPorId(id.Value);
+			if (cliente == null)
+				return NotFound();
+
+			return View(cliente);
+		}
+
+		[HttpPost, ActionName("Delete")]
+		[ValidateAntiForgeryToken]
+		[Authorize(Roles = Roles.Administrador)]
+		public async Task<IActionResult> DeleteConfirmed(int id)
+		{
+			try
+			{
+				await _clienteLogica.Eliminar(id);
+				TempData["Mensaje"] = "Cliente eliminado exitosamente";
+			}
+			catch (InvalidOperationException ex)
+			{
+				TempData["Error"] = ex.Message;
+			}
+			catch (Exception)
+			{
+				TempData["Error"] = "Ocurrió un error al intentar eliminar el cliente.";
+			}
+
+			return RedirectToAction(nameof(Index));
+		}
+	}
+}

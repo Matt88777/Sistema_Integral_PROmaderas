@@ -1,0 +1,13 @@
+﻿@model PROmaderas.Abstracciones.Models.PlanillaAD
+
+<h2>Editar Empleado</h2>
+
+<form asp-action="Edit">
+    <input type="hidden" asp-for="Id" />
+
+    <input asp-for="NombreEmpleado" class="form-control" />
+    <input asp-for="Puesto" class="form-control" />
+    <input asp-for="SalarioBase" class="form-control" />
+
+    <button type="submit" class="btn btn-primary">Actualizar</button>
+</form>

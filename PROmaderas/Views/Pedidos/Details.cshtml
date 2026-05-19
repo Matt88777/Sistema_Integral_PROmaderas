@@ -1,0 +1,120 @@
+﻿@model PROmaderas.Abstracciones.Models.PedidoAD
+
+@{
+    ViewData["Title"] = "Detalle del Pedido";
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-10 offset-md-1">
+            <h2>Detalle del Pedido #@Model.Id</h2>
+            <hr />
+
+            @if (TempData["Mensaje"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    @TempData["Mensaje"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="row mb-2">
+                        <div class="col-md-6">
+                            <strong>Cliente:</strong> @Model.Cliente?.Nombre
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Cédula:</strong> @Model.Cliente?.Cedula
+                        </div>
+                    </div>
+
+                    <div class="row mb-2">
+                        <div class="col-md-6">
+                            <strong>Fecha:</strong> @Model.Fecha.ToString("dd/MM/yyyy HH:mm")
+                        </div>
+                        <div class="col-md-6">
+                            <!--  con esto pude lograr que en detalle se viera el usuario , admin ,ventas ...-->
+                            <strong>Usuario:</strong> @ViewBag.EmailUsuario 
+                        </div>
+                    </div>
+
+                    <div class="row mb-2">
+                        <div class="col-md-6">
+                            <strong>Estado:</strong> @Model.Estado
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <a asp-action="ExportarPdf" asp-route-id="@Model.Id" class="btn btn-danger">
+                    Exportar PDF
+                </a>
+                <a asp-action="ExportarExcel" asp-route-id="@Model.Id" class="btn btn-success">
+                    Exportar Excel
+                </a>
+            </div>
+
+            <h4>Productos del pedido</h4>
+            <table class="table table-bordered table-striped">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Producto</th>
+                        <th>Precio Unitario</th>
+                        <th>Cantidad</th>
+                        <th>Descuento</th>
+                        <th>Impuesto %</th>
+                        <th>Total Línea</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Detalles != null && Model.Detalles.Any())
+                    {
+                        @foreach (var item in Model.Detalles)
+                        {
+                            <tr>
+                                <td>@item.Producto?.Nombre</td>
+                                <td>@item.PrecioUnit.ToString("N2")</td>
+                                <td>@item.Cantidad</td>
+                                <td>@item.Descuento.ToString("N2")</td>
+                                <td>@item.ImpuestoPorc.ToString("N2")</td>
+                                <td>@item.TotalLinea.ToString("N2")</td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="6" class="text-center">Este pedido no tiene detalles.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+
+            <div class="row mt-4">
+                <div class="col-md-6 offset-md-6">
+                    <table class="table table-bordered">
+                        <tr>
+                            <th>Subtotal</th>
+                            <td>@Model.Subtotal.ToString("N2")</td>
+                        </tr>
+                        <tr>
+                            <th>Impuestos</th>
+                            <td>@Model.Impuestos.ToString("N2")</td>
+                        </tr>
+                        <tr class="table-success">
+                            <th>Total</th>
+                            <td><strong>@Model.Total.ToString("N2")</strong></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <div class="mt-3">
+                <a asp-controller="Pedidos" asp-action="Create" class="btn btn-primary">Nuevo Pedido</a>
+                <a asp-controller="Pedidos" asp-action="Index" class="btn btn-secondary">Volver</a>
+            </div>
+        </div>
+    </div>
+</div>

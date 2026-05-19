@@ -1,0 +1,56 @@
+@model PROmaderas.Abstracciones.Models.ClienteAD
+
+@{
+    ViewData["Title"] = "Detalles del Cliente";
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <h2>Detalles del Cliente</h2>
+            <hr />
+
+            <dl class="row">
+                <dt class="col-sm-3">@Html.DisplayNameFor(model => model.Nombre)</dt>
+                <dd class="col-sm-9">@Model.Nombre</dd>
+
+                <dt class="col-sm-3">@Html.DisplayNameFor(model => model.Cedula)</dt>
+                <dd class="col-sm-9">@Model.Cedula</dd>
+
+                <dt class="col-sm-3">@Html.DisplayNameFor(model => model.Correo)</dt>
+                <dd class="col-sm-9">
+                    <a href="mailto:@Model.Correo">@Model.Correo</a>
+                </dd>
+
+                <dt class="col-sm-3">@Html.DisplayNameFor(model => model.Telefono)</dt>
+                <dd class="col-sm-9">
+                    @if (string.IsNullOrEmpty(Model.Telefono))
+                    {
+                        <span class="text-muted">No especificado</span>
+                    }
+                    else
+                    {
+                        @Model.Telefono
+                    }
+                </dd>
+
+                <dt class="col-sm-3">@Html.DisplayNameFor(model => model.Direccion)</dt>
+                <dd class="col-sm-9">
+                    @if (string.IsNullOrEmpty(Model.Direccion))
+                    {
+                        <span class="text-muted">No especificada</span>
+                    }
+                    else
+                    {
+                        @Model.Direccion
+                    }
+                </dd>
+            </dl>
+
+            <div class="mt-4">
+                <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">Editar</a>
+                <a asp-action="Index" class="btn btn-secondary">Volver al listado</a>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,35 @@
+@model IReadOnlyList<PROmaderas.UI.Services.MailMessage>
+@{
+    ViewData["Title"] = "Correos";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h2>Correos</h2>
+            <p class="text-muted mb-0">Revisa las invitaciones y enlaces de activacion enviados a los usuarios.</p>
+        </div>
+        <a asp-action="Index" class="btn btn-outline-secondary">Volver a usuarios</a>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info">Todavia no se han generado correos.</div>
+    }
+    else
+    {
+        <div class="list-group shadow-sm">
+            @foreach (var mail in Model)
+            {
+                <a asp-action="EmailPreview" asp-route-id="@mail.Id" class="list-group-item list-group-item-action">
+                    <div class="d-flex w-100 justify-content-between">
+                        <h5 class="mb-1">@mail.Subject</h5>
+                        <small>@mail.CreatedAtUtc.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</small>
+                    </div>
+                    <p class="mb-1">Para: @mail.To</p>
+                    <small class="text-muted">Abrir vista previa del correo</small>
+                </a>
+            }
+        </div>
+    }
+</div>

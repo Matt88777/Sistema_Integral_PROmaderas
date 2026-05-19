@@ -1,0 +1,12 @@
+﻿@model PROmaderas.Abstracciones.Models.FacturacionAD
+
+<h2>Detalle de Factura</h2>
+
+<div>
+    <p><strong>Cliente:</strong> @Model.ClienteId</p>
+    <p><strong>Pedido:</strong> @Model.PedidoId</p>
+    <p><strong>Total:</strong> @Model.Total</p>
+    <p><strong>Estado:</strong> @Model.Estado</p>
+</div>
+
+<a asp-action="Index">Volver</a>

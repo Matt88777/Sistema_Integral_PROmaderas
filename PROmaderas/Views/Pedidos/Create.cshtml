@@ -1,0 +1,245 @@
+@{
+    ViewData["Title"] = "Crear Pedido";
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-10 offset-md-1">
+            <h2>Crear Pedido</h2>
+            <hr />
+
+            <div class="mb-3">
+                <label for="clienteSelect" class="form-label">Seleccionar Cliente</label>
+                <select id="clienteSelect" class="form-select">
+                    <option value="">Seleccione un cliente </option>
+                    @foreach (var c in ViewBag.Clientes)
+                    {
+                        <option value="@c.Id">@c.Nombre (@c.Cedula)</option>
+                    }
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label for="productoSearch" class="form-label">Buscar producto</label>
+                <input id="productoSearch" class="form-control" placeholder="Escribe nombre o código" autocomplete="off" />
+                <ul id="sugerencias" class="list-group mt-1" style="position: absolute; z-index:1000; display:none; max-height:200px; overflow:auto;"></ul>
+            </div>
+
+            <div class="mb-3">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Producto</th>
+                            <th>Precio</th>
+                            <th>Cantidad</th>
+                            <th>Descuento</th>
+                            <th>Tipo</th>
+                            <th>Subtotal</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="lineasBody">
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <button id="btnAgregarProducto" class="btn btn-secondary" disabled>Añadir producto seleccionado</button>
+                </div>
+                <div class="col-md-6 text-end">
+                    <p>Subtotal: <strong id="txtSubtotal">0.00</strong></p>
+                    <p>Impuestos: <strong id="txtImpuestos">0.00</strong></p>
+                    <p>Total: <strong id="txtTotal">0.00</strong></p>
+                    <button id="btnCrearPedido" class="btn btn-primary" disabled>Confirmar Pedido</button>
+                    <a href="@Url.Action("Index", "Pedidos")" class="btn btn-secondary ms-2">Cancelar</a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        
+        var productoSeleccionado = null; 
+        var lineas = [];
+
+        
+        $(function () {
+            var $search = $("#productoSearch");
+            var $sugerencias = $("#sugerencias");
+            var debounceTimer = null;
+
+            $search.on('input', function () {
+                var q = $(this).val();
+                if (debounceTimer) clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(function () {
+                    if (!q || q.length < 2) { $sugerencias.hide(); return; }
+                    buscarProductos(q, function (data) {
+                        $sugerencias.empty();
+                        if (!data || data.length === 0) { $sugerencias.hide(); return; }
+                        data.forEach(function (p) {
+                            var $li = $("<li class='list-group-item list-group-item-action' style='cursor:pointer;'></li>");
+                            $li.text(p.nombre + " (" + p.precio.toFixed(2) + ") - stock: " + p.stock);
+                            $li.data('producto', p);
+                            $li.on('click', function () {
+                                productoSeleccionado = $(this).data('producto');
+                                $("#productoSearch").val(productoSeleccionado.nombre + " - " + productoSeleccionado.precio.toFixed(2));
+                                $sugerencias.hide();
+                                $("#btnAgregarProducto").prop('disabled', false);
+                            });
+                            $sugerencias.append($li);
+                        });
+                        $sugerencias.show();
+                    }, function () { $sugerencias.hide(); });
+                }, 250);
+            });
+
+            $(document).on('click', function (e) {
+                if (!$(e.target).closest('#sugerencias, #productoSearch').length) {
+                    $sugerencias.hide();
+                }
+            });
+
+            
+            $("#btnAgregarProducto").on('click', function () {
+                if (!productoSeleccionado) return;
+                addLinea(productoSeleccionado);
+                productoSeleccionado = null;
+                $("#productoSearch").val('');
+                $(this).prop('disabled', true);
+                recacularTotales();
+                checkHabilitarCrear();
+            });
+
+           
+            $("#btnCrearPedido").on('click', function () {
+                var clienteId = parseInt($("#clienteSelect").val());
+                if (!clienteId) { alert('Seleccione un cliente'); return; }
+                if (lineas.length === 0) { alert('Agregue al menos un producto'); return; }
+
+                
+                var payloadLineas = lineas.map(function (l) {
+                    return {
+                        productoId: l.productoId,
+                        cantidad: l.cantidad,
+                        descuento: l.descuento,
+                        descuentoTipo: l.descuentoTipo
+                    };
+                });
+
+                crearPedido(clienteId, payloadLineas, function (res) {
+                    window.location.href = '/Pedidos/PedidoCreadoExitoso/' + res.pedidoId;
+                }, function (err) {
+                    var msg = 'Error creando pedido';
+                    if (err && err.responseJSON && err.responseJSON.error) msg = err.responseJSON.error;
+                    alert(msg);
+                });
+            });
+        });
+
+        function addLinea(p) {
+            var nueva = {
+                productoId: p.id,
+                nombre: p.nombre,
+                precio: p.precio,
+                impuesto: p.impuesto,
+                stock: p.stock,
+                cantidad: 1,
+                descuento: 0,
+                descuentoTipo: 'porc'
+            };
+            lineas.push(nueva);
+            renderLineas();
+        }
+
+        function renderLineas() {
+            var $body = $("#lineasBody");
+            $body.empty();
+            lineas.forEach(function (l, idx) {
+                var $tr = $("<tr></tr>");
+                $tr.append('<td>' + l.nombre + '</td>');
+                $tr.append('<td>' + l.precio.toFixed(2) + '</td>');
+                $tr.append('<td><input type="number" min="1" value="' + l.cantidad + '" class="form-control cantidad-input" data-idx="' + idx + '"></td>');
+                $tr.append('<td><input type="number" min="0" step="0.01" value="' + l.descuento + '" class="form-control descuento-input" data-idx="' + idx + '"></td>');
+                $tr.append('<td><select class="form-select tipo-input" data-idx="' + idx + '"><option value="porc"' + (l.descuentoTipo==='porc'?' selected':'') + '>Porcentaje</option><option value="fijo"' + (l.descuentoTipo==='fijo'?' selected':'') + '>Fijo</option></select></td>');
+                $tr.append('<td class="subtotal-linea">0.00</td>');
+                $tr.append('<td><button class="btn btn-sm btn-danger btn-eliminar" data-idx="' + idx + '">Eliminar</button></td>');
+                $body.append($tr);
+            });
+
+            $(".cantidad-input").on('change', function () {
+                var idx = $(this).data('idx');
+                var val = parseInt($(this).val());
+                if (isNaN(val) || val < 1) val = 1;
+                if (val > lineas[idx].stock) { alert('Cantidad mayor al stock disponible'); val = lineas[idx].stock; }
+                lineas[idx].cantidad = val;
+                recacularTotales();
+            });
+            $(".descuento-input").on('change', function () {
+                var idx = $(this).data('idx');
+                var val = parseFloat($(this).val());
+                if (isNaN(val) || val < 0) val = 0;
+                lineas[idx].descuento = val;
+                recacularTotales();
+            });
+            $(".tipo-input").on('change', function () {
+                var idx = $(this).data('idx');
+                lineas[idx].descuentoTipo = $(this).val();
+                recacularTotales();
+            });
+            $(".btn-eliminar").on('click', function () {
+                var idx = $(this).data('idx');
+                lineas.splice(idx, 1);
+                renderLineas();
+                recacularTotales();
+                checkHabilitarCrear();
+            });
+
+            recacularTotales();
+            checkHabilitarCrear();
+        }
+
+        function recacularTotales() {
+            if (lineas.length === 0) {
+                $("#txtSubtotal").text('0.00');
+                $("#txtImpuestos").text('0.00');
+                $("#txtTotal").text('0.00');
+                return;
+            }
+
+            var payload = lineas.map(function (l) {
+                return { productoId: l.productoId, cantidad: l.cantidad, descuento: l.descuento, descuentoTipo: l.descuentoTipo };
+            });
+
+            calcularPedido(payload, function (res) {
+                $("#txtSubtotal").text(res.subtotal.toFixed(2));
+                $("#txtImpuestos").text(res.impuestos.toFixed(2));
+                $("#txtTotal").text(res.total.toFixed(2));
+
+                
+                $('#lineasBody tr').each(function (i, tr) {
+                    var l = lineas[i];
+                    var importe = l.precio * l.cantidad;
+                    var descuentoAmount = 0;
+                    if (l.descuentoTipo === 'porc') descuentoAmount = importe * (l.descuento / 100);
+                    else descuentoAmount = l.descuento;
+                    var baseGravable = importe - descuentoAmount;
+                    var impuestoLinea = baseGravable * (l.impuesto / 100);
+                    var totalLinea = baseGravable + impuestoLinea;
+                    $(tr).find('.subtotal-linea').text(totalLinea.toFixed(2));
+                });
+            }, function (err) {
+                console.error(err);
+            });
+        }
+
+        function checkHabilitarCrear() {
+            var clienteId = parseInt($("#clienteSelect").val());
+            $("#btnCrearPedido").prop('disabled', !(clienteId && lineas.length > 0));
+        }
+
+    </script>
+}
