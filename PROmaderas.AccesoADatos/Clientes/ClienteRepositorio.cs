@@ -23,14 +23,14 @@ namespace PROmaderas.AccesoADatos.Clientes
 			return await _contexto.Clientes.FindAsync(id);
 		}
 
-		public async Task<ClienteAD> Crear(ClienteAD cliente)
-		{
-			_contexto.Clientes.Add(cliente);
-			await _contexto.SaveChangesAsync();
-			return cliente;
-		}
+        public async Task<ClienteAD> Crear(ClienteAD cliente)
+        {
+            _contexto.Clientes.Add(cliente);
+            await _contexto.SaveChangesAsync();
+            return cliente;
+        }
 
-		public async Task<ClienteAD> Actualizar(ClienteAD cliente)
+        public async Task<ClienteAD> Actualizar(ClienteAD cliente)
 		{
 			_contexto.Clientes.Update(cliente);
 			await _contexto.SaveChangesAsync();
@@ -86,5 +86,6 @@ namespace PROmaderas.AccesoADatos.Clientes
 
 			return (clientes, totalRegistros);
 		}
+
 	}
 }

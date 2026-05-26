@@ -64,14 +64,20 @@ namespace PROmaderas.AccesoADatos
 				e.Property(x => x.Correo).HasColumnName("Correo");
 				e.Property(x => x.Telefono).HasColumnName("Telefono");
 				e.Property(x => x.Direccion).HasColumnName("Direccion");
-				e.Ignore(x => x.UsuarioIdentityId);
-			});
+                e.Property(x => x.CondicionPago).HasColumnName("CondicionPago");
+                e.Property(x => x.Exonerado).HasColumnName("Exonerado");
+                e.Property(x => x.PorcentajeExoneracion).HasColumnName("PorcentajeExoneracion");
+                e.Property(x => x.Estado).HasColumnName("Estado");
+                e.Property(x => x.FechaCreacion).HasColumnName("FechaCreacion");
+                e.Ignore(x => x.UsuarioIdentityId);
+            });
 
-			// PedidoAD -> OrdenCompra
-			// La BD requiere NumeroOrden e IdVendedor (NOT NULL) que el modelo no
-			// tiene -> solo lectura/listado en Sprint 0; el Create del controller
-			// queda en construcción.
-			modelBuilder.Entity<PedidoAD>(e =>
+
+            // PedidoAD -> OrdenCompra
+            // La BD requiere NumeroOrden e IdVendedor (NOT NULL) que el modelo no
+            // tiene -> solo lectura/listado en Sprint 0; el Create del controller
+            // queda en construcción.
+            modelBuilder.Entity<PedidoAD>(e =>
 			{
 				e.ToTable("OrdenCompra");
 				e.HasKey(x => x.Id);
