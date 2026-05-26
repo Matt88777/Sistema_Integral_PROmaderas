@@ -4,11 +4,11 @@ using PROmaderas.Abstracciones.Models;
 
 namespace PROmaderas.AccesoADatos.Clientes
 {
-	public class ClienteRepositorio : IClienteRepositorio
+	public class EmpleadoRepositorio : IClienteRepositorio
 	{
 		private readonly Contexto _contexto;
 
-		public ClienteRepositorio(Contexto contexto)
+		public EmpleadoRepositorio(Contexto contexto)
 		{
 			_contexto = contexto;
 		}

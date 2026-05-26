@@ -13,6 +13,13 @@ using PROmaderas.LogicaDeNegocio.Productos;
 using PROmaderas.LogicaDeNegocio.Clientes;
 using QuestPDF.Infrastructure;
 using PROmaderas.UI.Services;
+using PROmaderas.AccesoADatos.Empleados;
+
+
+
+{
+
+}
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -45,12 +52,17 @@ builder.Services.AddDbContext<Contexto>(options =>
 
 builder.Services.AddScoped<ICategoriaRepositorio, CategoriaRepositorio>();
 builder.Services.AddScoped<IProductoRepositorio, ProductoRepositorio>();
-builder.Services.AddScoped<IClienteRepositorio, ClienteRepositorio>();
-
 builder.Services.AddScoped<ICategoriaLogica, CategoriaLogica>();
 builder.Services.AddScoped<IProductoLogica, ProductoLogica>();
-builder.Services.AddScoped<IClienteLogica, ClienteLogica>();
+builder.Services.AddScoped<PROmaderas.AccesoADatos.Empleados.EmpleadoRepositorio>();
 builder.Services.AddSingleton<IMailStore, InMemoryMailStore>();
+
+builder.Services.AddScoped<IClienteRepositorio, PROmaderas.AccesoADatos.Clientes.EmpleadoRepositorio>();
+
+builder.Services.AddScoped<IClienteLogica, EmpleadosLogica>();
+
+builder.Services.AddScoped<PROmaderas.AccesoADatos.Empleados.EmpleadoRepositorio>();
+
 
 QuestPDF.Settings.License = LicenseType.Community;
 var app = builder.Build();

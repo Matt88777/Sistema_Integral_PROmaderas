@@ -1,0 +1,64 @@
+@using PROmaderas.Abstracciones
+@model List<EmpleadoAD>
+
+@{
+    ViewData["Title"] = "Empleados";
+}
+
+<div class="container mt-4">
+
+    <h2>Lista de Empleados</h2>
+
+    <a asp-action="Create" class="btn btn-primary mb-3">
+        Nuevo Empleado
+    </a>
+
+    <form method="get" asp-action="Index" class="mb-3">
+        <div class="row">
+            <div class="col-md-4">
+                <input type="text" name="filtro" class="form-control"
+                       placeholder="Buscar por nombre o cédula" />
+            </div>
+            <div class="col-md-4">
+                <input type="text" name="departamento" class="form-control"
+                       placeholder="Buscar por departamento" />
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary">Buscar</button>
+            </div>
+        </div>
+    </form>
+
+    <table class="table table-bordered table-striped">
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Cédula</th>
+                <th>Teléfono</th>
+                <th>Correo</th>
+                <th>Departamento</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@item.Nombre</td>
+                    <td>@item.Cedula</td>
+                    <td>@item.Telefono</td>
+                    <td>@item.Correo</td>
+                    <td>@(item.Departamento ?? "Sin asignar")</td>
+                    <td>
+                        <a asp-action="Edit" asp-route-id="@item.IdEmpleado"
+                           class="btn btn-sm btn-warning">Editar</a>
+
+                        <a asp-action="Delete" asp-route-id="@item.IdEmpleado"
+                           class="btn btn-sm btn-info">Eliminar</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+</div>

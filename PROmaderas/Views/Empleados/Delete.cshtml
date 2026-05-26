@@ -1,0 +1,45 @@
+@using PROmaderas.Abstracciones
+@model EmpleadoAD
+
+@{
+    ViewData["Title"] = "Eliminar Empleado";
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-6 offset-md-3">
+
+            <h2>Eliminar Empleado</h2>
+            <hr />
+
+            <div class="alert alert-warning">
+                ¿Está seguro que desea eliminar este empleado?
+            </div>
+
+            <dl class="row">
+                <dt class="col-sm-4">Nombre</dt>
+                <dd class="col-sm-8">@Model.Nombre</dd>
+
+                <dt class="col-sm-4">Cédula</dt>
+                <dd class="col-sm-8">@Model.Cedula</dd>
+
+                <dt class="col-sm-4">Departamento</dt>
+                <dd class="col-sm-8">@Model.Departamento</dd>
+            </dl>
+
+            <form asp-action="Delete" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="IdEmpleado" />
+
+                <button type="submit" class="btn btn-danger">
+                    Sí, eliminar
+                </button>
+
+                <a asp-action="Index" class="btn btn-secondary">
+                    Cancelar
+                </a>
+            </form>
+
+        </div>
+    </div>
+</div>

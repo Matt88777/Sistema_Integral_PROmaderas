@@ -4,11 +4,11 @@ using PROmaderas.Abstracciones.Models;
 
 namespace PROmaderas.LogicaDeNegocio.Clientes
 {
-	public class ClienteLogica : IClienteLogica
+	public class EmpleadosLogica : IClienteLogica
 	{
 		private readonly IClienteRepositorio _repositorio;
 
-		public ClienteLogica(IClienteRepositorio repositorio)
+		public EmpleadosLogica(IClienteRepositorio repositorio)
 		{
 			_repositorio = repositorio;
 		}

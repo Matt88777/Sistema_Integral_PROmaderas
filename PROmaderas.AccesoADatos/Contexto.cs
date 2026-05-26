@@ -15,14 +15,16 @@ namespace PROmaderas.AccesoADatos
 		public DbSet<PedidoDetalleAD> PedidoDetalles { get; set; }
 		public DbSet<FacturacionAD> Facturaciones { get; set; }
 
-		// Sprint 0 PROMADERAS:
-		// - CategoriaAD: la BD nueva no tiene tabla Categoria. El controller
-		//   de productos recibe una lista dummy en memoria. DbSet removido.
-		// - PlanillaAD: la BD nueva usa PlanillaPeriodo + PlanillaDetalle (modelo
-		//   relacional incompatible con el plano actual). DbSet removido y el
-		//   PlanillaController muestra "En construcción".
+        public DbSet<EmpleadoAD> Empleados { get; set; }
 
-		protected override void OnModelCreating(ModelBuilder modelBuilder)
+        // Sprint 0 PROMADERAS:
+        // - CategoriaAD: la BD nueva no tiene tabla Categoria. El controller
+        //   de productos recibe una lista dummy en memoria. DbSet removido.
+        // - PlanillaAD: la BD nueva usa PlanillaPeriodo + PlanillaDetalle (modelo
+        //   relacional incompatible con el plano actual). DbSet removido y el
+        //   PlanillaController muestra "En construcción".
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{
 			base.OnModelCreating(modelBuilder);
 
@@ -116,6 +118,15 @@ namespace PROmaderas.AccesoADatos
 				e.Property(x => x.Estado).HasColumnName("Estado");
 				e.Ignore(x => x.MetodoPago);
 			});
-		}
-	}
+
+            // EmpleadoAD -> Empleado
+            modelBuilder.Entity<EmpleadoAD>(e =>
+            {
+                e.ToTable("Empleado", "dbo");
+                e.HasKey(x => x.IdEmpleado);
+                e.Ignore(x => x.Puesto); // solo Puesto se ignora
+            });
+
+        }
+    }
 }

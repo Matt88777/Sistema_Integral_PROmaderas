@@ -1,0 +1,68 @@
+@using PROmaderas.Abstracciones
+@model EmpleadoAD
+
+@{
+    ViewData["Title"] = "Crear Empleado";
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+
+            <h2>Registrar Empleado</h2>
+            <hr />
+
+            <form asp-action="Create" method="post">
+
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                <div class="mb-3">
+                    <label asp-for="Nombre" class="form-label"></label>
+                    <input asp-for="Nombre" class="form-control" />
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Cedula" class="form-label"></label>
+                    <input asp-for="Cedula" class="form-control" />
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Puesto" class="form-label"></label>
+                    <input asp-for="Puesto" class="form-control" />
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Departamento" class="form-label"></label>
+                    <select asp-for="Departamento" class="form-control" required>
+                        <option value="">-- Seleccione Departamento --</option>
+                        <option value="RRHH">RRHH</option>
+                        <option value="IT">IT</option>
+                        <option value="Ventas">Ventas</option>
+                        <option value="Producción">Producción</option>
+                    </select>
+                    <span asp-validation-for="Departamento" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Telefono" class="form-label"></label>
+                    <input asp-for="Telefono" class="form-control" />
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Correo" class="form-label"></label>
+                    <input asp-for="Correo" class="form-control" />
+                </div>
+
+                <button type="submit" class="btn btn-primary">
+                    Guardar
+                </button>
+
+                <a asp-action="Index" class="btn btn-secondary">
+                    Volver
+                </a>
+
+            </form>
+
+        </div>
+    </div>
+</div>
