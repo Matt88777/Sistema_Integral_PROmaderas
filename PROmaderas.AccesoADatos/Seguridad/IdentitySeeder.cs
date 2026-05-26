@@ -57,5 +57,35 @@ namespace PROmaderas.AccesoADatos.Seguridad
 				await userManager.AddToRoleAsync(usuario, "Administrador");
 			}
 		}
-	}
+        public static async Task SeedUsuarioVendedorAsync(
+    UserManager<UsuarioIdentity> userManager,
+    IConfiguration configuracion)
+        {
+            var correo = "vendedor@PROmaderas.local";
+            var password = "Vendedor123!";
+
+            var usuario = await userManager.FindByEmailAsync(correo);
+
+            if (usuario == null)
+            {
+                usuario = new UsuarioIdentity
+                {
+                    UserName = correo,
+                    Email = correo,
+                    EmailConfirmed = true,
+                    NombreCompleto = "Vendedor Sistema"
+                };
+
+                var result = await userManager.CreateAsync(usuario, password);
+
+                if (!result.Succeeded)
+                    throw new Exception("Error creando vendedor");
+            }
+
+            if (!await userManager.IsInRoleAsync(usuario, "Vendedor"))
+            {
+                await userManager.AddToRoleAsync(usuario, "Vendedor");
+            }
+        }
+    }
 }

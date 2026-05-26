@@ -8,16 +8,22 @@
         <p>Sistema Integral de Gestión Administrativa e Inventario PROMADERAS</p>
 
         <div class="row g-4 dashboard-grid">
-            <div class="col-md-6 col-xl-3">
-                <div class="card dashboard-card h-100">
-                    <div class="card-body">
-                        <h5 class="card-title">Inventario</h5>
-                        <p class="card-text">Control de productos, existencias y movimientos.</p>
-                        <a asp-controller="Productos" asp-action="Index" class="btn btn-primary">Ir a Inventario</a>
+
+            @* Inventario: Admin, Gerente, Operador de Planta *@
+            @if (User.IsInRole("Administrador") || User.IsInRole("Gerente") || User.IsInRole("Operador de Planta"))
+            {
+                <div class="col-md-6 col-xl-3">
+                    <div class="card dashboard-card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">Inventario</h5>
+                            <p class="card-text">Control de productos, existencias y movimientos.</p>
+                            <a asp-controller="Productos" asp-action="Index" class="btn btn-primary">Ir a Inventario</a>
+                        </div>
                     </div>
                 </div>
-            </div>
+            }
 
+            @* Clientes: todos los roles *@
             <div class="col-md-6 col-xl-3">
                 <div class="card dashboard-card h-100">
                     <div class="card-body">
@@ -28,6 +34,7 @@
                 </div>
             </div>
 
+            @* Órdenes de compra: todos los roles *@
             <div class="col-md-6 col-xl-3">
                 <div class="card dashboard-card h-100">
                     <div class="card-body">
@@ -38,45 +45,62 @@
                 </div>
             </div>
 
-            <div class="col-md-6 col-xl-3">
-                <div class="card dashboard-card h-100">
-                    <div class="card-body">
-                        <h5 class="card-title">Usuarios</h5>
-                        <p class="card-text">Administración de accesos y roles.</p>
-                        <a asp-controller="AdminUsuarios" asp-action="Index" class="btn btn-primary">Ir a Usuarios</a>
+            @* Usuarios: solo Administrador *@
+            @if (User.IsInRole("Administrador"))
+            {
+                <div class="col-md-6 col-xl-3">
+                    <div class="card dashboard-card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">Usuarios</h5>
+                            <p class="card-text">Administración de accesos y roles.</p>
+                            <a asp-controller="AdminUsuarios" asp-action="Index" class="btn btn-primary">Ir a Usuarios</a>
+                        </div>
                     </div>
                 </div>
-            </div>
+            }
 
-            <div class="col-md-6 col-xl-4">
-                <div class="card h-100">
-                    <div class="card-body">
-                        <h5 class="card-title">Facturación</h5>
-                        <p class="card-text">Consulta de facturas emitidas, pendientes y vencidas.</p>
-                        <a asp-controller="Facturacion" asp-action="Index" class="btn btn-outline-primary">Ver módulo</a>
+            @* Facturación: Admin, Gerente, Contador *@
+            @if (User.IsInRole("Administrador") || User.IsInRole("Gerente") || User.IsInRole("Contador"))
+            {
+                <div class="col-md-6 col-xl-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">Facturación</h5>
+                            <p class="card-text">Consulta de facturas emitidas, pendientes y vencidas.</p>
+                            <a asp-controller="Facturacion" asp-action="Index" class="btn btn-outline-primary">Ver módulo</a>
+                        </div>
                     </div>
                 </div>
-            </div>
+            }
 
-            <div class="col-md-6 col-xl-4">
-                <div class="card h-100">
-                    <div class="card-body">
-                        <h5 class="card-title">Planilla</h5>
-                        <p class="card-text">Gestión de salarios, deducciones y pago semanal.</p>
-                        <a asp-controller="Planilla" asp-action="Index" class="btn btn-outline-primary">Ver módulo</a>
+            @* Planilla: Admin, Gerente, Contador *@
+            @if (User.IsInRole("Administrador") || User.IsInRole("Gerente") || User.IsInRole("Contador"))
+            {
+                <div class="col-md-6 col-xl-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">Planilla</h5>
+                            <p class="card-text">Gestión de salarios, deducciones y pago semanal.</p>
+                            <a asp-controller="Planilla" asp-action="Index" class="btn btn-outline-primary">Ver módulo</a>
+                        </div>
                     </div>
                 </div>
-            </div>
+            }
 
-            <div class="col-md-6 col-xl-4">
-                <div class="card h-100">
-                    <div class="card-body">
-                        <h5 class="card-title">Reportes</h5>
-                        <p class="card-text">Indicadores generales y reportes administrativos.</p>
-                        <a asp-controller="Reportes" asp-action="Index" class="btn btn-outline-primary">Ver módulo</a>
+            @* Reportes: Admin, Gerente *@
+            @if (User.IsInRole("Administrador") || User.IsInRole("Gerente"))
+            {
+                <div class="col-md-6 col-xl-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">Reportes</h5>
+                            <p class="card-text">Indicadores generales y reportes administrativos.</p>
+                            <a asp-controller="Reportes" asp-action="Index" class="btn btn-outline-primary">Ver módulo</a>
+                        </div>
                     </div>
                 </div>
-            </div>
+            }
+
         </div>
     </div>
 </div>

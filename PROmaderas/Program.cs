@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Identity;                        // <-- AGREGA ESTO
-using PROmaderas.AccesoADatos;                              // <-- YA ESTÁ
+using Microsoft.AspNetCore.Identity;                        
+using PROmaderas.AccesoADatos;                             
 using PROmaderas.AccesoADatos.Seguridad;
 using PROmaderas.AccesoADatos.Categorias;
 using PROmaderas.AccesoADatos.Productos;
@@ -94,7 +94,10 @@ using (var scope = app.Services.CreateScope())
 
 	await IdentitySeeder.SeedRolesAsync(roleManager);
 	await IdentitySeeder.SeedUsuarioAdministradorAsync(userManager, builder.Configuration);
+    await IdentitySeeder.SeedUsuarioVendedorAsync(userManager, builder.Configuration);
 }
+
+
 if (!app.Environment.IsDevelopment())
 {
 	app.UseExceptionHandler("/Error");
