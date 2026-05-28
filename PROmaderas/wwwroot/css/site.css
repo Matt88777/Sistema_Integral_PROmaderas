@@ -1,13 +1,24 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600&display=swap');
+
 :root {
-    --promaderas-primary: #1F3A5F;
-    --promaderas-secondary: #F2F2F2;
-    --promaderas-accent: #28A745;
-    --promaderas-accent-hover: #218838;
-    --promaderas-danger: #DC3545;
-    --promaderas-text: #000000;
-    --promaderas-text-soft: #555555;
-    --promaderas-white: #FFFFFF;
-    --promaderas-border: #D9D9D9;
+    --pm-navy: #0F2340;
+    --pm-navy-mid: #1A3560;
+    --pm-navy-light: #2A4A7F;
+    --pm-gold: #C9A84C;
+    --pm-gold-light: #E2C97E;
+    --pm-gold-dim: rgba(201,168,76,0.18);
+    --pm-white: #FFFFFF;
+    --pm-off-white: #F7F5F0;
+    --pm-text: #1A1A2E;
+    --pm-text-soft: #5A6070;
+    --pm-border: rgba(201,168,76,0.25);
+    --pm-glass: rgba(255,255,255,0.92);
+    --pm-shadow: 0 24px 60px rgba(10,20,40,0.22);
+    --pm-radius: 16px;
+    --pm-radius-sm: 10px;
+    --pm-accent: #2E7D52;
+    --pm-accent-h: #235F3E;
+    --pm-danger: #B03A2E;
 }
 
 /* =========================
@@ -19,8 +30,8 @@ html {
 }
 
 body {
-    font-family: Arial, sans-serif;
-    color: var(--promaderas-text);
+    font-family: 'DM Sans', sans-serif;
+    color: var(--pm-text);
     margin: 0;
     padding: 0;
 }
@@ -30,32 +41,20 @@ main {
 }
 
 a {
-    color: var(--promaderas-primary);
+    color: var(--pm-navy-light);
     text-decoration: none;
 }
 
     a:hover {
-        color: #163047;
+        color: var(--pm-gold);
     }
 
-p,
-label,
-input,
-select,
-textarea,
-table,
-span,
-li,
-td,
-th,
-small,
-.form-control,
-.form-select,
-.btn,
-.nav-link,
-.dropdown-item {
-    font-family: Arial, sans-serif;
-    color: var(--promaderas-text);
+p, label, input, select, textarea,
+table, span, li, td, th, small,
+.form-control, .form-select, .btn,
+.nav-link, .dropdown-item {
+    font-family: 'DM Sans', sans-serif;
+    color: var(--pm-text);
     font-size: 14px;
 }
 
@@ -63,30 +62,34 @@ small,
    TIPOGRAFÍA
 ========================= */
 h1, .h1 {
+    font-family: 'Playfair Display', serif;
     font-weight: 700;
-    font-size: 22px;
-    color: var(--promaderas-primary);
+    font-size: 26px;
+    color: var(--pm-navy);
     margin-bottom: 0.75rem;
+    letter-spacing: -0.3px;
 }
 
 h2, .h2 {
-    font-weight: 700;
-    font-size: 20px;
-    color: var(--promaderas-primary);
+    font-family: 'Playfair Display', serif;
+    font-weight: 600;
+    font-size: 22px;
+    color: var(--pm-navy);
     margin-bottom: 0.75rem;
 }
 
 h3, .h3 {
+    font-family: 'DM Sans', sans-serif;
     font-weight: 600;
     font-size: 18px;
-    color: var(--promaderas-primary);
+    color: var(--pm-navy);
     margin-bottom: 0.75rem;
 }
 
-h4, h5, h6,
-.h4, .h5, .h6 {
+h4, h5, h6, .h4, .h5, .h6 {
+    font-family: 'DM Sans', sans-serif;
     font-weight: 600;
-    color: var(--promaderas-primary);
+    color: var(--pm-navy);
 }
 
 /* =========================
@@ -94,199 +97,598 @@ h4, h5, h6,
 ========================= */
 .app-shell {
     min-height: 100vh;
-    background-image: linear-gradient(rgba(31, 58, 95, 0.28), rgba(31, 58, 95, 0.28)), url('/imagenes/fondos/Torres_de_tarimas.jpeg');
+    position: relative;
+    background-image: linear-gradient(160deg, rgba(8,18,40,0.84) 0%, rgba(12,26,52,0.80) 50%, rgba(8,18,40,0.86) 100%), url('/imagenes/fondos/Torres_de_tarimas.jpeg');
     background-size: cover;
-    background-position: center;
+    background-position: 50% 30%;
     background-repeat: no-repeat;
     background-attachment: fixed;
 }
 
-    .app-shell::before,
+    /* Resplandor dorado sutil en la parte superior */
+    .app-shell::before {
+        content: '';
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        background: radial-gradient(ellipse 80% 50% at 50% 0%, rgba(201,168,76,0.07) 0%, transparent 70%), radial-gradient(ellipse 50% 40% at 0% 100%, rgba(201,168,76,0.04) 0%, transparent 60%), radial-gradient(ellipse 50% 40% at 100% 100%, rgba(201,168,76,0.04) 0%, transparent 60%);
+        z-index: 0;
+    }
+
+    /* Patrón diagonal fino — textura de lujo */
     .app-shell::after {
-        display: none !important;
-        content: none !important;
+        content: '';
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        background-image: repeating-linear-gradient( -45deg, transparent, transparent 60px, rgba(201,168,76,0.018) 60px, rgba(201,168,76,0.018) 61px );
+        z-index: 0;
+    }
+
+    .app-shell > * {
+        position: relative;
+        z-index: 1;
+    }
+
+    /* El header debe estar por encima del panel de contenido */
+    .app-shell > header {
+        z-index: 100;
     }
 
 .app-content-wrap {
-    max-width: 1200px;
-    padding-top: 40px;
-    padding-bottom: 40px;
+    max-width: 1240px;
+    padding-top: 36px;
+    padding-bottom: 48px;
 }
 
 .app-content-panel {
-    background: rgba(245, 245, 245, 0.93);
+    background: rgba(8, 18, 46, 0.74);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
     border-radius: 22px;
-    padding: 28px;
-    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.18);
-    border: 1px solid rgba(255, 255, 255, 0.35);
-    backdrop-filter: blur(6px);
+    padding: 36px 40px;
+    border: 1px solid rgba(201,168,76,0.28);
+    box-shadow: 0 32px 80px rgba(0,0,0,0.50), inset 0 1px 0 rgba(255,255,255,0.07);
 }
+
+    /* Línea dorada decorativa arriba del panel */
+    .app-content-panel::before {
+        content: '';
+        display: block;
+        height: 3px;
+        background: linear-gradient(90deg, var(--pm-gold) 0%, rgba(201,168,76,0.10) 100%);
+        border-radius: 3px 3px 0 0;
+        margin: -36px -40px 28px -40px;
+    }
+
+    /* ── Texto dentro del panel oscuro ── */
+    .app-content-panel h1, .app-content-panel .h1,
+    .app-content-panel h2, .app-content-panel .h2,
+    .app-content-panel h3, .app-content-panel .h3,
+    .app-content-panel h4, .app-content-panel h5, .app-content-panel h6,
+    .app-content-panel .h4, .app-content-panel .h5, .app-content-panel .h6 {
+        color: #FFFFFF !important;
+    }
+
+    .app-content-panel p,
+    .app-content-panel label:not(.form-check-label),
+    .app-content-panel span:not(.badge):not(.navbar-brand),
+    .app-content-panel small,
+    .app-content-panel li,
+    .app-content-panel .text-muted,
+    .app-content-panel .card-text {
+        color: rgba(255,255,255,0.72) !important;
+    }
+
+    .app-content-panel a:not(.btn):not(.nav-link):not(.dropdown-item) {
+        color: var(--pm-gold-light) !important;
+    }
+
+        .app-content-panel a:not(.btn):not(.nav-link):not(.dropdown-item):hover {
+            color: var(--pm-gold) !important;
+        }
+
+    /* ── Form labels y controles ── */
+    .app-content-panel .form-label {
+        color: rgba(255,255,255,0.85) !important;
+    }
+
+    .app-content-panel .form-control,
+    .app-content-panel .form-select,
+    .app-content-panel textarea {
+        background-color: rgba(255,255,255,0.07) !important;
+        border-color: rgba(201,168,76,0.25) !important;
+        color: #FFFFFF !important;
+    }
+
+        .app-content-panel .form-control:focus,
+        .app-content-panel .form-select:focus,
+        .app-content-panel textarea:focus {
+            background-color: rgba(255,255,255,0.11) !important;
+            border-color: var(--pm-gold) !important;
+            box-shadow: 0 0 0 3px rgba(201,168,76,0.18) !important;
+            color: #FFFFFF !important;
+        }
+
+        .app-content-panel .form-control::placeholder,
+        .app-content-panel textarea::placeholder {
+            color: rgba(255,255,255,0.30) !important;
+        }
+
+    .app-content-panel .form-check-label {
+        color: rgba(255,255,255,0.80) !important;
+    }
+
+    /* ── Cards dentro del panel ── */
+    .app-content-panel .card {
+        background: rgba(255,255,255,0.06) !important;
+        border-color: rgba(201,168,76,0.18) !important;
+        box-shadow: 0 6px 24px rgba(0,0,0,0.25) !important;
+    }
+
+        .app-content-panel .card:hover {
+            box-shadow: 0 12px 36px rgba(0,0,0,0.35) !important;
+        }
+
+    .app-content-panel .card-title {
+        color: #FFFFFF !important;
+    }
+
+    .app-content-panel .card-header {
+        background: rgba(255,255,255,0.06) !important;
+        border-color: rgba(201,168,76,0.15) !important;
+    }
+
+    /* ── Tablas dentro del panel ── */
+    .app-content-panel .table {
+        background: transparent !important;
+        color: rgba(255,255,255,0.82) !important;
+    }
+
+        .app-content-panel .table thead th,
+        .app-content-panel .table-dark {
+            background: rgba(15,35,64,0.80) !important;
+            color: rgba(255,255,255,0.90) !important;
+        }
+
+        .app-content-panel .table tbody td {
+            border-color: rgba(255,255,255,0.07) !important;
+            color: rgba(255,255,255,0.80) !important;
+        }
+
+        .app-content-panel .table tbody tr:hover {
+            background: rgba(201,168,76,0.08) !important;
+        }
+
+    /* ── Badges ── */
+    .app-content-panel .badge.bg-light,
+    .app-content-panel .badge.text-dark {
+        background: rgba(255,255,255,0.15) !important;
+        color: #FFFFFF !important;
+    }
+
+    /* ── Títulos de sección / separadores ── */
+    .app-content-panel hr {
+        border-color: rgba(255,255,255,0.10) !important;
+        opacity: 1 !important;
+    }
 
 footer {
     background: transparent !important;
-    color: #FFFFFF !important;
+    color: rgba(255,255,255,0.55) !important;
     border-top: 0 !important;
     padding-bottom: 1rem;
+    font-size: 12px;
+    letter-spacing: 0.5px;
 }
 
-    footer a,
-    footer span,
-    footer div {
-        color: #FFFFFF !important;
+    footer a, footer span, footer div {
+        color: rgba(255,255,255,0.55) !important;
     }
 
 /* =========================
    NAVBAR
 ========================= */
 .promaderas-navbar,
-nav,
-.navbar,
-header {
-    background: var(--promaderas-primary) !important;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-    border: none !important;
+nav, .navbar, header {
+    background: var(--pm-navy) !important;
+    box-shadow: 0 2px 20px rgba(0,0,0,0.30);
+    border-bottom: 1px solid rgba(201,168,76,0.20) !important;
 }
 
-    .promaderas-navbar .navbar-brand,
-    .promaderas-navbar .nav-link,
-    nav .navbar-brand,
-    nav .nav-link,
-    .navbar .navbar-brand,
-    .navbar .nav-link,
-    header .navbar-brand,
-    header .nav-link {
-        color: #FFFFFF !important;
+.navbar-brand {
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+    font-size: 1.35rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--pm-white) !important;
+}
+
+    /* Acento dorado en la marca */
+    .navbar-brand::after {
+        content: '';
+        display: inline-block;
+        width: 5px;
+        height: 5px;
+        background: var(--pm-gold);
+        border-radius: 50%;
+        margin-left: 6px;
+        vertical-align: middle;
     }
 
-.navbar-brand {
-    font-weight: 700;
-    font-size: 1.5rem;
-    text-transform: uppercase;
+.promaderas-navbar .navbar-brand,
+.promaderas-navbar .nav-link,
+nav .navbar-brand, nav .nav-link,
+.navbar .navbar-brand, .navbar .nav-link,
+header .navbar-brand, header .nav-link {
+    color: rgba(255,255,255,0.85) !important;
 }
 
 .navbar .nav-link {
-    font-weight: 700;
-    font-size: 12px;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 500;
+    font-size: 11.5px;
     text-transform: uppercase;
-    letter-spacing: 0.3px;
+    letter-spacing: 0.8px;
+    padding: 0.5rem 0.9rem !important;
+    border-radius: 6px;
+    transition: all 0.2s ease;
 }
 
-    .navbar .nav-link:hover,
-    .navbar .navbar-brand:hover {
-        color: #DCE6F2 !important;
+    .navbar .nav-link:hover {
+        color: var(--pm-gold) !important;
+        background: rgba(201,168,76,0.10);
+    }
+/* Centrar los links principales del navbar */
+.promaderas-navbar .navbar-nav.me-auto {
+    flex: 1;
+    justify-content: center;
+    margin-right: 0 !important;
+}
+
+
+.navbar .dropdown-menu:not(.mega-menu),
+.dropdown-menu:not(.mega-menu) {
+    background-color: #0D1B35 !important;
+    background: #0D1B35 !important;
+    border: 1px solid rgba(201,168,76,0.22) !important;
+    border-radius: var(--pm-radius-sm) !important;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.55) !important;
+    padding: 8px !important;
+    margin-top: 4px !important;
+}
+
+    .navbar .dropdown-menu:not(.mega-menu) .dropdown-item,
+    .dropdown-menu:not(.mega-menu) .dropdown-item {
+        color: rgba(255,255,255,0.82) !important;
+        font-family: 'DM Sans', sans-serif !important;
+        background-color: transparent !important;
+        border-radius: 6px !important;
+        padding: 9px 16px !important;
+        font-size: 13.5px !important;
+        font-weight: 400 !important;
+        transition: all 0.15s ease !important;
     }
 
-.navbar .dropdown-menu .dropdown-item,
-.navbar .dropdown-menu .dropdown-header,
-.navbar .dropdown-menu .dropdown-item-text {
-    color: #212529 !important;
+.navbar .dropdown-menu .dropdown-item:hover,
+.navbar .dropdown-menu .dropdown-item:focus,
+.dropdown-menu .dropdown-item:hover,
+.dropdown-menu .dropdown-item:focus,
+.dropdown-menu .dropdown-item:active {
+    background-color: rgba(201,168,76,0.14) !important;
+    color: #C9A84C !important;
+}
+
+.dropdown-menu .dropdown-header {
+    color: rgba(255,255,255,0.38) !important;
+    font-size: 10px !important;
+    text-transform: uppercase !important;
+    letter-spacing: 1.2px !important;
+    font-weight: 700 !important;
+    padding: 10px 16px 4px !important;
+}
+
+.dropdown-menu .dropdown-divider {
+    border-color: rgba(201,168,76,0.12) !important;
+    margin: 4px 8px !important;
+    opacity: 1 !important;
+}
+
+/* Imagen tarima animada */
+.tarima-animada {
+    opacity: 0.85;
+    filter: brightness(1.1);
 }
 
 /* =========================
    BOTONES
 ========================= */
 .btn {
+    font-family: 'DM Sans', sans-serif;
     border-radius: 999px;
+    font-weight: 600;
+    font-size: 13px;
+    letter-spacing: 0.3px;
+    padding: 0.55rem 1.3rem;
+    transition: all 0.2s ease;
+}
+
+.btn-primary {
+    background: var(--pm-gold);
+    border-color: var(--pm-gold);
+    color: var(--pm-navy) !important;
     font-weight: 700;
-    padding: 0.55rem 1.15rem;
+    box-shadow: 0 4px 16px rgba(201,168,76,0.35);
 }
 
-.btn-primary,
+    .btn-primary:hover {
+        background: var(--pm-gold-light);
+        border-color: var(--pm-gold-light);
+        color: var(--pm-navy) !important;
+        transform: translateY(-1px);
+        box-shadow: 0 6px 22px rgba(201,168,76,0.45);
+    }
+
 .btn-success {
-    background-color: var(--promaderas-accent);
-    border-color: var(--promaderas-accent);
+    background: #2E7D52;
+    border-color: #2E7D52;
     color: #FFFFFF;
+    font-weight: 600;
+    box-shadow: 0 4px 14px rgba(46,125,82,0.30);
 }
 
-    .btn-primary:hover,
     .btn-success:hover {
-        background-color: var(--promaderas-accent-hover);
-        border-color: var(--promaderas-accent-hover);
+        background: #235F3E;
+        border-color: #235F3E;
         color: #FFFFFF;
+        transform: translateY(-1px);
+        box-shadow: 0 6px 20px rgba(46,125,82,0.40);
     }
 
 .btn-outline-primary {
-    color: var(--promaderas-primary);
-    border-color: var(--promaderas-primary);
-    background-color: transparent;
+    color: var(--pm-gold);
+    border-color: var(--pm-gold);
+    background: transparent;
+    font-weight: 600;
 }
 
     .btn-outline-primary:hover {
-        background-color: var(--promaderas-primary);
-        border-color: var(--promaderas-primary);
+        background: var(--pm-gold);
+        border-color: var(--pm-gold);
+        color: var(--pm-navy);
+    }
+
+.btn-secondary {
+    background: var(--pm-navy);
+    border-color: var(--pm-navy);
+    color: #FFFFFF;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(15,35,64,0.25);
+}
+
+    .btn-secondary:hover {
+        background: var(--pm-navy-mid);
+        border-color: var(--pm-navy-mid);
+        color: #FFFFFF;
+        transform: translateY(-1px);
+        box-shadow: 0 6px 18px rgba(15,35,64,0.35);
+    }
+
+.btn-outline-secondary {
+    color: var(--pm-navy);
+    border-color: #C5CAD4;
+    background: transparent;
+    font-weight: 600;
+}
+
+    .btn-outline-secondary:hover {
+        background: var(--pm-off-white);
+        border-color: var(--pm-navy);
+        color: var(--pm-navy);
+    }
+
+/* ── btn-dark: navegación y filtros (elegante sobre fondo claro) */
+.btn-dark {
+    background: var(--pm-navy);
+    border-color: var(--pm-navy);
+    color: #FFFFFF;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(15,35,64,0.30);
+}
+
+    .btn-dark:hover {
+        background: var(--pm-navy-mid);
+        border-color: var(--pm-navy-mid);
+        color: #FFFFFF;
+        transform: translateY(-1px);
+        box-shadow: 0 6px 18px rgba(15,35,64,0.40);
+    }
+
+/* ── btn-light: acciones neutras sobre fondo oscuro */
+.btn-light {
+    background: rgba(255,255,255,0.90);
+    border-color: rgba(201,168,76,0.30);
+    color: var(--pm-navy);
+    font-weight: 600;
+}
+
+    .btn-light:hover {
+        background: #FFFFFF;
+        border-color: var(--pm-gold);
+        color: var(--pm-navy);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 14px rgba(201,168,76,0.20);
+    }
+
+/* ── Variantes outline ── */
+.btn-outline-success {
+    color: #2E7D52;
+    border-color: #2E7D52;
+    background: transparent;
+    font-weight: 600;
+}
+
+    .btn-outline-success:hover {
+        background: #2E7D52;
+        border-color: #2E7D52;
         color: #FFFFFF;
     }
 
+.btn-outline-warning {
+    color: #A06B2E;
+    border-color: #A06B2E;
+    background: transparent;
+    font-weight: 600;
+}
+
+    .btn-outline-warning:hover {
+        background: #A06B2E;
+        border-color: #A06B2E;
+        color: #FFFFFF;
+    }
+
+.btn-outline-danger {
+    color: var(--pm-danger);
+    border-color: var(--pm-danger);
+    background: transparent;
+    font-weight: 600;
+}
+
+    .btn-outline-danger:hover {
+        background: var(--pm-danger);
+        border-color: var(--pm-danger);
+        color: #FFFFFF;
+    }
+
+.btn-outline-info {
+    color: var(--pm-navy-light);
+    border-color: var(--pm-navy-light);
+    background: transparent;
+    font-weight: 600;
+}
+
+    .btn-outline-info:hover {
+        background: var(--pm-navy-light);
+        border-color: var(--pm-navy-light);
+        color: #FFFFFF;
+    }
+
+.btn-outline-dark {
+    color: var(--pm-navy);
+    border-color: var(--pm-navy);
+    background: transparent;
+    font-weight: 600;
+}
+
+    .btn-outline-dark:hover {
+        background: var(--pm-navy);
+        border-color: var(--pm-navy);
+        color: #FFFFFF;
+    }
+
+.btn-outline-light {
+    color: rgba(255,255,255,0.85);
+    border-color: rgba(255,255,255,0.40);
+    background: transparent;
+    font-weight: 500;
+}
+
+    .btn-outline-light:hover {
+        background: rgba(255,255,255,0.12);
+        border-color: rgba(255,255,255,0.70);
+        color: #FFFFFF;
+    }
+
+/* ── Botones sobre fondo oscuro (dentro de .app-shell, fuera del panel) ── */
+.app-shell .btn-primary,
+.app-shell nav .btn,
+.promaderas-navbar .btn {
+    box-shadow: 0 4px 20px rgba(0,0,0,0.30);
+}
+
 .btn-warning {
-    background-color: #d39e00;
-    border-color: #d39e00;
+    background: #A06B2E;
+    border-color: #A06B2E;
     color: #FFFFFF;
+    font-weight: 600;
+    box-shadow: 0 4px 14px rgba(160,107,46,0.30);
 }
 
     .btn-warning:hover {
-        background-color: #b78600;
-        border-color: #b78600;
+        background: #875A25;
+        border-color: #875A25;
         color: #FFFFFF;
+        transform: translateY(-1px);
+        box-shadow: 0 6px 20px rgba(160,107,46,0.40);
     }
 
 .btn-danger {
-    background-color: var(--promaderas-danger);
-    border-color: var(--promaderas-danger);
-    color: #FFFFFF;
+    background: #2C3347;
+    border-color: #2C3347;
+    color: rgba(255,255,255,0.90);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.20);
 }
 
     .btn-danger:hover {
-        background-color: #bb2d3b;
-        border-color: #bb2d3b;
+        background: #1e2438;
+        border-color: #1e2438;
         color: #FFFFFF;
+        transform: translateY(-1px);
     }
 
+/* El rojo solo se usa para alertas y advertencias del sistema, NO para botones de acción */
+
 .btn-info {
-    background-color: var(--promaderas-primary);
-    border-color: var(--promaderas-primary);
-    color: #FFFFFF;
+    background: var(--pm-navy-mid);
+    border-color: var(--pm-navy-mid);
+    color: rgba(255,255,255,0.90);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
 }
 
     .btn-info:hover {
-        background-color: #163047;
-        border-color: #163047;
+        background: var(--pm-navy-light);
+        border-color: var(--pm-navy-light);
         color: #FFFFFF;
+        transform: translateY(-1px);
     }
 
 /* =========================
    FORMULARIOS
 ========================= */
-.form-control,
-.form-select,
-textarea {
-    border: 1px solid var(--promaderas-border);
-    border-radius: 10px;
-    padding: 14px 16px;
-    background-color: #FFFFFF;
+.form-control, .form-select, textarea {
+    border: 1.5px solid #E2E8F0;
+    border-radius: var(--pm-radius-sm);
+    padding: 12px 16px;
+    background-color: #FAFBFC;
     box-shadow: none;
-    font-size: 15px;
+    font-size: 14px;
+    font-family: 'DM Sans', sans-serif;
+    transition: border-color 0.2s, box-shadow 0.2s;
 }
 
-    .form-control:focus,
-    .form-select:focus,
-    textarea:focus {
-        border-color: var(--promaderas-primary);
-        box-shadow: 0 0 0 0.2rem rgba(31, 58, 95, 0.15);
+    .form-control:focus, .form-select:focus, textarea:focus {
+        border-color: var(--pm-gold);
+        box-shadow: 0 0 0 3px rgba(201,168,76,0.15);
+        background: #FFFFFF;
     }
 
 .form-label {
-    color: var(--promaderas-text);
+    color: var(--pm-navy);
     font-weight: 600;
-    margin-bottom: 0.5rem;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    margin-bottom: 6px;
 }
 
 .form-check-input:checked {
-    background-color: var(--promaderas-primary);
-    border-color: var(--promaderas-primary);
+    background-color: var(--pm-navy);
+    border-color: var(--pm-navy);
 }
 
 .form-check-label {
-    color: var(--promaderas-text);
+    color: var(--pm-text);
     font-weight: 500;
 }
 
@@ -294,19 +696,30 @@ textarea {
    LOGIN
 ========================= */
 .promaderas-login-bg {
-    background: var(--promaderas-secondary);
+    background: var(--pm-navy);
     min-height: 100vh;
 }
 
 .promaderas-login-panel {
-    background-color: var(--promaderas-primary);
+    background: linear-gradient(145deg, var(--pm-navy) 0%, var(--pm-navy-light) 100%);
     color: #FFFFFF;
+    position: relative;
+    overflow: hidden;
 }
 
+    /* Patrón sutil en el panel de login */
+    .promaderas-login-panel::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background-image: repeating-linear-gradient( 45deg, rgba(201,168,76,0.04) 0px, rgba(201,168,76,0.04) 1px, transparent 1px, transparent 40px );
+        pointer-events: none;
+    }
+
 .login-card {
-    background: rgba(255, 255, 255, 0.96);
+    background: rgba(255,255,255,0.97);
     border-radius: 20px;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.12);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.20);
     border: none;
     overflow: hidden;
 }
@@ -316,94 +729,123 @@ textarea {
     }
 
 .promaderas-login-panel h1 {
-    font-size: 34px;
+    font-family: 'Playfair Display', serif;
+    font-size: 32px;
     font-weight: 700;
     color: #FFFFFF;
     margin-bottom: 1rem;
+    letter-spacing: -0.3px;
 }
 
 .promaderas-login-panel h4 {
-    font-size: 22px;
+    font-family: 'Playfair Display', serif;
+    font-size: 20px;
     font-weight: 600;
-    color: #FFFFFF;
+    color: rgba(255,255,255,0.85);
     margin-bottom: 1rem;
 }
 
 .promaderas-login-panel p {
-    font-size: 15px;
-    color: #FFFFFF;
-    line-height: 1.6;
+    font-size: 14px;
+    color: rgba(255,255,255,0.70);
+    line-height: 1.7;
+}
+
+/* Línea dorada decorativa login */
+.promaderas-login-panel .login-accent {
+    display: block;
+    width: 48px;
+    height: 3px;
+    background: var(--pm-gold);
+    border-radius: 2px;
+    margin-bottom: 1.5rem;
 }
 
 .promaderas-login-bg .form-label,
 .promaderas-login-bg .form-check-label {
-    font-size: 14px;
+    font-size: 13px;
 }
 
 .promaderas-login-bg .btn-lg {
-    font-size: 16px;
+    font-size: 15px;
     padding: 14px 18px;
+    letter-spacing: 0.5px;
 }
 
 .promaderas-login-bg h3 {
-    font-size: 30px;
+    font-family: 'Playfair Display', serif;
+    font-size: 28px;
     font-weight: 700;
-    color: var(--promaderas-primary);
+    color: var(--pm-navy);
 }
 
 /* =========================
    CARDS
 ========================= */
 .card {
-    border: none;
-    border-radius: 18px;
-    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
-    background: rgba(255, 255, 255, 0.96);
+    border: 1px solid rgba(201,168,76,0.12);
+    border-radius: var(--pm-radius);
+    box-shadow: 0 8px 24px rgba(10,20,40,0.08);
+    background: rgba(255,255,255,0.97);
     overflow: hidden;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
 
+    .card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 16px 40px rgba(10,20,40,0.14);
+    }
+
 .card-header {
-    background: var(--promaderas-primary);
+    background: var(--pm-navy);
     color: #FFFFFF;
     font-weight: 600;
+    font-family: 'DM Sans', sans-serif;
     border: none;
     padding: 1rem 1.25rem;
+    letter-spacing: 0.3px;
 }
 
 .card-title {
-    color: var(--promaderas-primary);
+    font-family: 'Playfair Display', serif;
+    color: var(--pm-navy);
     font-weight: 600;
+    font-size: 17px;
 }
-
-.dashboard-card {
-    transition: transform 0.2s ease;
-}
-
-    .dashboard-card:hover,
-    .card:hover {
-        transform: translateY(-4px);
-    }
 
 /* =========================
    DASHBOARD
 ========================= */
 .dashboard-hero {
-    padding: 8px 4px;
+    padding: 4px 4px 12px;
 }
 
     .dashboard-hero h1 {
-        color: var(--promaderas-primary);
-        font-size: 42px;
+        font-family: 'Playfair Display', serif;
+        color: var(--pm-navy);
+        font-size: 38px;
         font-weight: 700;
-        margin-bottom: 8px;
-        text-shadow: none;
+        margin-bottom: 6px;
+        letter-spacing: -0.5px;
     }
 
     .dashboard-hero p {
-        font-size: 16px;
-        color: #333333;
+        font-size: 15px;
+        color: var(--pm-text-soft);
         margin-bottom: 0;
-        text-shadow: none;
+        font-weight: 300;
+        letter-spacing: 0.2px;
+    }
+
+    /* Separador dorado bajo el título del dashboard */
+    .dashboard-hero::after {
+        content: '';
+        display: block;
+        width: 56px;
+        height: 3px;
+        background: linear-gradient(90deg, var(--pm-gold), transparent);
+        border-radius: 2px;
+        margin-top: 16px;
     }
 
 .dashboard-grid {
@@ -411,101 +853,166 @@ textarea {
 }
 
     .dashboard-grid .card-title {
-        font-size: 18px;
+        font-size: 16px;
         font-weight: 700;
     }
 
     .dashboard-grid .card-text,
     .dashboard-grid p {
-        font-size: 14px;
-        line-height: 1.6;
+        font-size: 13px;
+        line-height: 1.65;
+        color: var(--pm-text-soft);
     }
 
 /* =========================
    TABLAS
 ========================= */
 .table {
-    border-radius: 14px;
+    border-radius: var(--pm-radius);
     overflow: hidden;
-    background-color: rgba(255, 255, 255, 0.96);
+    background: rgba(255,255,255,0.97);
 }
 
     .table thead th,
     .table-dark {
-        background-color: var(--promaderas-primary) !important;
-        color: #FFFFFF !important;
+        background: var(--pm-navy) !important;
+        color: rgba(255,255,255,0.90) !important;
         border: none;
         font-weight: 600;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 14px 16px;
+    }
+
+    .table tbody td {
+        padding: 13px 16px;
+        vertical-align: middle;
+        border-color: rgba(201,168,76,0.08);
     }
 
     .table tbody tr:hover {
-        background-color: rgba(31, 58, 95, 0.05);
+        background: rgba(201,168,76,0.06);
     }
 
 /* =========================
    ALERTAS
 ========================= */
 .alert-success {
-    background-color: rgba(40, 167, 69, 0.10);
-    border-color: var(--promaderas-accent);
-    color: #1f6f33;
-    border-radius: 10px;
+    background: rgba(46,125,82,0.08);
+    border-left: 4px solid var(--pm-accent);
+    border-top: none;
+    border-right: none;
+    border-bottom: none;
+    color: #1a5233;
+    border-radius: var(--pm-radius-sm);
 }
 
 .alert-danger {
-    background-color: rgba(220, 53, 69, 0.10);
-    border-color: var(--promaderas-danger);
-    color: #842029;
-    border-radius: 10px;
+    background: rgba(176,58,46,0.08);
+    border-left: 4px solid var(--pm-danger);
+    border-top: none;
+    border-right: none;
+    border-bottom: none;
+    color: #7b1e17;
+    border-radius: var(--pm-radius-sm);
 }
 
 .alert-warning {
-    background-color: rgba(255, 193, 7, 0.12);
-    border-color: #ffc107;
+    background: rgba(201,168,76,0.10);
+    border-left: 4px solid var(--pm-gold);
+    border-top: none;
+    border-right: none;
+    border-bottom: none;
     color: #6c5700;
-    border-radius: 10px;
+    border-radius: var(--pm-radius-sm);
+}
+
+.alert-info {
+    background: rgba(26,53,96,0.06);
+    border-left: 4px solid var(--pm-navy-light);
+    border-top: none;
+    border-right: none;
+    border-bottom: none;
+    color: var(--pm-navy);
+    border-radius: var(--pm-radius-sm);
 }
 
 /* =========================
    MENÚ USUARIO
 ========================= */
 .dropdown-menu {
-    border: none;
-    border-radius: 12px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+    border: 1px solid var(--pm-border);
+    border-radius: var(--pm-radius-sm);
+    box-shadow: 0 12px 32px rgba(0,0,0,0.12);
+    background: var(--pm-white);
+    padding: 6px;
 }
 
-.dropdown-item:hover {
-    background-color: rgba(31, 58, 95, 0.08);
-    color: var(--promaderas-primary) !important;
+.dropdown-item {
+    border-radius: 6px;
+    padding: 8px 14px;
+    font-size: 13px;
+    transition: all 0.15s;
 }
+
+    .dropdown-item:hover {
+        background: var(--pm-gold-dim);
+        color: var(--pm-navy) !important;
+    }
 
 /* =========================
    PAGINACIÓN
 ========================= */
 .pagination .page-link {
-    color: var(--promaderas-primary) !important;
-    background-color: #fff;
-    border-color: rgba(31, 58, 95, 0.25);
+    color: var(--pm-navy) !important;
+    background: #fff;
+    border-color: rgba(201,168,76,0.25);
     font-weight: 600;
+    font-size: 13px;
+    border-radius: 8px !important;
+    margin: 0 2px;
 }
 
     .pagination .page-link:hover {
         color: #fff !important;
-        background-color: var(--promaderas-primary);
-        border-color: var(--promaderas-primary);
+        background: var(--pm-navy);
+        border-color: var(--pm-navy);
     }
 
 .pagination .page-item.active .page-link {
-    background-color: var(--promaderas-primary);
-    border-color: var(--promaderas-primary);
+    background: var(--pm-navy);
+    border-color: var(--pm-navy);
     color: #fff !important;
 }
 
 .pagination .page-item.disabled .page-link {
     color: #adb5bd !important;
-    background-color: #fff;
-    border-color: rgba(31, 58, 95, 0.15);
+    background: #fff;
+    border-color: rgba(201,168,76,0.15);
+}
+
+/* =========================
+   BADGE / ESTADO
+========================= */
+.badge {
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 600;
+    font-size: 11px;
+    letter-spacing: 0.4px;
+    border-radius: 999px;
+    padding: 4px 10px;
+}
+
+/* =========================
+   SEARCH HIGHLIGHT
+========================= */
+.search-highlight {
+    background: rgba(201,168,76,0.30);
+    color: var(--pm-navy);
+    padding: 0 3px;
+    border-radius: 3px;
+    font-weight: 600;
 }
 
 /* =========================
@@ -517,8 +1024,7 @@ textarea {
     text-align: center;
 }
 
-.error-actions,
-.access-denied-actions {
+.error-actions, .access-denied-actions {
     margin-top: 15px;
     margin-bottom: 15px;
 }
@@ -529,14 +1035,15 @@ textarea {
     }
 
 .display-1 {
+    font-family: 'Playfair Display', serif;
     font-size: 6rem;
-    font-weight: 300;
+    font-weight: 700;
     line-height: 1;
-    color: var(--promaderas-primary);
+    color: var(--pm-navy);
 }
 
 /* =========================
-   LEGIBILIDAD GENERAL
+   LEGIBILIDAD PANEL
 ========================= */
 .app-content-panel h1,
 .app-content-panel h2,
@@ -544,7 +1051,7 @@ textarea {
 .app-content-panel h4,
 .app-content-panel h5,
 .app-content-panel h6 {
-    color: var(--promaderas-primary);
+    color: var(--pm-navy);
     text-shadow: none;
 }
 
@@ -556,12 +1063,18 @@ textarea {
 .app-content-panel li,
 .app-content-panel .form-label,
 .app-content-panel .card-text {
-    color: var(--promaderas-text);
+    color: var(--pm-text);
     text-shadow: none;
 }
 
 .app-content-panel .text-muted {
-    color: var(--promaderas-text-soft) !important;
+    color: var(--pm-text-soft) !important;
+}
+
+/* Separador sutil dentro del panel */
+.app-content-panel hr {
+    border-color: rgba(201,168,76,0.20);
+    margin: 1.5rem 0;
 }
 
 /* =========================
@@ -570,8 +1083,12 @@ textarea {
 @media (max-width: 991px) {
     .app-content-panel {
         border-radius: 14px;
-        padding: 16px;
+        padding: 24px 20px;
     }
+
+        .app-content-panel::before {
+            margin: -24px -20px 20px -20px;
+        }
 }
 
 @media (max-width: 768px) {
@@ -586,4 +1103,490 @@ textarea {
     .col-md-6:first-child {
         display: none !important;
     }
+
+    .dashboard-hero h1 {
+        font-size: 28px;
+    }
 }
+
+/* =========================
+   FOOTER FIJO
+========================= */
+html, body {
+    height: 100%;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.app-content-wrap {
+    flex: 1;
+}
+
+footer {
+    background: transparent !important;
+    border-top: 0 !important;
+    padding: 1.2rem 0 1.5rem;
+    text-align: center;
+}
+
+.promaderas-footer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.footer-brand {
+    font-family: 'Playfair Display', serif;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    color: rgba(255,255,255,0.80) !important;
+    text-transform: uppercase;
+}
+
+.footer-copy {
+    font-size: 11px;
+    color: rgba(255,255,255,0.40) !important;
+    letter-spacing: 0.5px;
+    font-family: 'DM Sans', sans-serif;
+}
+
+
+/* Línea dorada bajo el subtítulo — asegura visibilidad en panel oscuro */
+.app-content-panel .dashboard-hero::after {
+    background: linear-gradient(90deg, #C9A84C 0%, rgba(201,168,76,0.12) 100%) !important;
+    width: 60px !important;
+    height: 3px !important;
+    opacity: 1 !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   MEGA MENÚ — position:fixed, siempre encima de todo
+   ════════════════════════════════════════════════════════════ */
+
+.dropdown-menu.mega-menu {
+    display: none;
+    position: fixed;
+    z-index: 99999;
+    background-color: #0A1628 !important;
+    background: #0A1628 !important;
+    border: none !important;
+    border-top: 2px solid #C9A84C !important;
+    border-radius: 0 0 14px 14px !important;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.65) !important;
+    padding: 30px 48px 26px !important;
+    margin: 0 !important;
+    list-style: none !important;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0 40px;
+    min-width: 0;
+}
+
+.mega-menu-col {
+    border-right: 1px solid rgba(255,255,255,0.07);
+    padding-right: 26px;
+    list-style: none;
+}
+
+    .mega-menu-col:last-child {
+        border-right: none;
+        padding-right: 0;
+    }
+
+.mega-menu-header {
+    display: block;
+    font-size: 0.67rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(201,168,76,0.85);
+    margin-bottom: 12px;
+    padding-bottom: 7px;
+    border-bottom: 1px solid rgba(201,168,76,0.22);
+}
+
+.dropdown-menu.mega-menu .dropdown-item,
+.dropdown-menu.mega-menu a {
+    display: block !important;
+    padding: 7px 0 !important;
+    color: rgba(255,255,255,0.78) !important;
+    font-size: 0.87rem !important;
+    font-weight: 400 !important;
+    text-decoration: none !important;
+    background: transparent !important;
+    border: none !important;
+    border-radius: 0 !important;
+    transition: color 0.16s, padding-left 0.16s !important;
+    white-space: normal !important;
+}
+
+    .dropdown-menu.mega-menu .dropdown-item:hover,
+    .dropdown-menu.mega-menu a:hover {
+        color: #C9A84C !important;
+        padding-left: 8px !important;
+        background: transparent !important;
+    }
+
+.mega-menu-card {
+    display: block !important;
+    background: rgba(255,255,255,0.05) !important;
+    border: 1px solid rgba(201,168,76,0.18) !important;
+    border-radius: 10px !important;
+    padding: 13px 14px !important;
+    margin-bottom: 10px !important;
+    margin-top: 6px !important;
+    text-decoration: none !important;
+    transition: background 0.18s, border-color 0.18s !important;
+    color: inherit !important;
+}
+
+    .mega-menu-card:hover {
+        background: rgba(201,168,76,0.10) !important;
+        border-color: #C9A84C !important;
+        color: inherit !important;
+    }
+
+    .mega-menu-card .card-title {
+        font-size: 0.86rem;
+        font-weight: 700;
+        color: #FFFFFF;
+        margin-bottom: 4px;
+    }
+
+    .mega-menu-card .card-desc {
+        font-size: 0.76rem;
+        color: rgba(255,255,255,0.52);
+        margin: 0;
+        line-height: 1.45;
+    }
+
+.mega-menu-footer {
+    grid-column: 1 / -1;
+    border-top: 1px solid rgba(255,255,255,0.10);
+    margin-top: 14px;
+    padding-top: 14px;
+    list-style: none;
+}
+
+    .mega-menu-footer a {
+        color: #C9A84C !important;
+        font-size: 0.82rem !important;
+        font-weight: 600 !important;
+        padding: 0 !important;
+        text-decoration: none !important;
+    }
+
+        .mega-menu-footer a:hover {
+            opacity: 0.75;
+            text-decoration: underline !important;
+        }
+
+.navbar .nav-link.dropdown-toggle::after {
+    border-top-color: rgba(255,255,255,0.70);
+    vertical-align: 0.20em;
+    margin-left: 5px;
+}
+
+.navbar .nav-link.dropdown-toggle:hover::after {
+    border-top-color: #C9A84C;
+}
+
+/* ══════════════════════════════════════════════════════
+   FIXES v22 — Panel oscuro: badges, botones, detalles
+══════════════════════════════════════════════════════ */
+
+/* ── 1. Badge "Agotado" / Stock — ámbar en vez de rojo ── */
+.app-content-panel .badge.bg-danger,
+.app-content-panel .badge.text-bg-danger,
+.app-content-panel span.badge[class*="danger"] {
+    /* "Agotado" — naranja ámbar, NO rojo */
+    background-color: #D4780A !important;
+    color: #FFFFFF !important;
+}
+
+/* "Disponible" / "Con stock" — amarillo dorado */
+.app-content-panel .badge.bg-warning,
+.app-content-panel .badge.text-bg-warning,
+.app-content-panel span.badge[class*="warning"] {
+    background-color: #E2B200 !important;
+    color: #0F2340 !important; /* texto oscuro para contraste */
+}
+
+/* Si usan bg-success para stock disponible, lo mantenemos verde claro */
+/* Si quieren amarillo en "Activo" también, usar este bloque */
+
+/* ── 2. Badge rol "Administrador" — azul corporativo ── */
+.app-content-panel .badge.bg-danger[class*="administrador"],
+.app-content-panel .badge-administrador {
+    background-color: #1A3A6B !important;
+    color: #FFFFFF !important;
+}
+/* Regla amplia: primer badge rojo en tabla de usuarios = rol */
+.app-content-panel table .badge.bg-danger:not(.stock-badge) {
+    background-color: #1B3E7A !important;
+    color: #FFFFFF !important;
+}
+
+/* ── 3. Botón "Limpiar" (outline-secondary / reset) ── */
+.app-content-panel .btn-outline-secondary,
+.app-content-panel .btn-secondary,
+.app-content-panel button[type="reset"]:not(.btn-danger):not(.btn-warning) {
+    background: transparent !important;
+    border-color: rgba(201,168,76,0.45) !important;
+    color: rgba(255,255,255,0.80) !important;
+}
+
+    .app-content-panel .btn-outline-secondary:hover,
+    .app-content-panel .btn-secondary:hover,
+    .app-content-panel button[type="reset"]:not(.btn-danger):not(.btn-warning):hover {
+        background: rgba(201,168,76,0.12) !important;
+        border-color: var(--pm-gold) !important;
+        color: #FFFFFF !important;
+    }
+
+/* ── 4. Botón "Correos" y otros outline-dark / outline-light ── */
+.app-content-panel .btn-outline-dark {
+    background: transparent !important;
+    border-color: rgba(255,255,255,0.40) !important;
+    color: rgba(255,255,255,0.82) !important;
+}
+
+    .app-content-panel .btn-outline-dark:hover {
+        background: rgba(255,255,255,0.08) !important;
+        border-color: rgba(255,255,255,0.70) !important;
+        color: #FFFFFF !important;
+    }
+
+.app-content-panel .btn-outline-light {
+    border-color: rgba(255,255,255,0.35) !important;
+    color: rgba(255,255,255,0.82) !important;
+}
+
+.app-content-panel .btn-light {
+    background: rgba(255,255,255,0.10) !important;
+    border-color: rgba(255,255,255,0.20) !important;
+    color: rgba(255,255,255,0.88) !important;
+}
+
+/* ── 5. Botón "Volver al listado" y btn-link ── */
+.app-content-panel .btn-link,
+.app-content-panel a.btn-link {
+    color: rgba(255,255,255,0.78) !important;
+    text-decoration-color: rgba(255,255,255,0.25) !important;
+}
+
+    .app-content-panel .btn-link:hover,
+    .app-content-panel a.btn-link:hover {
+        color: var(--pm-gold-light) !important;
+        text-decoration-color: rgba(201,168,76,0.45) !important;
+    }
+
+/* ── 6. Texto invisible en "Detalles del Cliente" ── */
+.app-content-panel dt,
+.app-content-panel dd,
+.app-content-panel strong,
+.app-content-panel b,
+.app-content-panel th,
+.app-content-panel td {
+    color: rgba(255,255,255,0.82) !important;
+}
+
+.app-content-panel dt {
+    color: rgba(255,255,255,0.52) !important; /* labels más tenues */
+    font-weight: 600;
+}
+
+/* ── 7. Select / dropdown nativo — fondo oscuro ── */
+.app-content-panel select option {
+    background-color: #0B1B3A !important;
+    color: rgba(255,255,255,0.88) !important;
+}
+
+/* ── 8. Bootstrap .dropdown-menu — fondo oscuro ── */
+.app-content-panel .dropdown-menu,
+.app-content-panel .dropdown-menu.show {
+    background-color: #0F2340 !important;
+    border-color: rgba(201,168,76,0.25) !important;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.50) !important;
+}
+
+.app-content-panel .dropdown-item {
+    color: rgba(255,255,255,0.80) !important;
+}
+
+    .app-content-panel .dropdown-item:hover,
+    .app-content-panel .dropdown-item:focus {
+        background-color: rgba(201,168,76,0.12) !important;
+        color: #FFFFFF !important;
+    }
+
+.app-content-panel .dropdown-divider {
+    border-color: rgba(255,255,255,0.10) !important;
+}
+
+/* ── 9. Badge "Activo" / "Inactivo" / "Vendedor" — preservar colores ── */
+.app-content-panel .badge.bg-success,
+.app-content-panel .badge.text-bg-success {
+    background-color: #1A6B3A !important;
+    color: #FFFFFF !important;
+}
+
+.app-content-panel .badge.bg-info,
+.app-content-panel .badge.text-bg-info {
+    background-color: #0E5A7A !important;
+    color: #FFFFFF !important;
+}
+
+/* ── 10. Menú desplegable (select) con fondo blanco fuera del panel ── */
+.app-content-panel .form-select option {
+    background-color: #0B1B3A !important;
+    color: rgba(255,255,255,0.88) !important;
+}
+
+/* ── v24: Texto de ayuda en formularios ── */
+.app-content-panel .form-text,
+.app-content-panel .text-secondary,
+.app-content-panel .text-body-secondary,
+.app-content-panel .text-muted,
+.app-content-panel small.form-text,
+.app-content-panel .hint-text,
+.app-content-panel .help-block {
+    color: rgba(255,255,255,0.60) !important;
+}
+
+/* ── v25: Alertas dentro del panel oscuro ── */
+/* alert-info (fondo azul claro → texto oscuro → invisible) */
+.app-content-panel .alert-info {
+    background-color: rgba(13, 110, 253, 0.14) !important;
+    border-color: rgba(13, 110, 253, 0.35) !important;
+    color: rgba(255,255,255,0.88) !important;
+}
+
+    .app-content-panel .alert-info .bi,
+    .app-content-panel .alert-info i {
+        color: #5B9BD5 !important;
+    }
+
+/* alert-warning */
+.app-content-panel .alert-warning {
+    background-color: rgba(255, 193, 7, 0.13) !important;
+    border-color: rgba(255, 193, 7, 0.35) !important;
+    color: rgba(255,255,255,0.88) !important;
+}
+
+/* alert-success */
+.app-content-panel .alert-success {
+    background-color: rgba(25, 135, 84, 0.14) !important;
+    border-color: rgba(25, 135, 84, 0.35) !important;
+    color: rgba(255,255,255,0.88) !important;
+}
+
+/* alert-secondary / alert-light */
+.app-content-panel .alert-secondary,
+.app-content-panel .alert-light {
+    background-color: rgba(255,255,255,0.07) !important;
+    border-color: rgba(255,255,255,0.15) !important;
+    color: rgba(255,255,255,0.82) !important;
+}
+
+/* alert-dark */
+.app-content-panel .alert-dark {
+    background-color: rgba(255,255,255,0.06) !important;
+    border-color: rgba(255,255,255,0.12) !important;
+    color: rgba(255,255,255,0.80) !important;
+}
+
+/* alert-danger — rojo se mantiene, solo aclaramos el texto */
+.app-content-panel .alert-danger {
+    color: #FFFFFF !important;
+}
+
+/* Texto dentro de cualquier alert */
+.app-content-panel .alert p,
+.app-content-panel .alert span,
+.app-content-panel .alert small,
+.app-content-panel .alert strong {
+    color: inherit !important;
+}
+
+/* ══════════════════════════════════════════════════════
+   REPORTES — Cards centradas con borde dorado (v26)
+══════════════════════════════════════════════════════ */
+.report-card {
+    background: rgba(255,255,255,0.05) !important;
+    border: 1px solid rgba(201,168,76,0.55) !important;
+    border-radius: 18px !important;
+    text-align: center !important;
+    box-shadow: 0 6px 28px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.06) !important;
+    transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease !important;
+    position: relative;
+    overflow: hidden;
+}
+
+    /* Brillo dorado sutil en la esquina superior */
+    .report-card::before {
+        content: '';
+        position: absolute;
+        top: -40px;
+        right: -40px;
+        width: 160px;
+        height: 160px;
+        background: radial-gradient(circle, rgba(201,168,76,0.10) 0%, transparent 70%);
+        pointer-events: none;
+    }
+
+    /* Línea dorada superior */
+    .report-card::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: linear-gradient(90deg, transparent 0%, rgba(201,168,76,0.80) 50%, transparent 100%);
+        border-radius: 18px 18px 0 0;
+    }
+
+    .report-card:hover {
+        transform: translateY(-4px) !important;
+        border-color: rgba(201,168,76,0.90) !important;
+        box-shadow: 0 16px 48px rgba(0,0,0,0.40), 0 0 24px rgba(201,168,76,0.15) !important;
+    }
+
+    .report-card .card-body {
+        padding: 32px 20px !important;
+    }
+
+    /* Título del card */
+    .report-card h5 {
+        color: rgba(255,255,255,0.70) !important;
+        font-size: 13px !important;
+        font-weight: 600 !important;
+        letter-spacing: 1.2px !important;
+        text-transform: uppercase !important;
+        margin-bottom: 12px !important;
+    }
+
+    /* Número grande — dorado */
+    .report-card h2,
+    .report-card .report-number {
+        color: #C9A84C !important;
+        font-size: 3rem !important;
+        font-weight: 700 !important;
+        line-height: 1 !important;
+        margin-bottom: 10px !important;
+        letter-spacing: -1px !important;
+    }
+
+    /* Descripción debajo del número */
+    .report-card p,
+    .report-card .text-muted {
+        color: rgba(255,255,255,0.45) !important;
+        font-size: 12.5px !important;
+        margin-bottom: 0 !important;
+    }

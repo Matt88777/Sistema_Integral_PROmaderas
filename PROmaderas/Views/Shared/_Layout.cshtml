@@ -11,7 +11,7 @@
 </head>
 <body class="app-shell">
     <header>
-        <nav class="navbar navbar-expand-lg navbar-dark promaderas-navbar mb-3">
+        <nav class="navbar navbar-expand-lg navbar-dark promaderas-navbar mb-3" id="mainNav">
             <div class="container-fluid">
                 <a class="navbar-brand fw-bold" asp-controller="Dashboard" asp-action="Index">PROMADERAS</a>
 
@@ -27,53 +27,103 @@
                                 <a class="nav-link" asp-controller="Dashboard" asp-action="Index">Dashboard</a>
                             </li>
 
-                            @if (User.IsInRole("Administrador") || User.IsInRole("Gerente") || User.IsInRole("Operador de Planta"))
-                            {
-                                <li class="nav-item">
-                                    <a class="nav-link" asp-controller="Productos" asp-action="Index">Inventario</a>
-                                </li>
-                            }
+                            <li class="nav-item mega-parent">
+                                <a class="nav-link" href="javascript:void(0)">
+                                    Operaciones <i class="bi bi-chevron-down" style="font-size:0.65em;opacity:0.75;margin-left:2px"></i>
+                                </a>
+                                <ul class="dropdown-menu mega-menu" style="display:none">
 
-                            <li class="nav-item">
-                                <a class="nav-link" asp-controller="Clientes" asp-action="Index">Clientes</a>
-                            </li>
+                                    @if (User.IsInRole("Administrador") || User.IsInRole("Gerente") || User.IsInRole("Operador de Planta"))
+                                    {
+                                        <li class="mega-menu-col">
+                                            <span class="mega-menu-header"><i class="bi bi-boxes me-1"></i>Inventario</span>
+                                            <a class="dropdown-item" asp-controller="Productos" asp-action="Index"><i class="bi bi-list-ul me-2"></i>Ver productos</a>
+                                            <a class="dropdown-item" asp-controller="Productos" asp-action="Create"><i class="bi bi-plus-circle me-2"></i>Nuevo producto</a>
+                                        </li>
+                                    }
 
-                            <li class="nav-item">
-                                <a class="nav-link" asp-controller="Pedidos" asp-action="Index">Órdenes de compra</a>
+                                    <li class="mega-menu-col">
+                                        <span class="mega-menu-header"><i class="bi bi-people me-1"></i>Clientes</span>
+                                        <a class="dropdown-item" asp-controller="Clientes" asp-action="Index"><i class="bi bi-person-lines-fill me-2"></i>Ver clientes</a>
+                                        <a class="dropdown-item" asp-controller="Clientes" asp-action="Create"><i class="bi bi-person-plus me-2"></i>Nuevo cliente</a>
+                                    </li>
+
+                                    <li class="mega-menu-col">
+                                        <span class="mega-menu-header"><i class="bi bi-cart3 me-1"></i>Órdenes de compra</span>
+                                        <a class="dropdown-item" asp-controller="Pedidos" asp-action="Index"><i class="bi bi-clipboard-list me-2"></i>Ver órdenes</a>
+                                        <a class="dropdown-item" asp-controller="Pedidos" asp-action="Create"><i class="bi bi-plus-circle me-2"></i>Nueva orden</a>
+                                    </li>
+
+                                    <li class="mega-menu-col">
+                                        <span class="mega-menu-header">Acceso rápido</span>
+                                        <a class="mega-menu-card" asp-controller="Productos" asp-action="Index">
+                                            <div class="card-title"><i class="bi bi-boxes me-1"></i>Stock actual</div>
+                                            <div class="card-desc">Consulte existencias y movimientos del inventario.</div>
+                                        </a>
+                                        <a class="mega-menu-card" asp-controller="Pedidos" asp-action="Create">
+                                            <div class="card-title"><i class="bi bi-cart-plus me-1"></i>Crear orden</div>
+                                            <div class="card-desc">Registre una nueva orden de compra al sistema.</div>
+                                        </a>
+                                    </li>
+
+                                    <li class="mega-menu-footer">
+                                        <a asp-controller="Dashboard" asp-action="Index">Ver Panel principal →</a>
+                                    </li>
+
+                                </ul>
                             </li>
 
                             @if (User.IsInRole("Administrador") || User.IsInRole("Gerente") || User.IsInRole("Contador"))
                             {
-                                <li class="nav-item">
-                                    <a class="nav-link" asp-controller="Facturacion" asp-action="Index">Facturación</a>
-                                </li>
-                            }
+                                <li class="nav-item mega-parent">
+                                    <a class="nav-link" href="javascript:void(0)">
+                                        Administración <i class="bi bi-chevron-down" style="font-size:0.65em;opacity:0.75;margin-left:2px"></i>
+                                    </a>
+                                    <ul class="dropdown-menu mega-menu" style="display:none">
 
-                            @if (User.IsInRole("Administrador") || User.IsInRole("Gerente") || User.IsInRole("Contador"))
-                            {
-                                <li class="nav-item">
-                                    <a class="nav-link" asp-controller="Planilla" asp-action="Index">Planilla</a>
-                                </li>
-                            }
+                                        @if (User.IsInRole("Administrador") || User.IsInRole("Gerente") || User.IsInRole("Contador"))
+                                        {
+                                            <li class="mega-menu-col">
+                                                <span class="mega-menu-header"><i class="bi bi-receipt me-1"></i>Facturación</span>
+                                                <a class="dropdown-item" asp-controller="Facturacion" asp-action="Index"><i class="bi bi-file-earmark-text me-2"></i>Ver facturas</a>
+                                                <a class="dropdown-item" asp-controller="Facturacion" asp-action="Create"><i class="bi bi-plus-circle me-2"></i>Nueva factura</a>
+                                            </li>
 
-                            @if (User.IsInRole("Administrador") || User.IsInRole("Gerente"))
-                            {
-                                <li class="nav-item">
-                                    <a class="nav-link" asp-controller="Empleados" asp-action="Index">Empleados</a>
-                                </li>
-                            }
+                                            <li class="mega-menu-col">
+                                                <span class="mega-menu-header"><i class="bi bi-cash-stack me-1"></i>Planilla</span>
+                                                <a class="dropdown-item" asp-controller="Planilla" asp-action="Index"><i class="bi bi-table me-2"></i>Ver planilla</a>
+                                            </li>
+                                        }
 
-                            @if (User.IsInRole("Administrador") || User.IsInRole("Gerente"))
-                            {
-                                <li class="nav-item">
-                                    <a class="nav-link" asp-controller="Reportes" asp-action="Index">Reportes</a>
-                                </li>
-                            }
+                                        @if (User.IsInRole("Administrador") || User.IsInRole("Gerente"))
+                                        {
+                                            <li class="mega-menu-col">
+                                                <span class="mega-menu-header"><i class="bi bi-person-badge me-1"></i>Empleados</span>
+                                                <a class="dropdown-item" asp-controller="Empleados" asp-action="Index"><i class="bi bi-people-fill me-2"></i>Ver empleados</a>
+                                                <a class="dropdown-item" asp-controller="Empleados" asp-action="Create"><i class="bi bi-person-plus me-2"></i>Nuevo empleado</a>
+                                                <div style="height:10px"></div>
+                                                <span class="mega-menu-header"><i class="bi bi-bar-chart me-1"></i>Reportes</span>
+                                                <a class="dropdown-item" asp-controller="Reportes" asp-action="Index"><i class="bi bi-graph-up me-2"></i>Ver reportes</a>
+                                            </li>
+                                        }
 
-                            @if (User.IsInRole("Administrador"))
-                            {
-                                <li class="nav-item">
-                                    <a class="nav-link" asp-controller="AdminUsuarios" asp-action="Index">Usuarios</a>
+                                        @if (User.IsInRole("Administrador"))
+                                        {
+                                            <li class="mega-menu-col">
+                                                <span class="mega-menu-header"><i class="bi bi-shield-lock me-1"></i>Sistema</span>
+                                                <a class="dropdown-item" asp-controller="AdminUsuarios" asp-action="Index"><i class="bi bi-people me-2"></i>Gestión de usuarios</a>
+                                                <a class="mega-menu-card" asp-controller="AdminUsuarios" asp-action="Create">
+                                                    <div class="card-title"><i class="bi bi-person-plus me-1"></i>Nuevo usuario</div>
+                                                    <div class="card-desc">Registre acceso y defina el rol del nuevo usuario.</div>
+                                                </a>
+                                            </li>
+                                        }
+
+                                        <li class="mega-menu-footer">
+                                            <a asp-controller="Reportes" asp-action="Index">Ver todos los reportes →</a>
+                                        </li>
+
+                                    </ul>
                                 </li>
                             }
                         }
@@ -126,15 +176,63 @@
         </main>
     </div>
 
-    <footer class="border-top footer text-muted mt-4">
-        <div class="container">
-            &copy; 2026 - PROMADERAS
+    <footer>
+        <div class="promaderas-footer">
+            <span class="footer-brand">PROMADERAS</span>
+            <span class="footer-copy">&copy; 2026 — Sistema Integral de Gestión</span>
         </div>
     </footer>
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+
+    <script>
+        (function () {
+        var nav = document.getElementById('mainNav');
+        if (!nav) return;
+
+        nav.querySelectorAll('.mega-parent').forEach(function (item) {
+        var menu = item.querySelector('.dropdown-menu.mega-menu');
+        if (!menu) return;
+
+        var timer = null;
+
+        function posicionarYAbrir() {
+        clearTimeout(timer);
+        // Calcular posición desde el navbar (position:fixed ignora el DOM)
+        var rect = nav.getBoundingClientRect();
+        menu.style.position = 'fixed';
+        menu.style.top = rect.bottom + 'px';
+        menu.style.left = rect.left + 'px';
+        menu.style.width = rect.width + 'px';
+        menu.style.right = 'auto';
+        menu.style.display = 'grid';
+        }
+
+        function cerrar() {
+        timer = setTimeout(function () {
+        menu.style.display = 'none';
+        }, 100);
+        }
+
+        item.addEventListener('mouseenter', posicionarYAbrir);
+        item.addEventListener('mouseleave', cerrar);
+        menu.addEventListener('mouseenter', function () { clearTimeout(timer); });
+        menu.addEventListener('mouseleave', cerrar);
+        });
+
+        // Cerrar al hacer clic fuera
+        document.addEventListener('click', function (e) {
+        if (!nav.contains(e.target)) {
+        nav.querySelectorAll('.dropdown-menu.mega-menu').forEach(function (m) {
+        m.style.display = 'none';
+        });
+        }
+        });
+        })();
+    </script>
+
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
