@@ -1,10 +1,11 @@
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using PROmaderas.Abstracciones.LogicaDeNegocio;
 using PROmaderas.Abstracciones.Models;
 using PROmaderas.AccesoADatos;
+using PROmaderas.UI.Models;
 using PROmaderas.UI.Seguridad;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
@@ -13,311 +14,438 @@ using ClosedXML.Excel;
 
 namespace PROmaderas.UI.Controllers
 {
-	[Authorize(Roles = "Administrador,Vendedor,Operador de Planta")]
-	public class PedidosController : Controller
-	{
-		private readonly IProductoLogica _productoLogica;
-		private readonly IWebHostEnvironment _env;
-		private readonly Contexto _contexto;
+    [Authorize(Roles = "Administrador,Vendedor,Operador de Planta")]
+    public class PedidosController : Controller
+    {
+        private readonly IProductoLogica _productoLogica;
+        private readonly IWebHostEnvironment _env;
+        private readonly Contexto _contexto;
 
-		
-		private readonly ApplicationDbContext _identityContext;
+        private static readonly string[] EstadosValidos =
+            { "Pendiente", "En Produccion", "Lista para Entrega", "Entregada", "Cancelada" };
 
-		public PedidosController(IProductoLogica productoLogica, IWebHostEnvironment env, Contexto contexto, ApplicationDbContext identityContext)
-		{
-			_productoLogica = productoLogica;
-			_env = env;
-			_contexto = contexto;
-			_identityContext = identityContext;
-		}
+        public PedidosController(
+            IProductoLogica productoLogica,
+            IWebHostEnvironment env,
+            Contexto contexto)
+        {
+            _productoLogica = productoLogica;
+            _env = env;
+            _contexto = contexto;
+        }
 
-		public async Task<IActionResult> Index(string? filtroCliente, string? filtroEstado, int pagina = 1)
-		{
-			int registrosPorPagina = 10;
-			var query = _contexto.Pedidos
-				.Include(p => p.Cliente)
-				.AsQueryable();
+        // ── INDEX ──────────────────────────────────────────────────────────
+        public async Task<IActionResult> Index(
+            string? filtroCliente, string? filtroEstado,
+            string? fechaDesde, string? fechaHasta, int pagina = 1)
+        {
+            int registrosPorPagina = 10;
 
-			if (!string.IsNullOrEmpty(filtroCliente))
-				query = query.Where(p => p.Cliente!.Nombre.Contains(filtroCliente));
+            var query = _contexto.Pedidos
+                .Include(p => p.Cliente)
+                .AsQueryable();
 
-			if (!string.IsNullOrEmpty(filtroEstado))
-				query = query.Where(p => p.Estado == filtroEstado);
+            if (!string.IsNullOrWhiteSpace(filtroCliente))
+                query = query.Where(p => p.Cliente!.Nombre.Contains(filtroCliente));
 
-			int totalRegistros = await query.CountAsync();
+            if (!string.IsNullOrWhiteSpace(filtroEstado))
+                query = query.Where(p => p.Estado == filtroEstado);
 
-			var pedidos = await query
-				.OrderByDescending(p => p.Fecha)
-				.Skip((pagina - 1) * registrosPorPagina)
-				.Take(registrosPorPagina)
-				.ToListAsync();
+            if (DateTime.TryParse(fechaDesde, out var desde))
+                query = query.Where(p => p.Fecha >= desde);
 
-			// esto trae solo los usuarios relacionados a los pedidos mostrados
-			var usuarioIds = pedidos.Select(p => p.UsuarioId).Distinct().ToList();
-			var usuariosDict = _identityContext.Users
-								 .Where(u => usuarioIds.Contains(u.Id))
-								 .ToDictionary(u => u.Id, u => u.Email);
+            if (DateTime.TryParse(fechaHasta, out var hasta))
+                query = query.Where(p => p.Fecha <= hasta.AddDays(1));
 
-			var pedidosDto = pedidos.Select(p => new PedidoListadoDto
-			{
-				Id = p.Id,
-				Fecha = p.Fecha,
-				Cliente = p.Cliente?.Nombre ?? "",
-				Usuario = usuariosDict.ContainsKey(p.UsuarioId) ? usuariosDict[p.UsuarioId] : "Sin usuario",
-				Subtotal = p.Subtotal,
-				Impuestos = p.Impuestos,
-				Total = p.Total,
-				Estado = p.Estado
-			}).ToList();
+            int totalRegistros = await query.CountAsync();
+            var pedidos = await query
+                .OrderByDescending(p => p.Fecha)
+                .Skip((pagina - 1) * registrosPorPagina)
+                .Take(registrosPorPagina)
+                .ToListAsync();
 
-			ViewBag.FiltroCliente = filtroCliente;
-			ViewBag.FiltroEstado = filtroEstado;
-			ViewBag.PaginaActual = pagina;
-			ViewBag.TotalPaginas = (int)Math.Ceiling(totalRegistros / (double)registrosPorPagina);
+            var vendedorIds = pedidos.Select(p => p.VendedorId).Distinct().ToList();
+            var vendedoresDict = await _contexto.Usuarios
+                .Where(u => vendedorIds.Contains(u.IdUsuario))
+                .ToDictionaryAsync(u => u.IdUsuario, u => u.Correo);
 
-			return View(pedidosDto);
-		}
+            var pedidosDto = pedidos.Select(p => new PedidoListadoDto
+            {
+                Id = p.Id,
+                NumeroOrden = p.NumeroOrden,
+                Fecha = p.Fecha,
+                Cliente = p.Cliente?.Nombre ?? "",
+                Usuario = vendedoresDict.TryGetValue(p.VendedorId, out var v) ? v : "Sin vendedor",
+                Subtotal = p.Subtotal,
+                Impuestos = p.Impuestos,
+                Total = p.Total,
+                Estado = p.Estado
+            }).ToList();
 
-		public async Task<IActionResult> Details(int? id)
-		{
-			if (id == null)
-				return NotFound();
+            ViewBag.FiltroCliente = filtroCliente;
+            ViewBag.FiltroEstado = filtroEstado;
+            ViewBag.FechaDesde = fechaDesde;
+            ViewBag.FechaHasta = fechaHasta;
+            ViewBag.PaginaActual = pagina;
+            ViewBag.TotalPaginas = (int)Math.Ceiling(totalRegistros / (double)registrosPorPagina);
+            ViewBag.EstadosValidos = EstadosValidos;
 
-			var pedido = await _contexto.Pedidos
-				.Include(p => p.Cliente)
-				.Include(p => p.Detalles)
-					.ThenInclude(d => d.Producto)
-				.FirstOrDefaultAsync(p => p.Id == id);
+            return View(pedidosDto);
+        }
 
-			if (pedido == null)
-				return NotFound();
+        // ── DETAILS ────────────────────────────────────────────────────────
+        public async Task<IActionResult> Details(int? id)
+        {
+            if (id == null) return NotFound();
 
-			// esto se hizo para tener el email del usuario que hizo el pedido, ya que en la tabla Pedido solo se guarda el Id del usuario
-			var emailUsuario = _identityContext.Users
-				.Where(u => u.Id == pedido.UsuarioId)
-				.Select(u => u.Email)
-				.FirstOrDefault() ?? pedido.UsuarioId; 
+            var pedido = await _contexto.Pedidos
+                .Include(p => p.Cliente)
+                .Include(p => p.Detalles!)
+                    .ThenInclude(d => d.Producto)
+                .FirstOrDefaultAsync(p => p.Id == id);
 
-		
-			ViewBag.EmailUsuario = emailUsuario;
+            if (pedido == null) return NotFound();
 
-			return View(pedido);
+            var vendedor = await _contexto.Usuarios
+                .FirstOrDefaultAsync(u => u.IdUsuario == pedido.VendedorId);
 
-			
-		}
+            ViewBag.NombreVendedor = vendedor?.Correo ?? $"Usuario #{pedido.VendedorId}";
+            ViewBag.EstadosValidos = EstadosValidos;
+            ViewBag.PuedeCambiarEstado = User.IsInRole("Administrador") ||
+                                         User.IsInRole("Operador de Planta");
+            return View(pedido);
+        }
 
-		// Sprint 0 PROMADERAS: la creación/edición/eliminación de pedidos requiere
-		// generar NumeroOrden (UNIQUE) y resolver IdVendedor (INT FK a Usuario)
-		// que no están conectados al modelo actual. Quedan en construcción.
+        // ── CREATE GET ─────────────────────────────────────────────────────
+        [Authorize(Roles = "Administrador,Vendedor")]
+        public async Task<IActionResult> Create()
+        {
+            await CargarViewBagCreate();
+            ViewBag.VendedorEmail = User.Identity?.Name ?? "(usuario no identificado)";
+            return View(new CreatePedidoViewModel());
+        }
 
-		private IActionResult PedidoEnConstruccion()
-		{
-			ViewBag.Modulo = "La creación, edición y eliminación de pedidos";
-			ViewBag.Detalle = "PROMADERAS exige NumeroOrden e IdVendedor que aún no están conectados al modelo. Estará disponible en el próximo sprint.";
-			return View("EnConstruccion");
-		}
+        // ── CREATE POST ────────────────────────────────────────────────────
+        [HttpPost, ValidateAntiForgeryToken]
+        [Authorize(Roles = "Administrador,Vendedor")]
+        public async Task<IActionResult> Create(CreatePedidoViewModel vm)
+        {
+            if (!vm.Detalles.Any())
+                ModelState.AddModelError("", "Debe agregar al menos un producto al pedido.");
 
-		[Authorize(Roles = "Administrador,Vendedor")]
-		public IActionResult Create() => PedidoEnConstruccion();
+            if (!ModelState.IsValid)
+            {
+                await CargarViewBagCreate();
+                return View(vm);
+            }
 
-		[HttpPost, ValidateAntiForgeryToken]
-		[Authorize(Roles = "Administrador,Vendedor")]
-		public IActionResult Create(ProductoAD producto, IFormFile? imagen) => PedidoEnConstruccion();
+            // Buscar IdVendedor en tabla Usuario por correo del usuario logueado
+            var emailActual = User.Identity!.Name ?? "";
+            var vendedor = await _contexto.Usuarios
+                .FirstOrDefaultAsync(u => u.Correo == emailActual && u.Estado);
 
-		[Authorize(Roles = Roles.Administrador)]
-		public IActionResult Edit(int? id) => PedidoEnConstruccion();
+            if (vendedor == null)
+            {
+                ModelState.AddModelError("",
+                    $"El usuario '{emailActual}' no existe en la tabla Usuario. " +
+                    "Verifique que el empleado/vendedor esté registrado en el sistema interno.");
+                await CargarViewBagCreate();
+                return View(vm);
+            }
 
-		[HttpPost, ValidateAntiForgeryToken]
-		[Authorize(Roles = Roles.Administrador)]
-		public IActionResult Edit(int id, ProductoAD producto, IFormFile? imagen) => PedidoEnConstruccion();
+            // Validar stock disponible (OC-HU-002)
+            // Solo bloquea si hay datos en InventarioMovimiento Y el stock es insuficiente.
+            // Si la tabla está vacía se permite la creación (sin movimientos = sin datos aún).
+            var stockDict = await ObtenerStockDisponible();
+            if (stockDict.Any())
+            {
+                var erroresStock = new List<string>();
+                foreach (var det in vm.Detalles)
+                {
+                    int stockDisp = stockDict.TryGetValue(det.ProductoId, out var s) ? s : 0;
+                    if (det.Cantidad > stockDisp)
+                    {
+                        var prod = await _contexto.Productos.FindAsync(det.ProductoId);
+                        erroresStock.Add(
+                            $"'{prod?.Nombre ?? det.ProductoId.ToString()}': " +
+                            $"solicitado {det.Cantidad}, disponible {stockDisp}");
+                    }
+                }
+                if (erroresStock.Any())
+                {
+                    ModelState.AddModelError("",
+                        "Stock insuficiente: " + string.Join(" | ", erroresStock));
+                    await CargarViewBagCreate();
+                    return View(vm);
+                }
+            }
 
-		[Authorize(Roles = Roles.Administrador)]
-		public IActionResult Delete(int? id) => PedidoEnConstruccion();
+            // Generar NumeroOrden único: OC-YYYYMMDD-XXXX
+            var ahora = DateTime.Now;
+            var maxId = await _contexto.Pedidos.MaxAsync(p => (int?)p.Id) ?? 0;
+            var numeroOrden = $"OC-{ahora:yyyyMMdd}-{(maxId + 1):D4}";
 
-		[HttpPost, ActionName("Delete"), ValidateAntiForgeryToken]
-		[Authorize(Roles = Roles.Administrador)]
-		public IActionResult DeleteConfirmed(int id) => PedidoEnConstruccion();
+            // Calcular totales (IVA 13%)
+            decimal subtotal = vm.Detalles.Sum(d => d.Cantidad * d.PrecioUnit);
+            decimal impuesto = Math.Round(subtotal * 0.13m, 2);
+            decimal total = subtotal + impuesto;
 
-		private async Task<PedidoAD?> ObtenerPedidoCompleto(int id)
-		{
-			return await _contexto.Pedidos
-				.Include(p => p.Cliente)
-				.Include(p => p.Detalles)
-					.ThenInclude(d => d.Producto)
-				.FirstOrDefaultAsync(p => p.Id == id);
-		}
+            var pedido = new PedidoAD
+            {
+                NumeroOrden = numeroOrden,
+                ClienteId = vm.ClienteId,
+                VendedorId = vendedor.IdUsuario,
+                Fecha = ahora,
+                Observacion = vm.Observacion,
+                Subtotal = Math.Round(subtotal, 2),
+                Impuestos = impuesto,
+                Total = Math.Round(total, 2),
+                Estado = "Pendiente",
+                Activa = true
+            };
 
-		public async Task<IActionResult> ExportarPdf(int id)
-		{
-			var pedido = await ObtenerPedidoCompleto(id);
+            _contexto.Pedidos.Add(pedido);
+            await _contexto.SaveChangesAsync();
 
-			if (pedido == null)
-				return NotFound();
+            foreach (var det in vm.Detalles)
+            {
+                _contexto.PedidoDetalles.Add(new PedidoDetalleAD
+                {
+                    PedidoId = pedido.Id,
+                    ProductoId = det.ProductoId,
+                    Cantidad = det.Cantidad,
+                    PrecioUnit = det.PrecioUnit,
+                    TotalLinea = Math.Round(det.Cantidad * det.PrecioUnit, 2)
+                });
+            }
+            await _contexto.SaveChangesAsync();
 
-			var emailUsuario = _identityContext.Users
-				.Where(u => u.Id == pedido.UsuarioId)
-				.Select(u => u.Email)
-				.FirstOrDefault() ?? pedido.UsuarioId;
+            TempData["Mensaje"] = $"Pedido {numeroOrden} creado exitosamente.";
+            return RedirectToAction(nameof(Details), new { id = pedido.Id });
+        }
 
-			var document = Document.Create(container =>
-			{
-				container.Page(page =>
-				{
-					page.Size(PageSizes.A4);
-					page.Margin(30);
-					page.DefaultTextStyle(x => x.FontSize(11));
+        // ── CAMBIAR ESTADO (OC-HU-004) ─────────────────────────────────────
+        [HttpPost, ValidateAntiForgeryToken]
+        [Authorize(Roles = "Administrador,Operador de Planta")]
+        public async Task<IActionResult> CambiarEstado(
+            int id, string nuevoEstado, string? observacion)
+        {
+            if (!EstadosValidos.Contains(nuevoEstado))
+            {
+                TempData["Error"] = "Estado no válido.";
+                return RedirectToAction(nameof(Details), new { id });
+            }
 
-					page.Header()
-						.Text($"Detalle del Pedido #{pedido.Id}")
-						.FontSize(20)
-						.Bold();
+            var pedido = await _contexto.Pedidos.FindAsync(id);
+            if (pedido == null) return NotFound();
 
-					page.Content().Column(col =>
-					{
-						col.Spacing(10);
+            if (!pedido.Activa)
+            {
+                TempData["Error"] = "No se puede cambiar el estado de una orden inactiva.";
+                return RedirectToAction(nameof(Details), new { id });
+            }
 
-						col.Item().Text($"Cliente: {pedido.Cliente?.Nombre}");
-						col.Item().Text($"Cédula: {pedido.Cliente?.Cedula}");
-						col.Item().Text($"Fecha: {pedido.Fecha:dd/MM/yyyy HH:mm}");
-						col.Item().Text($"Usuario: {emailUsuario}");
-						col.Item().Text($"Estado: {pedido.Estado}");
+            var estadoAnterior = pedido.Estado;
+            pedido.Estado = nuevoEstado;
+            if (nuevoEstado == "Cancelada") pedido.Activa = false;
 
-						col.Item().PaddingTop(10).Text("Productos del pedido").Bold();
+            await _contexto.SaveChangesAsync();
 
-						col.Item().Table(table =>
-						{
-							table.ColumnsDefinition(columns =>
-							{
-								columns.RelativeColumn(3);
-								columns.RelativeColumn(2);
-								columns.RelativeColumn(1);
-								columns.RelativeColumn(2);
-								columns.RelativeColumn(1);
-								columns.RelativeColumn(2);
-							});
+            // Registrar en HistorialEstadoOrden (tabla ya existe en BD)
+            var emailActual = User.Identity!.Name ?? "";
+            var usuarioCambio = await _contexto.Usuarios
+                .FirstOrDefaultAsync(u => u.Correo == emailActual);
 
-							table.Header(header =>
-							{
-								header.Cell().Element(CellStyle).Text("Producto").Bold();
-								header.Cell().Element(CellStyle).Text("Precio Unitario").Bold();
-								header.Cell().Element(CellStyle).Text("Cantidad").Bold();
-								header.Cell().Element(CellStyle).Text("Descuento").Bold();
-								header.Cell().Element(CellStyle).Text("Impuesto %").Bold();
-								header.Cell().Element(CellStyle).Text("Total Línea").Bold();
-							});
+            if (usuarioCambio != null)
+            {
+                await _contexto.Database.ExecuteSqlRawAsync(
+                    @"INSERT INTO HistorialEstadoOrden
+                        (IdOrdenCompra, EstadoAnterior, EstadoNuevo, IdUsuarioCambio, FechaCambio, Observacion)
+                      VALUES ({0}, {1}, {2}, {3}, GETDATE(), {4})",
+                    pedido.Id, estadoAnterior, nuevoEstado,
+                    usuarioCambio.IdUsuario,
+                    (object?)observacion ?? DBNull.Value);
+            }
 
-							foreach (var item in pedido.Detalles ?? Enumerable.Empty<PedidoDetalleAD>())
-							{
-								table.Cell().Element(CellStyle).Text(item.Producto?.Nombre ?? "");
-								table.Cell().Element(CellStyle).Text(item.PrecioUnit.ToString("N2"));
-								table.Cell().Element(CellStyle).Text(item.Cantidad.ToString());
-								table.Cell().Element(CellStyle).Text(item.Descuento.ToString("N2"));
-								table.Cell().Element(CellStyle).Text(item.ImpuestoPorc.ToString("N2"));
-								table.Cell().Element(CellStyle).Text(item.TotalLinea.ToString("N2"));
-							}
-						});
+            TempData["Mensaje"] =
+                $"Estado actualizado: '{estadoAnterior}' → '{nuevoEstado}'.";
+            return RedirectToAction(nameof(Details), new { id });
+        }
 
-						col.Item().PaddingTop(10).Text($"Subtotal: {pedido.Subtotal:N2}");
-						col.Item().Text($"Impuestos: {pedido.Impuestos:N2}");
-						col.Item().Text($"Total: {pedido.Total:N2}").Bold();
-					});
+        // ── EXPORTAR PDF ───────────────────────────────────────────────────
+        public async Task<IActionResult> ExportarPdf(int id)
+        {
+            var pedido = await ObtenerPedidoCompleto(id);
+            if (pedido == null) return NotFound();
 
-					page.Footer()
-						.AlignCenter()
-						.Text($"PROmaderas - {DateTime.Now:dd/MM/yyyy HH:mm}");
-				});
-			});
+            var vendedor = await _contexto.Usuarios.FindAsync(pedido.VendedorId);
+            var emailVendedor = vendedor?.Correo ?? $"Usuario #{pedido.VendedorId}";
 
-			static IContainer CellStyle(IContainer container)
-			{
-				return container
-					.Border(1)
-					.BorderColor(Colors.Grey.Lighten2)
-					.Padding(5);
-			}
+            var document = Document.Create(container =>
+            {
+                container.Page(page =>
+                {
+                    page.Size(PageSizes.A4);
+                    page.Margin(30);
+                    page.DefaultTextStyle(x => x.FontSize(11));
 
-			var pdfBytes = document.GeneratePdf();
+                    page.Header()
+                        .Text($"Orden de Compra — {pedido.NumeroOrden}")
+                        .FontSize(18).Bold();
 
-			return File(pdfBytes, "application/pdf", $"Pedido_{pedido.Id}.pdf");
-		}
+                    page.Content().Column(col =>
+                    {
+                        col.Spacing(8);
+                        col.Item().Text($"Cliente: {pedido.Cliente?.Nombre}");
+                        col.Item().Text($"Cédula: {pedido.Cliente?.Cedula}");
+                        col.Item().Text($"Fecha: {pedido.Fecha:dd/MM/yyyy HH:mm}");
+                        col.Item().Text($"Vendedor: {emailVendedor}");
+                        col.Item().Text($"Estado: {pedido.Estado}");
+                        if (!string.IsNullOrEmpty(pedido.Observacion))
+                            col.Item().Text($"Observación: {pedido.Observacion}");
 
-		public async Task<IActionResult> ExportarExcel(int id)
-		{
-			var pedido = await ObtenerPedidoCompleto(id);
+                        col.Item().PaddingTop(10).Text("Detalle de productos").Bold();
+                        col.Item().Table(table =>
+                        {
+                            table.ColumnsDefinition(c =>
+                            {
+                                c.RelativeColumn(3);
+                                c.RelativeColumn(2);
+                                c.RelativeColumn(1);
+                                c.RelativeColumn(2);
+                            });
+                            table.Header(h =>
+                            {
+                                h.Cell().Element(CellStyle).Text("Producto").Bold();
+                                h.Cell().Element(CellStyle).Text("Precio Unit.").Bold();
+                                h.Cell().Element(CellStyle).Text("Cant.").Bold();
+                                h.Cell().Element(CellStyle).Text("Subtotal").Bold();
+                            });
+                            foreach (var item in pedido.Detalles ?? Enumerable.Empty<PedidoDetalleAD>())
+                            {
+                                table.Cell().Element(CellStyle).Text(item.Producto?.Nombre ?? "");
+                                table.Cell().Element(CellStyle).Text($"₡{item.PrecioUnit:N2}");
+                                table.Cell().Element(CellStyle).Text(item.Cantidad.ToString());
+                                table.Cell().Element(CellStyle).Text($"₡{item.TotalLinea:N2}");
+                            }
+                        });
 
-			if (pedido == null)
-				return NotFound();
+                        col.Item().PaddingTop(8).Text($"Subtotal: ₡{pedido.Subtotal:N2}");
+                        col.Item().Text($"Impuesto (13%): ₡{pedido.Impuestos:N2}");
+                        col.Item().Text($"TOTAL: ₡{pedido.Total:N2}").Bold();
+                    });
 
-			using var workbook = new XLWorkbook();
-			var ws = workbook.Worksheets.Add($"Pedido_{pedido.Id}");
+                    page.Footer()
+                        .AlignCenter()
+                        .Text($"PROmaderas — {DateTime.Now:dd/MM/yyyy HH:mm}");
+                });
+            });
 
-			ws.Cell(1, 1).Value = $"Detalle del Pedido #{pedido.Id}";
-			ws.Cell(3, 1).Value = "Cliente";
-			ws.Cell(3, 2).Value = pedido.Cliente?.Nombre ?? "";
-			ws.Cell(4, 1).Value = "Cédula";
-			ws.Cell(4, 2).Value = pedido.Cliente?.Cedula ?? "";
-			ws.Cell(5, 1).Value = "Fecha";
-			ws.Cell(5, 2).Value = pedido.Fecha.ToString("dd/MM/yyyy HH:mm");
-			ws.Cell(6, 1).Value = "Estado";
-			ws.Cell(6, 2).Value = pedido.Estado;
+            static IContainer CellStyle(IContainer c) =>
+                c.Border(1).BorderColor(Colors.Grey.Lighten2).Padding(5);
 
-			ws.Cell(8, 1).Value = "Producto";
-			ws.Cell(8, 2).Value = "Precio Unitario";
-			ws.Cell(8, 3).Value = "Cantidad";
-			ws.Cell(8, 4).Value = "Descuento";
-			ws.Cell(8, 5).Value = "Impuesto %";
-			ws.Cell(8, 6).Value = "Total Línea";
+            return File(
+                document.GeneratePdf(),
+                "application/pdf",
+                $"Pedido_{pedido.NumeroOrden}.pdf");
+        }
 
-			int row = 9;
-			foreach (var item in pedido.Detalles ?? Enumerable.Empty<PedidoDetalleAD>())
-			{
-				ws.Cell(row, 1).Value = item.Producto?.Nombre ?? "";
-				ws.Cell(row, 2).Value = (double)item.PrecioUnit;
-				ws.Cell(row, 3).Value = item.Cantidad;
-				ws.Cell(row, 4).Value = (double)item.Descuento;
-				ws.Cell(row, 5).Value = (double)item.ImpuestoPorc;
-				ws.Cell(row, 6).Value = (double)item.TotalLinea;
-				row++;
-			}
+        // ── EXPORTAR EXCEL ─────────────────────────────────────────────────
+        public async Task<IActionResult> ExportarExcel(int id)
+        {
+            var pedido = await ObtenerPedidoCompleto(id);
+            if (pedido == null) return NotFound();
 
-			ws.Cell(row + 1, 5).Value = "Subtotal";
-			ws.Cell(row + 1, 6).Value = (double)pedido.Subtotal;
-			ws.Cell(row + 2, 5).Value = "Impuestos";
-			ws.Cell(row + 2, 6).Value = (double)pedido.Impuestos;
-			ws.Cell(row + 3, 5).Value = "Total";
-			ws.Cell(row + 3, 6).Value = (double)pedido.Total;
+            using var workbook = new XLWorkbook();
+            var ws = workbook.Worksheets.Add("Pedido");
+            ws.Cell(1, 1).Value = $"Orden: {pedido.NumeroOrden}";
+            ws.Cell(3, 1).Value = "Cliente"; ws.Cell(3, 2).Value = pedido.Cliente?.Nombre ?? "";
+            ws.Cell(4, 1).Value = "Cédula"; ws.Cell(4, 2).Value = pedido.Cliente?.Cedula ?? "";
+            ws.Cell(5, 1).Value = "Fecha"; ws.Cell(5, 2).Value = pedido.Fecha.ToString("dd/MM/yyyy HH:mm");
+            ws.Cell(6, 1).Value = "Estado"; ws.Cell(6, 2).Value = pedido.Estado;
+            ws.Cell(8, 1).Value = "Producto"; ws.Cell(8, 2).Value = "Precio Unit.";
+            ws.Cell(8, 3).Value = "Cantidad"; ws.Cell(8, 4).Value = "Subtotal";
+            int row = 9;
+            foreach (var item in pedido.Detalles ?? Enumerable.Empty<PedidoDetalleAD>())
+            {
+                ws.Cell(row, 1).Value = item.Producto?.Nombre ?? "";
+                ws.Cell(row, 2).Value = (double)item.PrecioUnit;
+                ws.Cell(row, 3).Value = item.Cantidad;
+                ws.Cell(row, 4).Value = (double)item.TotalLinea;
+                row++;
+            }
+            ws.Cell(row + 1, 3).Value = "Subtotal";
+            ws.Cell(row + 1, 4).Value = (double)pedido.Subtotal;
+            ws.Cell(row + 2, 3).Value = "Impuesto";
+            ws.Cell(row + 2, 4).Value = (double)pedido.Impuestos;
+            ws.Cell(row + 3, 3).Value = "Total";
+            ws.Cell(row + 3, 4).Value = (double)pedido.Total;
+            ws.Columns().AdjustToContents();
 
-			ws.Columns().AdjustToContents();
+            using var stream = new MemoryStream();
+            workbook.SaveAs(stream);
+            stream.Position = 0;
 
-			using var stream = new MemoryStream();
-			workbook.SaveAs(stream);
-			stream.Position = 0;
+            return File(
+                stream.ToArray(),
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                $"Pedido_{pedido.NumeroOrden}.xlsx");
+        }
 
-			return File(
-				stream.ToArray(),
-				"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-				$"Pedido_{pedido.Id}.xlsx");
-		}
+        // ── HELPERS PRIVADOS ───────────────────────────────────────────────
+        private async Task<PedidoAD?> ObtenerPedidoCompleto(int id) =>
+            await _contexto.Pedidos
+                .Include(p => p.Cliente)
+                .Include(p => p.Detalles!).ThenInclude(d => d.Producto)
+                .FirstOrDefaultAsync(p => p.Id == id);
 
-		[Authorize]
-		public IActionResult PedidoCreadoExitoso(int id)
-		{
-			TempData["Mensaje"] = "Pedido creado exitosamente.";
-			return RedirectToAction(nameof(Details), new { id });
-		}
+        private async Task CargarViewBagCreate()
+        {
+            var clientes = await _contexto.Clientes
+                .Where(c => c.Estado == true)
+                .OrderBy(c => c.Nombre)
+                .ToListAsync();
 
-		// Sprint 0: el CHECK constraint en OrdenCompra.Estado solo acepta
-		// (Pendiente, En Produccion, Lista para Entrega, Entregada, Cancelada).
-		// "Completado" no es valor válido, así que los flujos quedan en
-		// construcción hasta que se ajuste el código al vocabulario de la BD.
+            var productos = await _contexto.Productos
+                .Where(p => p.Activo == true)
+                .OrderBy(p => p.Nombre)
+                .ToListAsync();
 
-		[HttpPost]
-		[Authorize(Roles = Roles.Administrador)]
-		public IActionResult CompletarPedido(int id) => PedidoEnConstruccion();
+            ViewBag.ClienteSelectList = new SelectList(clientes, "Id", "Nombre");
+            ViewBag.ClientesJson = System.Text.Json.JsonSerializer.Serialize(
+                clientes.Select(c => new { id = c.Id, nombre = c.Nombre }));
+            ViewBag.ProductosJson = System.Text.Json.JsonSerializer.Serialize(
+                productos.Select(p => new { id = p.Id, nombre = p.Nombre, precio = p.Precio }));
+            ViewBag.StockDict = await ObtenerStockDisponible();
+        }
 
-		[HttpPost]
-		[Authorize(Roles = Roles.Administrador)]
-		public IActionResult CancelarPedido(int id) => PedidoEnConstruccion();
-
-	}
+        private async Task<Dictionary<int, int>> ObtenerStockDisponible()
+        {
+            var stock = new Dictionary<int, int>();
+            var conn = _contexto.Database.GetDbConnection();
+            bool wasOpen = conn.State == System.Data.ConnectionState.Open;
+            if (!wasOpen) await conn.OpenAsync();
+            try
+            {
+                await using var cmd = conn.CreateCommand();
+                cmd.CommandText = @"
+                    SELECT IdTipoTarima,
+                        SUM(CASE WHEN TipoMovimiento IN ('Entrada','AjusteEntrada')
+                                 THEN Cantidad ELSE 0 END) -
+                        SUM(CASE WHEN TipoMovimiento IN ('Salida','AjusteSalida')
+                                 THEN Cantidad ELSE 0 END) AS StockDisponible
+                    FROM InventarioMovimiento
+                    GROUP BY IdTipoTarima";
+                await using var reader = await cmd.ExecuteReaderAsync();
+                while (await reader.ReadAsync())
+                    stock[Convert.ToInt32(reader["IdTipoTarima"])] =
+                        Convert.ToInt32(reader["StockDisponible"]);
+            }
+            finally
+            {
+                if (!wasOpen) await conn.CloseAsync();
+            }
+            return stock;
+        }
+    }
 }

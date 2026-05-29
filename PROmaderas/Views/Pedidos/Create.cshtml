@@ -1,245 +1,292 @@
+@model PROmaderas.UI.Models.CreatePedidoViewModel
 @{
-    ViewData["Title"] = "Crear Pedido";
+    ViewData["Title"] = "Nueva Orden de Compra";
+    var productosJson = ViewBag.ProductosJson as string ?? "[]";
+    var clientesJson = ViewBag.ClientesJson as string ?? "[]";
+    var stockDict = ViewBag.StockDict as Dictionary<int, int> ?? new Dictionary<int, int>();
 }
 
 <div class="container mt-4">
-    <div class="row">
-        <div class="col-md-10 offset-md-1">
-            <h2>Crear Pedido</h2>
-            <hr />
-
-            <div class="mb-3">
-                <label for="clienteSelect" class="form-label">Seleccionar Cliente</label>
-                <select id="clienteSelect" class="form-select">
-                    <option value="">Seleccione un cliente </option>
-                    @foreach (var c in ViewBag.Clientes)
-                    {
-                        <option value="@c.Id">@c.Nombre (@c.Cedula)</option>
-                    }
-                </select>
-            </div>
-
-            <div class="mb-3">
-                <label for="productoSearch" class="form-label">Buscar producto</label>
-                <input id="productoSearch" class="form-control" placeholder="Escribe nombre o código" autocomplete="off" />
-                <ul id="sugerencias" class="list-group mt-1" style="position: absolute; z-index:1000; display:none; max-height:200px; overflow:auto;"></ul>
-            </div>
-
-            <div class="mb-3">
-                <table class="table table-bordered">
-                    <thead>
-                        <tr>
-                            <th>Producto</th>
-                            <th>Precio</th>
-                            <th>Cantidad</th>
-                            <th>Descuento</th>
-                            <th>Tipo</th>
-                            <th>Subtotal</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody id="lineasBody">
-                    </tbody>
-                </table>
-            </div>
-
-            <div class="row">
-                <div class="col-md-6">
-                    <button id="btnAgregarProducto" class="btn btn-secondary" disabled>Añadir producto seleccionado</button>
-                </div>
-                <div class="col-md-6 text-end">
-                    <p>Subtotal: <strong id="txtSubtotal">0.00</strong></p>
-                    <p>Impuestos: <strong id="txtImpuestos">0.00</strong></p>
-                    <p>Total: <strong id="txtTotal">0.00</strong></p>
-                    <button id="btnCrearPedido" class="btn btn-primary" disabled>Confirmar Pedido</button>
-                    <a href="@Url.Action("Index", "Pedidos")" class="btn btn-secondary ms-2">Cancelar</a>
-                </div>
-            </div>
-
+    <div class="row mb-3">
+        <div class="col">
+            <h2><i class="bi bi-cart-plus me-2"></i>Nueva Orden de Compra</h2>
         </div>
     </div>
+
+    <form asp-action="Create" method="post" id="formCreate">
+        @Html.AntiForgeryToken()
+        <div asp-validation-summary="All" class="alert alert-danger mb-3" style="display:none" id="divErrores"></div>
+
+        <div class="card mb-4">
+            <div class="card-header"><strong>Datos generales</strong></div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Cliente <span class="text-danger">*</span></label>
+                        <div class="position-relative">
+                            <input type="text" id="clienteBuscar" class="form-control"
+                                   placeholder="Escriba para buscar cliente..."
+                                   autocomplete="off"
+                                   style="background-color:#2a2a2a;color:#f0f0f0;border-color:#555;" />
+                            <input type="hidden" asp-for="ClienteId" id="ClienteId" />
+                            <ul id="clienteDropdown"
+                                class="list-group position-absolute w-100 shadow"
+                                style="display:none;max-height:220px;overflow-y:auto;z-index:999;
+                                background-color:#2a2a2a;border:1px solid #555;">
+                            </ul>
+                        </div>
+                        <span asp-validation-for="ClienteId" class="text-danger small" id="clienteError"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="Observacion" class="form-label">Observaciones</label>
+                        <input asp-for="Observacion" class="form-control"
+                               placeholder="Notas adicionales (opcional)" />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Vendedor responsable</label>
+                        <div style="background-color:#2a2a2a;border:1px solid #555;border-radius:6px;
+                            padding:8px 12px;color:#f0f0f0;">
+                            <i class="bi bi-person-fill me-2" style="color:#c9a03c"></i>
+                            <strong>@ViewBag.VendedorEmail</strong>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Fecha de la orden</label>
+                        <div style="background-color:#2a2a2a;border:1px solid #555;border-radius:6px;
+                            padding:8px 12px;color:#f0f0f0;">
+                            <i class="bi bi-calendar-event me-2" style="color:#c9a03c"></i>
+                            <strong>@DateTime.Now.ToString("dd/MM/yyyy HH:mm")</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <strong>Productos del pedido</strong>
+                <button type="button" class="btn btn-sm btn-outline-secondary"
+                        id="btnAgregarLinea">
+                    <i class="bi bi-plus-circle me-1"></i>Agregar producto
+                </button>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-bordered mb-0" id="tablaDetalles">
+                        <thead class="table-dark">
+                            <tr>
+                                <th style="min-width:200px">Tipo de Tarima</th>
+                                <th style="width:90px">Stock</th>
+                                <th style="min-width:150px">Precio unit. (₡)</th>
+                                <th style="width:100px">Cantidad</th>
+                                <th style="min-width:140px">Subtotal (₡)</th>
+                                <th style="width:50px"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbodyDetalles">
+                            <!-- filas se agregan por JS -->
+                        </tbody>
+                        <tfoot>
+                            <tr style="background:rgba(255,255,255,0.08)">
+                                <td colspan="3" class="text-end fw-bold" style="color:var(--bs-body-color,#e0e0e0)">Subtotal:</td>
+                                <td colspan="2" class="fw-bold" id="tdSubtotal" style="color:#f0c040">₡0.00</td>
+                                <td></td>
+                            </tr>
+                            <tr style="background:rgba(255,255,255,0.08)">
+                                <td colspan="3" class="text-end fw-bold" style="color:var(--bs-body-color,#e0e0e0)">IVA (13%):</td>
+                                <td colspan="2" class="fw-bold" id="tdIva" style="color:#f0c040">₡0.00</td>
+                                <td></td>
+                            </tr>
+                            <tr style="background:rgba(201,160,60,0.25);border-top:2px solid #c9a03c">
+                                <td colspan="3" class="text-end fw-bold fs-5" style="color:#f0c040">TOTAL:</td>
+                                <td colspan="2" class="fw-bold fs-5" id="tdTotal" style="color:#f0c040">₡0.00</td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+                <div id="divSinLineas" class="text-center text-muted p-3">
+                    <i class="bi bi-cart me-1"></i>Haga clic en "Agregar producto" para iniciar el pedido.
+                </div>
+            </div>
+        </div>
+
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-warning fw-bold">
+                <i class="bi bi-check-circle me-1"></i>Guardar orden
+            </button>
+            <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+        </div>
+    </form>
 </div>
 
 @section Scripts {
     <script>
-        
-        var productoSeleccionado = null; 
-        var lineas = [];
+        const PRODUCTOS = @Html.Raw(productosJson);
+        const CLIENTES  = @Html.Raw(clientesJson);
+        const STOCK = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(stockDict));
+        let lineaIdx = 0;
 
-        
-        $(function () {
-            var $search = $("#productoSearch");
-            var $sugerencias = $("#sugerencias");
-            var debounceTimer = null;
+        function fmt(n){ return '₡' + parseFloat(n).toLocaleString('es-CR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
 
-            $search.on('input', function () {
-                var q = $(this).val();
-                if (debounceTimer) clearTimeout(debounceTimer);
-                debounceTimer = setTimeout(function () {
-                    if (!q || q.length < 2) { $sugerencias.hide(); return; }
-                    buscarProductos(q, function (data) {
-                        $sugerencias.empty();
-                        if (!data || data.length === 0) { $sugerencias.hide(); return; }
-                        data.forEach(function (p) {
-                            var $li = $("<li class='list-group-item list-group-item-action' style='cursor:pointer;'></li>");
-                            $li.text(p.nombre + " (" + p.precio.toFixed(2) + ") - stock: " + p.stock);
-                            $li.data('producto', p);
-                            $li.on('click', function () {
-                                productoSeleccionado = $(this).data('producto');
-                                $("#productoSearch").val(productoSeleccionado.nombre + " - " + productoSeleccionado.precio.toFixed(2));
-                                $sugerencias.hide();
-                                $("#btnAgregarProducto").prop('disabled', false);
-                            });
-                            $sugerencias.append($li);
-                        });
-                        $sugerencias.show();
-                    }, function () { $sugerencias.hide(); });
-                }, 250);
+        // ── AUTOCOMPLETE CLIENTE ──────────────────────────────────────────────────────
+        (function(){
+            const inp  = document.getElementById('clienteBuscar');
+            const hid  = document.getElementById('ClienteId');
+            const ul   = document.getElementById('clienteDropdown');
+            const err  = document.getElementById('clienteError');
+
+            function mostrar(lista){
+                ul.innerHTML = '';
+                if(!lista.length){ ul.style.display='none'; return; }
+                lista.forEach(c => {
+                    const li = document.createElement('li');
+                    li.className = 'list-group-item list-group-item-action py-1 px-2';
+                    li.style.cssText = 'cursor:pointer;background-color:#2a2a2a;color:#f0f0f0;border-color:#555;';
+                    li.textContent = c.nombre;
+                    li.addEventListener('mouseover', ()=>{ li.style.backgroundColor='#3a3a3a'; });
+                    li.addEventListener('mouseout',  ()=>{ li.style.backgroundColor='#2a2a2a'; });
+                    li.addEventListener('mousedown', e => {
+                        e.preventDefault();
+                        inp.value = c.nombre;
+                        hid.value = c.id;
+                        err.textContent = '';
+                        ul.style.display = 'none';
+                    });
+                    ul.appendChild(li);
+                });
+                ul.style.display = 'block';
+            }
+
+            inp.addEventListener('input', function(){
+                hid.value = '';
+                const q = this.value.trim().toLowerCase();
+                if(q.length < 1){ ul.style.display='none'; return; }
+                const res = CLIENTES.filter(c => c.nombre.toLowerCase().includes(q)).slice(0, 10);
+                mostrar(res);
             });
 
-            $(document).on('click', function (e) {
-                if (!$(e.target).closest('#sugerencias, #productoSearch').length) {
-                    $sugerencias.hide();
+            inp.addEventListener('blur', function(){
+                setTimeout(()=>{ ul.style.display='none'; }, 150);
+                if(!hid.value && inp.value.trim()){
+                    err.textContent = 'Seleccione un cliente de la lista.';
                 }
             });
 
-            
-            $("#btnAgregarProducto").on('click', function () {
-                if (!productoSeleccionado) return;
-                addLinea(productoSeleccionado);
-                productoSeleccionado = null;
-                $("#productoSearch").val('');
-                $(this).prop('disabled', true);
-                recacularTotales();
-                checkHabilitarCrear();
+            inp.addEventListener('focus', function(){
+                if(inp.value.trim().length >= 1) inp.dispatchEvent(new Event('input'));
             });
+        })();
 
-           
-            $("#btnCrearPedido").on('click', function () {
-                var clienteId = parseInt($("#clienteSelect").val());
-                if (!clienteId) { alert('Seleccione un cliente'); return; }
-                if (lineas.length === 0) { alert('Agregue al menos un producto'); return; }
-
-                
-                var payloadLineas = lineas.map(function (l) {
-                    return {
-                        productoId: l.productoId,
-                        cantidad: l.cantidad,
-                        descuento: l.descuento,
-                        descuentoTipo: l.descuentoTipo
-                    };
-                });
-
-                crearPedido(clienteId, payloadLineas, function (res) {
-                    window.location.href = '/Pedidos/PedidoCreadoExitoso/' + res.pedidoId;
-                }, function (err) {
-                    var msg = 'Error creando pedido';
-                    if (err && err.responseJSON && err.responseJSON.error) msg = err.responseJSON.error;
-                    alert(msg);
-                });
+        function recalcular(){
+            let sub = 0;
+            document.querySelectorAll('.fila-detalle').forEach(tr => {
+                const precio = parseFloat(tr.querySelector('.inp-precio').value)||0;
+                const cant   = parseInt(tr.querySelector('.inp-cant').value)||0;
+                const subt   = precio * cant;
+                tr.querySelector('.td-subt').textContent = fmt(subt);
+                sub += subt;
             });
-        });
-
-        function addLinea(p) {
-            var nueva = {
-                productoId: p.id,
-                nombre: p.nombre,
-                precio: p.precio,
-                impuesto: p.impuesto,
-                stock: p.stock,
-                cantidad: 1,
-                descuento: 0,
-                descuentoTipo: 'porc'
-            };
-            lineas.push(nueva);
-            renderLineas();
+            const iva = sub * 0.13;
+            document.getElementById('tdSubtotal').textContent = fmt(sub);
+            document.getElementById('tdIva').textContent = fmt(iva);
+            document.getElementById('tdTotal').textContent = fmt(sub + iva);
+            document.getElementById('divSinLineas').style.display =
+                document.querySelectorAll('.fila-detalle').length === 0 ? 'block' : 'none';
         }
 
-        function renderLineas() {
-            var $body = $("#lineasBody");
-            $body.empty();
-            lineas.forEach(function (l, idx) {
-                var $tr = $("<tr></tr>");
-                $tr.append('<td>' + l.nombre + '</td>');
-                $tr.append('<td>' + l.precio.toFixed(2) + '</td>');
-                $tr.append('<td><input type="number" min="1" value="' + l.cantidad + '" class="form-control cantidad-input" data-idx="' + idx + '"></td>');
-                $tr.append('<td><input type="number" min="0" step="0.01" value="' + l.descuento + '" class="form-control descuento-input" data-idx="' + idx + '"></td>');
-                $tr.append('<td><select class="form-select tipo-input" data-idx="' + idx + '"><option value="porc"' + (l.descuentoTipo==='porc'?' selected':'') + '>Porcentaje</option><option value="fijo"' + (l.descuentoTipo==='fijo'?' selected':'') + '>Fijo</option></select></td>');
-                $tr.append('<td class="subtotal-linea">0.00</td>');
-                $tr.append('<td><button class="btn btn-sm btn-danger btn-eliminar" data-idx="' + idx + '">Eliminar</button></td>');
-                $body.append($tr);
+        function agregarLinea(){
+            const i = lineaIdx++;
+            const tr = document.createElement('tr');
+            tr.className = 'fila-detalle';
+            tr.innerHTML = `
+                <td>
+                    <select name="Detalles[${i}].ProductoId" class="form-select form-select-sm sel-prod" required>
+                        <option value="">— Seleccionar —</option>
+                        ${PRODUCTOS.map(p=>`<option value="${p.id}" data-precio="${p.precio}">${p.nombre}</option>`).join('')}
+                    </select>
+                    <input type="hidden" name="Detalles[${i}].PrecioUnit" class="inp-precio-hidden" value="0"/>
+                </td>
+                <td class="td-stock text-center text-muted">—</td>
+                <td>
+                    <span class="inp-precio fw-semibold" style="white-space:nowrap">—</span>
+                    <input type="hidden" name="Detalles[${i}].PrecioUnit" class="inp-precio-val" value="0"/>
+                </td>
+                <td>
+                    <input type="number" name="Detalles[${i}].Cantidad" class="form-control form-control-sm inp-cant"
+                           min="1" value="1" required/>
+                </td>
+                <td class="td-subt fw-semibold">₡0.00</td>
+                <td class="text-center">
+                    <button type="button" class="btn btn-sm btn-outline-danger btn-quitar" title="Quitar">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </td>`;
+
+            tr.querySelector('.sel-prod').addEventListener('change', function(){
+                const opt = this.selectedOptions[0];
+                const precio = parseFloat(opt.dataset.precio)||0;
+                const prodId = parseInt(this.value)||0;
+                tr.querySelector('.inp-precio').textContent = precio > 0 ? fmt(precio) : '—';
+                tr.querySelector('.inp-precio-val').value   = precio.toFixed(2);
+                tr.querySelector('.inp-precio-hidden').value = precio.toFixed(2);
+                const stock = STOCK[prodId] ?? 0;
+                const tdS = tr.querySelector('.td-stock');
+                tdS.textContent = stock;
+                tdS.className = 'td-stock text-center fw-semibold ' + (stock <= 0 ? 'text-danger' : 'text-success');
+                recalcular();
+            });
+            tr.querySelector('.inp-cant').addEventListener('input', function(){
+                const prodId = parseInt(tr.querySelector('.sel-prod').value)||0;
+                const stock = STOCK[prodId] ?? 0;
+                const cant = parseInt(this.value)||0;
+                this.classList.toggle('is-invalid', cant > stock && stock > 0);
+                recalcular();
+            });
+            tr.querySelector('.btn-quitar').addEventListener('click', function(){
+                tr.remove(); recalcular();
             });
 
-            $(".cantidad-input").on('change', function () {
-                var idx = $(this).data('idx');
-                var val = parseInt($(this).val());
-                if (isNaN(val) || val < 1) val = 1;
-                if (val > lineas[idx].stock) { alert('Cantidad mayor al stock disponible'); val = lineas[idx].stock; }
-                lineas[idx].cantidad = val;
-                recacularTotales();
-            });
-            $(".descuento-input").on('change', function () {
-                var idx = $(this).data('idx');
-                var val = parseFloat($(this).val());
-                if (isNaN(val) || val < 0) val = 0;
-                lineas[idx].descuento = val;
-                recacularTotales();
-            });
-            $(".tipo-input").on('change', function () {
-                var idx = $(this).data('idx');
-                lineas[idx].descuentoTipo = $(this).val();
-                recacularTotales();
-            });
-            $(".btn-eliminar").on('click', function () {
-                var idx = $(this).data('idx');
-                lineas.splice(idx, 1);
-                renderLineas();
-                recacularTotales();
-                checkHabilitarCrear();
-            });
-
-            recacularTotales();
-            checkHabilitarCrear();
+            document.getElementById('tbodyDetalles').appendChild(tr);
+            recalcular();
         }
 
-        function recacularTotales() {
-            if (lineas.length === 0) {
-                $("#txtSubtotal").text('0.00');
-                $("#txtImpuestos").text('0.00');
-                $("#txtTotal").text('0.00');
-                return;
+        document.getElementById('btnAgregarLinea').addEventListener('click', agregarLinea);
+
+        // Validación antes de enviar
+        document.getElementById('formCreate').addEventListener('submit', function(e){
+            const div = document.getElementById('divErrores');
+            div.style.display = 'none';
+            const errores = [];
+
+            // Validar cliente seleccionado
+            if(!document.getElementById('ClienteId').value){
+                document.getElementById('clienteError').textContent = 'Seleccione un cliente de la lista.';
+                errores.push('Debe seleccionar un cliente.');
             }
 
-            var payload = lineas.map(function (l) {
-                return { productoId: l.productoId, cantidad: l.cantidad, descuento: l.descuento, descuentoTipo: l.descuentoTipo };
-            });
-
-            calcularPedido(payload, function (res) {
-                $("#txtSubtotal").text(res.subtotal.toFixed(2));
-                $("#txtImpuestos").text(res.impuestos.toFixed(2));
-                $("#txtTotal").text(res.total.toFixed(2));
-
-                
-                $('#lineasBody tr').each(function (i, tr) {
-                    var l = lineas[i];
-                    var importe = l.precio * l.cantidad;
-                    var descuentoAmount = 0;
-                    if (l.descuentoTipo === 'porc') descuentoAmount = importe * (l.descuento / 100);
-                    else descuentoAmount = l.descuento;
-                    var baseGravable = importe - descuentoAmount;
-                    var impuestoLinea = baseGravable * (l.impuesto / 100);
-                    var totalLinea = baseGravable + impuestoLinea;
-                    $(tr).find('.subtotal-linea').text(totalLinea.toFixed(2));
+            // Validar líneas de producto
+            const filas = document.querySelectorAll('.fila-detalle');
+            if(filas.length === 0){
+                errores.push('Debe agregar al menos un producto al pedido.');
+            } else {
+                filas.forEach(tr => {
+                    const prod = tr.querySelector('.sel-prod').value;
+                    const cant = parseInt(tr.querySelector('.inp-cant').value)||0;
+                    if(!prod || cant < 1) errores.push('Verifique tipo y cantidad de los productos.');
                 });
-            }, function (err) {
-                console.error(err);
-            });
-        }
+            }
 
-        function checkHabilitarCrear() {
-            var clienteId = parseInt($("#clienteSelect").val());
-            $("#btnCrearPedido").prop('disabled', !(clienteId && lineas.length > 0));
-        }
+            if(errores.length){
+                e.preventDefault();
+                div.style.display = 'block';
+                div.innerHTML = '<i class="bi bi-exclamation-triangle me-1"></i>' +
+                    [...new Set(errores)].join('<br>');
+                window.scrollTo(0,0);
+            }
+        });
 
+        // Agregar primera línea al cargar
+        agregarLinea();
     </script>
 }

@@ -1,18 +1,8 @@
 @model IEnumerable<PROmaderas.UI.Controllers.PedidoListadoDto>
-
 @{
     ViewData["Title"] = "Pedidos";
+    var estados = new[] { "Pendiente", "En Produccion", "Lista para Entrega", "Entregada", "Cancelada" };
 }
-
-<style>
-    .search-highlight {
-        background-color: #fff3a3;
-        color: #212529;
-        padding: 0 2px;
-        border-radius: 3px;
-        font-weight: 600;
-    }
-</style>
 
 <div class="container mt-4">
     <div class="row mb-3">
@@ -22,8 +12,8 @@
         <div class="col text-end">
             @if (User.IsInRole("Administrador") || User.IsInRole("Vendedor"))
             {
-                <a asp-action="Create" class="btn btn-primary">
-                    <i class="bi bi-plus-circle"></i> Nuevo Pedido
+                <a asp-action="Create" class="btn btn-warning">
+                    <i class="bi bi-plus-circle me-1"></i>Nuevo Pedido
                 </a>
             }
         </div>
@@ -31,271 +21,121 @@
 
     @if (TempData["Mensaje"] != null)
     {
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <div class="alert alert-success alert-dismissible fade show">
             @TempData["Mensaje"]
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     }
-
     @if (TempData["Error"] != null)
     {
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <div class="alert alert-danger alert-dismissible fade show">
             @TempData["Error"]
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     }
 
-    <div class="row g-3 mb-4">
-        <div class="col-md-4">
-            <input type="text"
-                   id="busquedaPedidos"
-                   class="form-control"
-                   placeholder="Buscar por número, cliente, fecha, usuario, subtotal, impuestos o total..." />
-        </div>
 
+    <form method="get" asp-action="Index" class="row g-2 mb-4">
         <div class="col-md-3">
-            <select id="filtroEstadoPedidos" class="form-select">
+            <input type="text" name="filtroCliente" value="@ViewBag.FiltroCliente"
+                   class="form-control" placeholder="Buscar por cliente..." />
+        </div>
+        <div class="col-md-2">
+            <select name="filtroEstado" class="form-select">
                 <option value="">Todos los estados</option>
-                <option value="Pendiente">Pendiente</option>
-                <option value="Completado">Completado</option>
-                <option value="Cancelado">Cancelado</option>
+                @foreach (var e in estados)
+                {
+                    <option value="@e" selected="@(ViewBag.FiltroEstado == e)">@e</option>
+                }
             </select>
         </div>
-
-        <div class="col-md-3">
-            <button type="button" id="btnFiltrarPedidos" class="btn btn-secondary">
-                <i class="bi bi-search"></i> Filtrar
-            </button>
-            <button type="button" id="btnLimpiarPedidos" class="btn btn-outline-secondary">
-                Limpiar
-            </button>
+        <div class="col-md-2">
+            <input type="date" name="fechaDesde" value="@ViewBag.FechaDesde"
+                   class="form-control" title="Fecha desde" />
         </div>
-    </div>
+        <div class="col-md-2">
+            <input type="date" name="fechaHasta" value="@ViewBag.FechaHasta"
+                   class="form-control" title="Fecha hasta" />
+        </div>
+        <div class="col-md-3 d-flex gap-2">
+            <button type="submit" class="btn btn-secondary">
+                <i class="bi bi-search me-1"></i>Filtrar
+            </button>
+            <a asp-action="Index" class="btn btn-outline-secondary">Limpiar</a>
+        </div>
+    </form>
 
     <div class="table-responsive">
-        <table class="table table-striped table-hover" id="tablaPedidos">
+        <table class="table table-striped table-hover">
             <thead class="table-dark">
                 <tr>
-                    <th>#</th>
+                    <th>N° Orden</th>
                     <th>Cliente</th>
                     <th>Fecha</th>
-                    <th>Usuario</th>
+                    <th>Vendedor</th>
                     <th>Subtotal</th>
-                    <th>Impuestos</th>
+                    <th>Impuesto</th>
                     <th>Total</th>
                     <th>Estado</th>
                     <th>Acciones</th>
                 </tr>
             </thead>
             <tbody>
-                @foreach (var pedido in Model)
+                @foreach (var p in Model)
                 {
+                    var badgeClass = p.Estado switch
+                    {
+                        "Entregada" => "bg-success",
+                        "Cancelada" => "bg-danger",
+                        "En Produccion" => "bg-primary",
+                        "Lista para Entrega" => "bg-info text-dark",
+                        _ => "bg-warning text-dark"
+                    };
                     <tr>
-                        <td class="searchable">@pedido.Id</td>
-                        <td class="searchable">@pedido.Cliente</td>
-                        <td class="searchable">@pedido.Fecha.ToString("dd/MM/yyyy HH:mm")</td>
-                        <td class="searchable">@pedido.Usuario</td>
-                        <td class="searchable">₡@pedido.Subtotal.ToString("N2")</td>
-                        <td class="searchable">₡@pedido.Impuestos.ToString("N2")</td>
-                        <td class="searchable">₡@pedido.Total.ToString("N2")</td>
-                        <td class="estado-cell" data-estado="@pedido.Estado">
-                            @{
-                                var badgeClass = pedido.Estado switch
-                                {
-                                    "Completado" => "bg-success",
-                                    "Cancelado" => "bg-danger",
-                                    _ => "bg-warning text-dark"
-                                };
-                            }
-                            <span class="badge @badgeClass">@pedido.Estado</span>
-                        </td>
+                        <td><strong>@p.NumeroOrden</strong></td>
+                        <td>@p.Cliente</td>
+                        <td>@p.Fecha.ToString("dd/MM/yyyy")</td>
+                        <td>@p.Usuario</td>
+                        <td>₡@p.Subtotal.ToString("N2")</td>
+                        <td>₡@p.Impuestos.ToString("N2")</td>
+                        <td><strong>₡@p.Total.ToString("N2")</strong></td>
+                        <td><span class="badge @badgeClass">@p.Estado</span></td>
                         <td>
-                            <a asp-action="Details" asp-route-id="@pedido.Id" class="btn btn-sm btn-info">
+                            <a asp-action="Details" asp-route-id="@p.Id"
+                               class="btn btn-sm btn-info" title="Ver detalle">
                                 <i class="bi bi-eye"></i>
                             </a>
-                            @if (User.IsInRole("Administrador") && pedido.Estado != "Completado" && pedido.Estado != "Cancelado")
-                            {
-                                <form method="post" asp-action="CompletarPedido" asp-route-id="@pedido.Id" style="display: inline;" onsubmit="return confirm('¿Marcar este pedido como completado?');">
-                                    <button type="submit" class="btn btn-sm btn-success" title="Completar pedido">
-                                        <i class="bi bi-check-circle"></i>
-                                    </button>
-                                </form>
-                                <form method="post" asp-action="CancelarPedido" asp-route-id="@pedido.Id" style="display: inline;" onsubmit="return confirm('¿Cancelar este pedido?');">
-                                    <button type="submit" class="btn btn-sm btn-danger" title="Cancelar pedido">
-                                        <i class="bi bi-x-circle"></i>
-                                    </button>
-                                </form>
-                            }
                         </td>
                     </tr>
                 }
-
-                <tr id="filaSinResultadosPedidos" style="display:none;">
-                    <td colspan="9" class="text-center text-muted">No se encontraron coincidencias.</td>
-                </tr>
-
                 @if (!Model.Any())
                 {
                     <tr>
-                        <td colspan="9" class="text-center text-muted">No hay pedidos registrados.</td>
+                        <td colspan="9" class="text-center text-muted py-4">
+                            No hay pedidos registrados con los filtros aplicados.
+                        </td>
                     </tr>
                 }
             </tbody>
         </table>
     </div>
 
-    @if (ViewBag.TotalPaginas > 1)
+    @if ((int)ViewBag.TotalPaginas > 1)
     {
         <nav>
             <ul class="pagination justify-content-center">
                 @for (int i = 1; i <= (int)ViewBag.TotalPaginas; i++)
                 {
-                    <li class="page-item @(i == ViewBag.PaginaActual ? "active" : "")">
-                        <a class="page-link"
-                               asp-action="Index"
-                               asp-route-pagina="@i"
-                               asp-route-filtroCliente="@ViewBag.FiltroCliente"
-                               asp-route-filtroEstado="@ViewBag.FiltroEstado">
-                            @i
-                        </a>
+                    <li class="page-item @(i == (int)ViewBag.PaginaActual ? "active" : "")">
+                        <a class="page-link" asp-action="Index"
+                           asp-route-pagina="@i"
+                           asp-route-filtroCliente="@ViewBag.FiltroCliente"
+                           asp-route-filtroEstado="@ViewBag.FiltroEstado"
+                           asp-route-fechaDesde="@ViewBag.FechaDesde"
+                           asp-route-fechaHasta="@ViewBag.FechaHasta">@i</a>
                     </li>
                 }
             </ul>
         </nav>
     }
 </div>
-
-@section Scripts {
-    <script>
-        $(document).ready(function () {
-            let debounceTimer;
-
-            function normalizarTexto(texto) {
-                return (texto || '')
-                    .toString()
-                    .toLowerCase()
-                    .normalize("NFD")
-                    .replace(/[\u0300-\u036f]/g, "");
-            }
-
-            function escapeHtml(text) {
-                return $('<div>').text(text || '').html();
-            }
-
-            function escapeRegex(text) {
-                return (text || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-            }
-
-            function guardarTextoOriginal() {
-                $('#tablaPedidos tbody td.searchable').each(function () {
-                    if ($(this).data('original') === undefined) {
-                        $(this).data('original', $(this).text().trim());
-                    }
-                });
-            }
-
-            function limpiarResaltado() {
-                $('#tablaPedidos tbody tr').not('#filaSinResultadosPedidos').each(function () {
-                    $(this).find('td.searchable').each(function () {
-                        const original = $(this).data('original') || '';
-                        $(this).html(escapeHtml(original));
-                    });
-                });
-            }
-
-            function resaltarCoincidencias(textoOriginal, terminoBusqueda) {
-                if (!terminoBusqueda) {
-                    return escapeHtml(textoOriginal);
-                }
-
-                const texto = textoOriginal || '';
-                const termino = terminoBusqueda || '';
-                const regex = new RegExp('(' + escapeRegex(termino) + ')', 'ig');
-
-                return escapeHtml(texto).replace(regex, '<span class="search-highlight">$1</span>');
-            }
-
-            function aplicarBusquedaPedidos() {
-                const terminoIngresado = $('#busquedaPedidos').val().trim();
-                const terminoNormalizado = normalizarTexto(terminoIngresado);
-                const estadoSeleccionado = normalizarTexto($('#filtroEstadoPedidos').val().trim());
-                let filasVisibles = 0;
-
-                $('#tablaPedidos tbody tr').not('#filaSinResultadosPedidos').each(function () {
-                    const fila = $(this);
-
-                    if (fila.find('td').length <= 1) {
-                        return;
-                    }
-
-                    let coincideBusqueda = !terminoNormalizado;
-                    let coincideEstado = !estadoSeleccionado;
-
-                    if (terminoNormalizado) {
-                        fila.find('td.searchable').each(function () {
-                            const textoOriginal = $(this).data('original') || '';
-                            const textoNormalizado = normalizarTexto(textoOriginal);
-
-                            if (textoNormalizado.includes(terminoNormalizado)) {
-                                coincideBusqueda = true;
-                            }
-                        });
-                    }
-
-                    const estadoFila = normalizarTexto(fila.find('.estado-cell').data('estado'));
-
-                    if (estadoSeleccionado) {
-                        coincideEstado = estadoFila === estadoSeleccionado;
-                    }
-
-                    if (coincideBusqueda && coincideEstado) {
-                        fila.show();
-                        filasVisibles++;
-
-                        fila.find('td.searchable').each(function () {
-                            const original = $(this).data('original') || '';
-
-                            if (!terminoIngresado) {
-                                $(this).html(escapeHtml(original));
-                            } else {
-                                $(this).html(resaltarCoincidencias(original, terminoIngresado));
-                            }
-                        });
-                    } else {
-                        fila.hide();
-                    }
-                });
-
-                $('#filaSinResultadosPedidos').toggle(filasVisibles === 0);
-            }
-
-            guardarTextoOriginal();
-
-            $('#busquedaPedidos').on('input', function () {
-                clearTimeout(debounceTimer);
-                debounceTimer = setTimeout(function () {
-                    aplicarBusquedaPedidos();
-                }, 300);
-            });
-
-            $('#filtroEstadoPedidos').on('change', function () {
-                clearTimeout(debounceTimer);
-                aplicarBusquedaPedidos();
-            });
-
-            $('#btnFiltrarPedidos').on('click', function () {
-                clearTimeout(debounceTimer);
-                aplicarBusquedaPedidos();
-            });
-
-            $('#btnLimpiarPedidos').on('click', function () {
-                clearTimeout(debounceTimer);
-                $('#busquedaPedidos').val('');
-                $('#filtroEstadoPedidos').val('');
-                limpiarResaltado();
-                $('#tablaPedidos tbody tr').not('#filaSinResultadosPedidos').show();
-                $('#filaSinResultadosPedidos').hide();
-            });
-        });
-    </script>
-}
