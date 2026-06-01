@@ -95,6 +95,12 @@ using (var scope = app.Services.CreateScope())
 	await IdentitySeeder.SeedRolesAsync(roleManager);
 	await IdentitySeeder.SeedUsuarioAdministradorAsync(userManager, builder.Configuration);
     await IdentitySeeder.SeedUsuarioVendedorAsync(userManager, builder.Configuration);
+    await IdentitySeeder.SeedUsuarioGerenteAsync(userManager);    
+    await IdentitySeeder.SeedUsuarioContadorAsync(userManager);   
+    await IdentitySeeder.SeedUsuarioOperadorAsync(userManager);
+    await IdentitySeeder.SeedUsuarioGenericoAsync(userManager);
+    await IdentitySeeder.SeedUsuarioAborbonAsync(userManager);
+    await IdentitySeeder.SeedUsuarioDanielaAsync(userManager);
 }
 
 
@@ -128,4 +134,5 @@ app.MapControllerRoute(
 	pattern: "{controller}/{action=Index}/{id?}");
 
 app.Run();
+
 
