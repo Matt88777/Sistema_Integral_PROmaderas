@@ -41,22 +41,44 @@ namespace PROmaderas.AccesoADatos.Empleados
             return empleado;
         }
 
+        //Metodo actualizar nuevo
         public async Task Actualizar(EmpleadoAD empleado)
         {
-            var existente = await _contexto.Empleados.FindAsync(empleado.IdEmpleado);
+            var existente = await _contexto.Empleados
+                .AsNoTracking()
+                .FirstOrDefaultAsync(e => e.IdEmpleado == empleado.IdEmpleado);
 
-            if (existente != null)
-            {
-                existente.Nombre = empleado.Nombre;
-                existente.Cedula = empleado.Cedula;
-                existente.Departamento = empleado.Departamento;
-                existente.Telefono = empleado.Telefono;
-                existente.Correo = empleado.Correo;
-                existente.IdPuesto = empleado.IdPuesto;
+            if (existente == null)
+                throw new Exception($"No se encontró el empleado con ID {empleado.IdEmpleado}.");
 
-                await _contexto.SaveChangesAsync();
-            }
+            // Conservar los campos que no se editan en el formulario
+            empleado.FechaIngreso = existente.FechaIngreso;
+            empleado.FechaCreacion = existente.FechaCreacion;
+            empleado.IdPuesto = existente.IdPuesto;
+            empleado.Estado = existente.Estado;
+            empleado.PrimerApellido = existente.PrimerApellido;
+            empleado.SegundoApellido = existente.SegundoApellido;
+
+            _contexto.Empleados.Update(empleado);
+            await _contexto.SaveChangesAsync();
         }
+        //Metodo actualizar antiguo
+        //public async Task Actualizar(EmpleadoAD empleado)
+        //{
+        //    var existente = await _contexto.Empleados.FindAsync(empleado.IdEmpleado);
+
+        //    if (existente != null)
+        //    {
+        //        existente.Nombre = empleado.Nombre;
+        //        existente.Cedula = empleado.Cedula;
+        //        existente.Departamento = empleado.Departamento;
+        //        existente.Telefono = empleado.Telefono;
+        //        existente.Correo = empleado.Correo;
+        //        existente.IdPuesto = empleado.IdPuesto;
+        //
+        //        await _contexto.SaveChangesAsync();
+        //    }
+        //}
 
         public async Task Eliminar(int id)
         {

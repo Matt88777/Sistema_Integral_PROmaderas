@@ -7,6 +7,26 @@
 
 <div class="container mt-4">
 
+    @* Escenario 3: Confirmación de cambios exitosa (EMP-HU-007) *@
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i>
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+        </div>
+    }
+
+    @* Escenario 2: Error general al guardar *@
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+        </div>
+    }
+
     <h2>Lista de Empleados</h2>
 
     <a asp-action="Create" class="btn btn-primary mb-3">

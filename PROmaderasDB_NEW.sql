@@ -449,3 +449,20 @@ VALUES
 ('TAR-42X42', 'Tarima cuadrada', '42x42', 'Tarima cuadrada para uso comercial', 7500, 10),
 ('TAR-100X120-EUR', 'Tarima europea', '100x120', 'Tarima tipo europea', 9500, 10);
 GO
+
+SELECT COLUMN_NAME
+FROM INFORMATION_SCHEMA.COLUMNS
+WHERE TABLE_NAME = 'AspNetUsers'
+
+ALTER TABLE AspNetUsers
+ADD Cedula NVARCHAR(50) NULL;
+
+ALTER TABLE AspNetUsers
+ADD Direccion NVARCHAR(250) NULL;
+
+SELECT COLUMN_NAME 
+FROM INFORMATION_SCHEMA.COLUMNS 
+WHERE TABLE_NAME = 'Empleado';
+
+ALTER TABLE Empleado
+ADD Departamento NVARCHAR(100) NULL;
