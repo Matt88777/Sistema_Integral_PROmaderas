@@ -12,8 +12,9 @@ namespace PROmaderas.AccesoADatos.Seguridad
 			"Gerente",
 			"Contador",
 			"Operador de Planta",
-			"Vendedor"
-		];
+			"Vendedor",
+             "Usuario"
+        ];
 
 		public static async Task SeedRolesAsync(RoleManager<IdentityRole> roleManager)
 		{
@@ -183,8 +184,8 @@ UserManager<UsuarioIdentity> userManager)
                     throw new Exception("Error creando usuario generico: " +
                     string.Join(", ", result.Errors.Select(e => e.Description)));
             }
-            if (!await userManager.IsInRoleAsync(usuario, "Vendedor"))
-                await userManager.AddToRoleAsync(usuario, "Vendedor");
+            if (!await userManager.IsInRoleAsync(usuario, "Usuario"))
+                await userManager.AddToRoleAsync(usuario, "Usuario");
         }
 
         public static async Task SeedUsuarioDanielaAsync(
@@ -208,8 +209,8 @@ UserManager<UsuarioIdentity> userManager)
                     throw new Exception("Error creando usuario Daniela: " +
                     string.Join(", ", result.Errors.Select(e => e.Description)));
             }
-            if (!await userManager.IsInRoleAsync(usuario, "Vendedor"))
-                await userManager.AddToRoleAsync(usuario, "Vendedor");
+            if (!await userManager.IsInRoleAsync(usuario, "Usuario"))
+                await userManager.AddToRoleAsync(usuario, "Usuario");
         }
 
         public static async Task SeedUsuarioAborbonAsync(
@@ -233,8 +234,8 @@ UserManager<UsuarioIdentity> userManager)
                     throw new Exception("Error creando usuario aborbon: " +
                     string.Join(", ", result.Errors.Select(e => e.Description)));
             }
-            if (!await userManager.IsInRoleAsync(usuario, "Vendedor"))
-                await userManager.AddToRoleAsync(usuario, "Vendedor");
+            if (!await userManager.IsInRoleAsync(usuario, "Usuario"))
+                await userManager.AddToRoleAsync(usuario, "Usuario");
         }
     }
 }
