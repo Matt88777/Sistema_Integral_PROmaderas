@@ -7,5 +7,6 @@ namespace PROmaderas.UI.Seguridad
 		public const string Contador = "Contador";
 		public const string OperadorDePlanta = "Operador de Planta";
 		public const string Vendedor = "Vendedor";
+		public const string Usuario = "Usuario";
 	}
 }

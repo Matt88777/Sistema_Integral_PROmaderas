@@ -14,7 +14,7 @@ using ClosedXML.Excel;
 
 namespace PROmaderas.UI.Controllers
 {
-    [Authorize(Roles = "Administrador,Vendedor,Operador de Planta")]
+    [Authorize(Roles = Roles.Administrador + "," + Roles.Gerente + "," + Roles.Contador + "," + Roles.OperadorDePlanta + "," + Roles.Vendedor + "," + Roles.Usuario)]
     public class PedidosController : Controller
     {
         private readonly IProductoLogica _productoLogica;
@@ -117,7 +117,7 @@ namespace PROmaderas.UI.Controllers
         }
 
         // ── CREATE GET ─────────────────────────────────────────────────────
-        [Authorize(Roles = "Administrador,Vendedor")]
+        [Authorize(Roles = Roles.Administrador + "," + Roles.Vendedor)]
         public async Task<IActionResult> Create()
         {
             await CargarViewBagCreate();
@@ -127,7 +127,7 @@ namespace PROmaderas.UI.Controllers
 
         // ── CREATE POST ────────────────────────────────────────────────────
         [HttpPost, ValidateAntiForgeryToken]
-        [Authorize(Roles = "Administrador,Vendedor")]
+        [Authorize(Roles = Roles.Administrador + "," + Roles.Vendedor)]
         public async Task<IActionResult> Create(CreatePedidoViewModel vm)
         {
             if (!vm.Detalles.Any())

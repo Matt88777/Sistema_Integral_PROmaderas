@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PROmaderas.Abstracciones.Models;
 using PROmaderas.AccesoADatos;
+using PROmaderas.UI.Seguridad;
 
 namespace PROmaderas.UI.Controllers
 {
@@ -11,7 +12,7 @@ namespace PROmaderas.UI.Controllers
 	// Index/Details siguen funcionando (solo lectura). Create/Edit/Delete quedan
 	// en construcción hasta que se mapee la generación de NumeroFactura y se
 	// conecte la lógica de usuario emisor / pagos.
-	[Authorize]
+	[Authorize(Roles = Roles.Administrador + "," + Roles.Gerente + "," + Roles.Contador)]
 	public class FacturacionController : Controller
 	{
 		private readonly Contexto _contexto;

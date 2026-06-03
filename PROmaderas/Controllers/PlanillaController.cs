@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PROmaderas.Abstracciones.Models;
 using PROmaderas.AccesoADatos;
+using PROmaderas.UI.Seguridad;
 
 namespace PROmaderas.UI.Controllers
 {
@@ -10,7 +11,7 @@ namespace PROmaderas.UI.Controllers
 	// no soporta. Todo el módulo queda en construcción hasta que se mapee
 	// correctamente en un sprint posterior. El controller original se conserva
 	// abajo, comentado, para retomarlo más adelante.
-	[Authorize]
+	[Authorize(Roles = Roles.Administrador + "," + Roles.Contador)]
 	public class PlanillaController : Controller
 	{
 		private readonly Contexto _contexto;

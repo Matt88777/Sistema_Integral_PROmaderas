@@ -1,9 +1,12 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PROmaderas.Abstracciones.Models;
 using PROmaderas.AccesoADatos.Empleados;
+using PROmaderas.UI.Seguridad;
 
 namespace PROmaderas.UI.Controllers
 {
+    [Authorize(Roles = Roles.Administrador)]
     public class EmpleadosController : Controller
     {
         private readonly EmpleadoRepositorio _repositorio;

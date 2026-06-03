@@ -6,7 +6,7 @@ using PROmaderas.UI.Seguridad;
 
 namespace PROmaderas.UI.Controllers
 {
-	[Authorize(Roles = "Administrador,Vendedor,Operador de Planta")]
+	[Authorize(Roles = Roles.Administrador + "," + Roles.Gerente + "," + Roles.OperadorDePlanta)]
 	public class ProductosController : Controller
 	{
 		private readonly IProductoLogica _productoLogica;
@@ -84,25 +84,19 @@ namespace PROmaderas.UI.Controllers
 			return View("EnConstruccion");
 		}
 
-		[Authorize(Roles = Roles.Administrador + "," + Roles.Vendedor)]
 		public IActionResult Create() => ProductoEnConstruccion();
 
 		[HttpPost, ValidateAntiForgeryToken]
-		[Authorize(Roles = Roles.Administrador + "," + Roles.Vendedor)]
 		public IActionResult Create(ProductoAD producto, IFormFile? imagen) => ProductoEnConstruccion();
 
-		[Authorize(Roles = Roles.Administrador + "," + Roles.Vendedor)]
 		public IActionResult Edit(int? id) => ProductoEnConstruccion();
 
 		[HttpPost, ValidateAntiForgeryToken]
-		[Authorize(Roles = Roles.Administrador + "," + Roles.Vendedor)]
 		public IActionResult Edit(int id, ProductoAD producto, IFormFile? imagen) => ProductoEnConstruccion();
 
-		[Authorize(Roles = Roles.Administrador)]
 		public IActionResult Delete(int? id) => ProductoEnConstruccion();
 
 		[HttpPost, ActionName("Delete"), ValidateAntiForgeryToken]
-		[Authorize(Roles = Roles.Administrador)]
 		public IActionResult DeleteConfirmed(int id) => ProductoEnConstruccion();
 
 		[Authorize(Roles = Roles.Administrador + "," + Roles.OperadorDePlanta)]

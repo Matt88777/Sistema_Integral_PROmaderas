@@ -7,7 +7,7 @@ using PROmaderas.UI.Seguridad;
 
 namespace PROmaderas.UI.Controllers
 {
-	[Authorize(Roles = Roles.Administrador + "," + Roles.Vendedor)]
+	[Authorize(Roles = Roles.Administrador + "," + Roles.Gerente + "," + Roles.Vendedor)]
 	public class ClientesController : Controller
 	{
 		private readonly IClienteLogica _clienteLogica;
@@ -142,7 +142,6 @@ namespace PROmaderas.UI.Controllers
 			return RedirectToAction(nameof(Index));
 		}
         //Historial del cliente
-        [Authorize(Roles = Roles.Administrador + "," + Roles.Vendedor)]
         public async Task<IActionResult> Historial(int id)
         {
             var (cliente, pedidos) = await _clienteLogica.ObtenerHistorialPorCliente(id);
