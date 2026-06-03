@@ -38,6 +38,15 @@
     </div>
 
     <div class="mb-3">
+        <label asp-for="IdPuesto" class="form-label">Puesto</label>
+        <select asp-for="IdPuesto" class="form-control"
+                asp-items="ViewBag.PuestoSelectList as Microsoft.AspNetCore.Mvc.Rendering.SelectList">
+            <option value="">-- Seleccione --</option>
+        </select>
+        <span asp-validation-for="IdPuesto" class="text-danger small"></span>
+    </div>
+
+    <div class="mb-3">
         <label asp-for="Departamento" class="form-label"></label>
         <select asp-for="Departamento" class="form-control">
             <option value="">-- Seleccione --</option>

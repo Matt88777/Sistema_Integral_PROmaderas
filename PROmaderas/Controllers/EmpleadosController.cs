@@ -1,7 +1,9 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using PROmaderas.Abstracciones.LogicaDeNegocio;
 using PROmaderas.Abstracciones.Models;
-using PROmaderas.AccesoADatos.Empleados;
 using PROmaderas.UI.Seguridad;
 
 namespace PROmaderas.UI.Controllers
@@ -9,16 +11,18 @@ namespace PROmaderas.UI.Controllers
     [Authorize(Roles = Roles.Administrador)]
     public class EmpleadosController : Controller
     {
-        private readonly EmpleadoRepositorio _repositorio;
+        private readonly IEmpleadoLogica _empleadoLogica;
+        private readonly IPuestoLogica _puestoLogica;
 
-        public EmpleadosController(EmpleadoRepositorio repositorio)
+        public EmpleadosController(IEmpleadoLogica empleadoLogica, IPuestoLogica puestoLogica)
         {
-            _repositorio = repositorio;
+            _empleadoLogica = empleadoLogica;
+            _puestoLogica = puestoLogica;
         }
 
         public async Task<IActionResult> Index(string filtro, string departamento)
         {
-            List<EmpleadoAD> empleados = await _repositorio.ObtenerTodos();
+            List<EmpleadoAD> empleados = await _empleadoLogica.ObtenerTodos();
 
             if (!string.IsNullOrWhiteSpace(filtro))
             {
@@ -53,27 +57,25 @@ namespace PROmaderas.UI.Controllers
             if (!ModelState.IsValid)
                 return View(empleado);
 
-            await _repositorio.Crear(empleado);
+            await _empleadoLogica.Crear(empleado);
             return RedirectToAction(nameof(Index));
         }
 
         // GET: Empleados/Edit/5
         public async Task<IActionResult> Edit(int id)
         {
-            var empleado = (await _repositorio.ObtenerTodos())
+            var empleado = (await _empleadoLogica.ObtenerTodos())
                 .FirstOrDefault(e => e.IdEmpleado == id);
 
             if (empleado == null)
                 return NotFound();
 
+            await CargarPuestos(empleado.IdPuesto);
             return View(empleado);
         }
 
         // POST: Empleados/Edit/5
-        // EMP-HU-007 – Actualizar información personal del empleado
-        // Escenario 1: Actualización exitosa  → datos válidos → guarda y redirige con mensaje de confirmación
-        // Escenario 2: Datos inválidos         → ModelState inválido → regresa a la vista con errores
-        // Escenario 3: Confirmación de cambios → actualización exitosa → muestra TempData de confirmación
+        // EMP-HU-003 - Actualizar informacion laboral del empleado (puesto, departamento) con auditoria.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(EmpleadoAD empleado)
@@ -81,31 +83,36 @@ namespace PROmaderas.UI.Controllers
             // Ignorar campos que no se editan en este formulario
             ModelState.Remove(nameof(EmpleadoAD.FechaIngreso));
             ModelState.Remove(nameof(EmpleadoAD.FechaCreacion));
-            ModelState.Remove(nameof(EmpleadoAD.IdPuesto));
             ModelState.Remove(nameof(EmpleadoAD.Estado));
             ModelState.Remove(nameof(EmpleadoAD.PrimerApellido));
             ModelState.Remove(nameof(EmpleadoAD.SegundoApellido));
-            ModelState.Remove(nameof(EmpleadoAD.Puesto));
 
-            // Escenario 2: Datos inválidos – se muestran mensajes de error en la vista
             if (!ModelState.IsValid)
             {
                 TempData["ErrorMessage"] = "Por favor corrija los errores antes de guardar.";
+                await CargarPuestos(empleado.IdPuesto);
                 return View(empleado);
             }
 
             try
             {
-                // Escenario 1: Actualización exitosa – se persisten los cambios
-                await _repositorio.Actualizar(empleado);
+                var contextoAuditoria = new ContextoAuditoria
+                {
+                    UsuarioIdentityId = User.FindFirstValue(ClaimTypes.NameIdentifier),
+                    Email = User.Identity?.Name,
+                    Ip = HttpContext.Connection.RemoteIpAddress?.ToString(),
+                    Accion = "Update"
+                };
 
-                // Escenario 3: Confirmación de cambios – mensaje de éxito para mostrar en Index
+                await _empleadoLogica.Actualizar(empleado, contextoAuditoria);
+
                 TempData["SuccessMessage"] = "La información del empleado fue actualizada correctamente.";
                 return RedirectToAction(nameof(Index));
             }
             catch (Exception)
             {
                 TempData["ErrorMessage"] = "Ocurrió un error al actualizar la información. Intente nuevamente.";
+                await CargarPuestos(empleado.IdPuesto);
                 return View(empleado);
             }
         }
@@ -113,7 +120,7 @@ namespace PROmaderas.UI.Controllers
         [HttpGet]
         public async Task<IActionResult> Delete(int id)
         {
-            var empleado = (await _repositorio.ObtenerTodos())
+            var empleado = (await _empleadoLogica.ObtenerTodos())
                 .FirstOrDefault(e => e.IdEmpleado == id);
 
             if (empleado == null)
@@ -126,8 +133,14 @@ namespace PROmaderas.UI.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            await _repositorio.Eliminar(id);
+            await _empleadoLogica.Eliminar(id);
             return RedirectToAction(nameof(Index));
+        }
+
+        private async Task CargarPuestos(int seleccionado)
+        {
+            var puestos = await _puestoLogica.Listar();
+            ViewBag.PuestoSelectList = new SelectList(puestos, "IdPuesto", "NombrePuesto", seleccionado);
         }
     }
 }

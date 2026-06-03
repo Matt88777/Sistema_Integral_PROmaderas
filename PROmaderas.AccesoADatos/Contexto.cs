@@ -21,6 +21,8 @@ namespace PROmaderas.AccesoADatos
 
         public DbSet<BitacoraAuditoriaAD> Bitacoras { get; set; }
 
+        public DbSet<PuestoAD> Puestos { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -153,6 +155,17 @@ namespace PROmaderas.AccesoADatos
                 e.Property(x => x.ValorNuevo).HasColumnName("ValorNuevo");
                 e.Property(x => x.FechaAccion).HasColumnName("FechaAccion");
                 e.Property(x => x.DireccionIP).HasColumnName("DireccionIP");
+            });
+
+            // PuestoAD -> Puesto (read-only; usado para poblar dropdowns)
+            modelBuilder.Entity<PuestoAD>(e =>
+            {
+                e.ToTable("Puesto");
+                e.HasKey(x => x.IdPuesto);
+                e.Property(x => x.IdPuesto).HasColumnName("IdPuesto");
+                e.Property(x => x.NombrePuesto).HasColumnName("NombrePuesto");
+                e.Property(x => x.IdDepartamento).HasColumnName("IdDepartamento");
+                e.Property(x => x.Estado).HasColumnName("Estado");
             });
         }
     }

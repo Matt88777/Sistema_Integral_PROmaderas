@@ -1,9 +1,11 @@
 using Microsoft.EntityFrameworkCore;
+using PROmaderas.Abstracciones.AccesoADatos;
 using PROmaderas.Abstracciones.Models;
+using PROmaderas.AccesoADatos.Auditoria;
 
 namespace PROmaderas.AccesoADatos.Empleados
 {
-    public class EmpleadoRepositorio
+    public class EmpleadoRepositorio : IEmpleadoRepositorio
     {
         private readonly Contexto _contexto;
 
@@ -41,8 +43,9 @@ namespace PROmaderas.AccesoADatos.Empleados
             return empleado;
         }
 
-        //Metodo actualizar nuevo
-        public async Task Actualizar(EmpleadoAD empleado)
+        // EMP-HU-003: Actualizar info laboral (puesto, departamento) con auditoria.
+        // IdPuesto YA NO se preserva del registro previo; viene del formulario.
+        public async Task Actualizar(EmpleadoAD empleado, ContextoAuditoria auditoria)
         {
             var existente = await _contexto.Empleados
                 .AsNoTracking()
@@ -51,15 +54,44 @@ namespace PROmaderas.AccesoADatos.Empleados
             if (existente == null)
                 throw new Exception($"No se encontró el empleado con ID {empleado.IdEmpleado}.");
 
-            // Conservar los campos que no se editan en el formulario
+            // Conservar campos que NO estan en el formulario de Edit
             empleado.FechaIngreso = existente.FechaIngreso;
             empleado.FechaCreacion = existente.FechaCreacion;
-            empleado.IdPuesto = existente.IdPuesto;
             empleado.Estado = existente.Estado;
             empleado.PrimerApellido = existente.PrimerApellido;
             empleado.SegundoApellido = existente.SegundoApellido;
 
+            // Resolver nombre del puesto (antes/despues) para enriquecer la auditoria
+            var nombrePuestoAnterior = await _contexto.Puestos.AsNoTracking()
+                .Where(p => p.IdPuesto == existente.IdPuesto)
+                .Select(p => p.NombrePuesto)
+                .FirstOrDefaultAsync();
+            var nombrePuestoNuevo = await _contexto.Puestos.AsNoTracking()
+                .Where(p => p.IdPuesto == empleado.IdPuesto)
+                .Select(p => p.NombrePuesto)
+                .FirstOrDefaultAsync();
+
+            var valoresAnteriores = new
+            {
+                existente.IdPuesto,
+                NombrePuesto = nombrePuestoAnterior,
+                existente.Departamento
+            };
+
+            var valoresNuevos = new
+            {
+                empleado.IdPuesto,
+                NombrePuesto = nombrePuestoNuevo,
+                empleado.Departamento
+            };
+
             _contexto.Empleados.Update(empleado);
+            _contexto.Bitacoras.Add(ConstructorBitacora.Construir(
+                "Empleado",
+                empleado.IdEmpleado,
+                auditoria,
+                valoresAnteriores,
+                valoresNuevos));
             await _contexto.SaveChangesAsync();
         }
         //Metodo actualizar antiguo

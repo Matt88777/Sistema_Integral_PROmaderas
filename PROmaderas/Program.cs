@@ -11,6 +11,9 @@ using PROmaderas.Abstracciones.LogicaDeNegocio;
 using PROmaderas.LogicaDeNegocio.Categorias;
 using PROmaderas.LogicaDeNegocio.Productos;
 using PROmaderas.LogicaDeNegocio.Clientes;
+using PROmaderas.LogicaDeNegocio.Empleados;
+using PROmaderas.LogicaDeNegocio.Puestos;
+using PROmaderas.AccesoADatos.Puestos;
 using QuestPDF.Infrastructure;
 using PROmaderas.UI.Services;
 using PROmaderas.AccesoADatos.Empleados;
@@ -62,6 +65,11 @@ builder.Services.AddScoped<IClienteRepositorio, PROmaderas.AccesoADatos.Clientes
 builder.Services.AddScoped<IClienteLogica, EmpleadosLogica>();
 
 builder.Services.AddScoped<PROmaderas.AccesoADatos.Empleados.EmpleadoRepositorio>();
+
+builder.Services.AddScoped<IEmpleadoRepositorio, PROmaderas.AccesoADatos.Empleados.EmpleadoRepositorio>();
+builder.Services.AddScoped<IEmpleadoLogica, EmpleadoLogica>();
+builder.Services.AddScoped<IPuestoRepositorio, PuestoRepositorio>();
+builder.Services.AddScoped<IPuestoLogica, PuestoLogica>();
 
 
 QuestPDF.Settings.License = LicenseType.Community;
