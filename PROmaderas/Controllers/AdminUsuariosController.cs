@@ -49,6 +49,7 @@ public class AdminUsuariosController : Controller
 
             resultado.Add(new AdminUserListItemViewModel
             {
+                Id = usuario.Id,
                 Nombre = usuario.NombreCompleto,
                 Email = usuario.Email ?? string.Empty,
                 Telefono = usuario.PhoneNumber,
@@ -154,6 +155,63 @@ public class AdminUsuariosController : Controller
         var mail = await CrearCorreoInvitacionAsync(usuario);
         TempData["Mensaje"] = "Invitacion reenviada a la bandeja de correo.";
         return RedirectToAction(nameof(EmailPreview), new { id = mail.Id });
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> RestablecerContrasena(string id)
+    {
+        if (string.IsNullOrWhiteSpace(id))
+        {
+            TempData["Error"] = "Debe indicar un usuario.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        var usuario = await _userManager.FindByIdAsync(id);
+        if (usuario is null)
+        {
+            TempData["Error"] = "No se encontro el usuario indicado.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        return View(new AdminResetPasswordViewModel
+        {
+            UserId = usuario.Id,
+            Email = usuario.Email ?? string.Empty
+        });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> RestablecerContrasena(AdminResetPasswordViewModel modelo)
+    {
+        if (!ModelState.IsValid)
+        {
+            return View(modelo);
+        }
+
+        var usuario = await _userManager.FindByIdAsync(modelo.UserId);
+        if (usuario is null)
+        {
+            TempData["Error"] = "No se encontro el usuario indicado.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        var token = await _userManager.GeneratePasswordResetTokenAsync(usuario);
+        var resultado = await _userManager.ResetPasswordAsync(usuario, token, modelo.NuevaContrasena);
+
+        if (resultado.Succeeded)
+        {
+            TempData["Mensaje"] = $"Contrasena restablecida para {usuario.Email}.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        foreach (var error in resultado.Errors)
+        {
+            ModelState.AddModelError(string.Empty, error.Description);
+        }
+
+        modelo.Email = usuario.Email ?? string.Empty;
+        return View(modelo);
     }
 
     public IActionResult Inbox()
