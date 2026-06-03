@@ -15,5 +15,8 @@ namespace PROmaderas.Abstracciones.LogicaDeNegocio
 			int pagina,
 			int registrosPorPagina,
 			string? filtroNombre);
-	}
+        //Obtener historial
+        Task<(ClienteAD? cliente, List<PedidoAD> pedidos)> ObtenerHistorialPorCliente(int clienteId);
+
+    }
 }

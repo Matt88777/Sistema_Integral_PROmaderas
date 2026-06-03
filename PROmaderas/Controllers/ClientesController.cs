@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PROmaderas.Abstracciones.LogicaDeNegocio;
 using PROmaderas.Abstracciones.Models;
+using PROmaderas.UI.Models;
 using PROmaderas.UI.Seguridad;
 
 namespace PROmaderas.UI.Controllers
@@ -140,5 +141,34 @@ namespace PROmaderas.UI.Controllers
 
 			return RedirectToAction(nameof(Index));
 		}
-	}
+        //Historial del cliente
+        [Authorize(Roles = Roles.Administrador + "," + Roles.Vendedor)]
+        public async Task<IActionResult> Historial(int id)
+        {
+            var (cliente, pedidos) = await _clienteLogica.ObtenerHistorialPorCliente(id);
+
+            if (cliente == null)
+                return NotFound();
+
+            var vm = new ClienteHistorialViewModel
+            {
+                Cliente = cliente,
+                Pedidos = pedidos.Select(p => new PedidoHistorialItemViewModel
+                {
+                    Id = p.Id,
+                    NumeroOrden = p.NumeroOrden,
+                    Fecha = p.Fecha,
+                    Estado = p.Estado,
+                    Subtotal = p.Subtotal,
+                    Impuestos = p.Impuestos,
+                    Total = p.Total,
+                    Observacion = p.Observacion,
+                    Detalles = p.Detalles?.ToList() ?? new(),
+                    Factura = null
+                }).ToList()
+            };
+
+            return View(vm);
+        }
+    }
 }

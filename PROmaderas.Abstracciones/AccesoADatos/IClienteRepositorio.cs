@@ -15,5 +15,9 @@ namespace PROmaderas.Abstracciones.AccesoADatos
 			int pagina,
 			int registrosPorPagina,
 			string? filtroNombre);
-	}
+
+        //Busqueda historial del cliente
+        Task<(ClienteAD? cliente, List<PedidoAD> pedidos)> ObtenerHistorialPorCliente(int clienteId);
+
+    }
 }

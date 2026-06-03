@@ -86,6 +86,20 @@ namespace PROmaderas.AccesoADatos.Clientes
 
 			return (clientes, totalRegistros);
 		}
+        //Obtener historial del cliente
+        public async Task<(ClienteAD? cliente, List<PedidoAD> pedidos)> ObtenerHistorialPorCliente(int clienteId)
+        {
+            var cliente = await _contexto.Clientes.FindAsync(clienteId);
 
-	}
+            var pedidos = await _contexto.Pedidos
+                .Where(p => p.ClienteId == clienteId)
+                .Include(p => p.Detalles!)
+                    .ThenInclude(d => d.Producto)
+                .OrderByDescending(p => p.Fecha)
+                .ToListAsync();
+
+            return (cliente, pedidos);
+        }
+
+    }
 }

@@ -82,20 +82,26 @@
                         <td class="searchable">@item.Correo</td>
                         <td class="searchable">@(item.Telefono ?? "N/A")</td>
                         <td class="searchable">@(item.Direccion ?? "N/A")</td>
+                        
+
                         <td>
                             <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info" title="Ver detalles">
                                 <i class="bi bi-eye"></i>
+                            </a>
+                            <a asp-action="Historial" asp-route-id="@item.Id" class="btn btn-sm btn-primary" title="Historial de compras">
+                                <i class="bi bi-clock-history"></i>
                             </a>
                             <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning" title="Editar">
                                 <i class="bi bi-pencil"></i>
                             </a>
                             @if (User.IsInRole("Administrador"))
                             {
-                            <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger" title="Eliminar">
-                                <i class="bi bi-trash"></i>
-                            </a>
+                                <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger" title="Eliminar">
+                                    <i class="bi bi-trash"></i>
+                                </a>
                             }
                         </td>
+
                     </tr>
                 }
 
