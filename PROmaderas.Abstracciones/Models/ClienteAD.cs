@@ -21,11 +21,10 @@ namespace PROmaderas.Abstracciones.Models
         [Display(Name = "Cédula Jurídica")]
         public string Cedula { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "El correo es requerido")]
         [StringLength(150)]
         [EmailAddress(ErrorMessage = "Correo inválido")]
         [Display(Name = "Correo Electrónico")]
-        public string Correo { get; set; } = string.Empty;
+        public string? Correo { get; set; }
 
         [StringLength(20)]
         [RegularExpression(@"^\+?\d{7,15}$", ErrorMessage = "Teléfono inválido")]
@@ -36,10 +35,9 @@ namespace PROmaderas.Abstracciones.Models
         [Display(Name = "Dirección")]
         public string? Direccion { get; set; }
 
-        [Required(ErrorMessage = "La condición de pago es requerida")]
         [StringLength(100)]
         [Display(Name = "Condición de Pago")]
-        public string CondicionPago { get; set; } = "Contado";
+        public string? CondicionPago { get; set; } = "Contado";
 
         [Display(Name = "¿Exonerado?")]
         public bool Exonerado { get; set; } = false;
