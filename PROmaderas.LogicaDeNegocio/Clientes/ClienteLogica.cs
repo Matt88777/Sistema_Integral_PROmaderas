@@ -37,7 +37,7 @@ namespace PROmaderas.LogicaDeNegocio.Clientes
 			return await _repositorio.Crear(cliente);
 		}
 
-		public async Task<ClienteAD> Actualizar(ClienteAD cliente)
+		public async Task<ClienteAD> Actualizar(ClienteAD cliente, ContextoAuditoria auditoria)
 		{
 			if (string.IsNullOrWhiteSpace(cliente.Nombre))
 				throw new ArgumentException("El nombre del cliente es requerido");
@@ -48,7 +48,7 @@ namespace PROmaderas.LogicaDeNegocio.Clientes
 			if (string.IsNullOrWhiteSpace(cliente.Correo))
 				throw new ArgumentException("El correo es requerido");
 
-			return await _repositorio.Actualizar(cliente);
+			return await _repositorio.Actualizar(cliente, auditoria);
 		}
 
 		public async Task<bool> Eliminar(int id)

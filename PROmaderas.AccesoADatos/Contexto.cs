@@ -19,6 +19,8 @@ namespace PROmaderas.AccesoADatos
         // Sprint 2: tabla Usuario (IdVendedor en OrdenCompra)
         public DbSet<UsuarioAD> Usuarios { get; set; }
 
+        public DbSet<BitacoraAuditoriaAD> Bitacoras { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -131,6 +133,26 @@ namespace PROmaderas.AccesoADatos
                 e.Property(x => x.NombreUsuario).HasColumnName("NombreUsuario");
                 e.Property(x => x.Correo).HasColumnName("Correo");
                 e.Property(x => x.Estado).HasColumnName("Estado");
+            });
+
+            // BitacoraAuditoriaAD -> BitacoraAuditoria
+            // IdUsuario se mapea como int? escalar SIN navegacion a UsuarioAD:
+            // el AspNetUsers.Id es GUID (nvarchar) y dbo.Usuario.IdUsuario es int,
+            // tipos incompatibles. Siempre se escribe NULL desde el ConstructorBitacora;
+            // la identidad real del operador queda dentro de ValorNuevo.
+            modelBuilder.Entity<BitacoraAuditoriaAD>(e =>
+            {
+                e.ToTable("BitacoraAuditoria");
+                e.HasKey(x => x.IdBitacora);
+                e.Property(x => x.IdBitacora).HasColumnName("IdBitacora");
+                e.Property(x => x.IdUsuario).HasColumnName("IdUsuario");
+                e.Property(x => x.TablaAfectada).HasColumnName("TablaAfectada");
+                e.Property(x => x.IdRegistroAfectado).HasColumnName("IdRegistroAfectado");
+                e.Property(x => x.Accion).HasColumnName("Accion");
+                e.Property(x => x.ValorAnterior).HasColumnName("ValorAnterior");
+                e.Property(x => x.ValorNuevo).HasColumnName("ValorNuevo");
+                e.Property(x => x.FechaAccion).HasColumnName("FechaAccion");
+                e.Property(x => x.DireccionIP).HasColumnName("DireccionIP");
             });
         }
     }

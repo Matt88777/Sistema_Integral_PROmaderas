@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using PROmaderas.Abstracciones.AccesoADatos;
 using PROmaderas.Abstracciones.Models;
+using PROmaderas.AccesoADatos.Auditoria;
 
 namespace PROmaderas.AccesoADatos.Clientes
 {
@@ -30,9 +31,42 @@ namespace PROmaderas.AccesoADatos.Clientes
             return cliente;
         }
 
-        public async Task<ClienteAD> Actualizar(ClienteAD cliente)
+        public async Task<ClienteAD> Actualizar(ClienteAD cliente, ContextoAuditoria auditoria)
 		{
+			var existente = await _contexto.Clientes.AsNoTracking()
+				.FirstOrDefaultAsync(c => c.Id == cliente.Id);
+
+			object valoresAnteriores = existente is null
+				? new { }
+				: new
+				{
+					existente.Nombre,
+					existente.Telefono,
+					existente.Correo,
+					existente.Direccion,
+					existente.CondicionPago,
+					existente.Exonerado,
+					existente.PorcentajeExoneracion
+				};
+
+			var valoresNuevos = new
+			{
+				cliente.Nombre,
+				cliente.Telefono,
+				cliente.Correo,
+				cliente.Direccion,
+				cliente.CondicionPago,
+				cliente.Exonerado,
+				cliente.PorcentajeExoneracion
+			};
+
 			_contexto.Clientes.Update(cliente);
+			_contexto.Bitacoras.Add(ConstructorBitacora.Construir(
+				"Cliente",
+				cliente.Id,
+				auditoria,
+				valoresAnteriores,
+				valoresNuevos));
 			await _contexto.SaveChangesAsync();
 			return cliente;
 		}

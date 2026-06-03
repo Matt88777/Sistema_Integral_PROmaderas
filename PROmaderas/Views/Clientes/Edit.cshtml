@@ -46,6 +46,27 @@
                     <span asp-validation-for="Direccion" class="text-danger"></span>
                 </div>
 
+                <div class="mb-3">
+                    <label asp-for="CondicionPago" class="form-label"></label>
+                    <input asp-for="CondicionPago" class="form-control" />
+                    <span asp-validation-for="CondicionPago" class="text-danger"></span>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3 d-flex align-items-end">
+                        <div class="form-check">
+                            <input asp-for="Exonerado" class="form-check-input" />
+                            <label asp-for="Exonerado" class="form-check-label"></label>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="PorcentajeExoneracion" class="form-label"></label>
+                        <input asp-for="PorcentajeExoneracion" class="form-control" type="number" step="0.01" min="0" max="100" />
+                        <span asp-validation-for="PorcentajeExoneracion" class="text-danger"></span>
+                    </div>
+                </div>
+
                 <div class="form-group">
                     <input type="submit" value="Guardar" class="btn btn-primary" />
                     <a asp-action="Index" class="btn btn-secondary">Volver al listado</a>

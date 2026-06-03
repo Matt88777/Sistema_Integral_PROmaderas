@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PROmaderas.Abstracciones.LogicaDeNegocio;
@@ -94,7 +95,15 @@ namespace PROmaderas.UI.Controllers
 			{
 				try
 				{
-					await _clienteLogica.Actualizar(cliente);
+					var contextoAuditoria = new ContextoAuditoria
+					{
+						UsuarioIdentityId = User.FindFirstValue(ClaimTypes.NameIdentifier),
+						Email = User.Identity?.Name,
+						Ip = HttpContext.Connection.RemoteIpAddress?.ToString(),
+						Accion = "Update"
+					};
+
+					await _clienteLogica.Actualizar(cliente, contextoAuditoria);
 					TempData["Mensaje"] = "Cliente actualizado exitosamente";
 					return RedirectToAction(nameof(Index));
 				}
