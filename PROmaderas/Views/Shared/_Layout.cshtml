@@ -33,6 +33,7 @@
                                 </a>
                                 <ul class="dropdown-menu mega-menu" style="display:none">
 
+                                    @* INVENTARIO — Admin, Gerente, Operador *@
                                     @if (User.IsInRole("Administrador") || User.IsInRole("Gerente") || User.IsInRole("Operador de Planta"))
                                     {
                                         <li class="mega-menu-col">
@@ -42,28 +43,44 @@
                                         </li>
                                     }
 
-                                    <li class="mega-menu-col">
-                                        <span class="mega-menu-header"><i class="bi bi-people me-1"></i>Clientes</span>
-                                        <a class="dropdown-item" asp-controller="Clientes" asp-action="Index"><i class="bi bi-person-lines-fill me-2"></i>Ver clientes</a>
-                                        <a class="dropdown-item" asp-controller="Clientes" asp-action="Create"><i class="bi bi-person-plus me-2"></i>Nuevo cliente</a>
-                                    </li>
+                                    @* CLIENTES — Admin, Gerente, Vendedor *@
+                                    @if (User.IsInRole("Administrador") || User.IsInRole("Gerente") || User.IsInRole("Vendedor"))
+                                    {
+                                        <li class="mega-menu-col">
+                                            <span class="mega-menu-header"><i class="bi bi-people me-1"></i>Clientes</span>
+                                            <a class="dropdown-item" asp-controller="Clientes" asp-action="Index"><i class="bi bi-person-lines-fill me-2"></i>Ver clientes</a>
+                                            <a class="dropdown-item" asp-controller="Clientes" asp-action="Create"><i class="bi bi-person-plus me-2"></i>Nuevo cliente</a>
+                                        </li>
+                                    }
 
-                                    <li class="mega-menu-col">
-                                        <span class="mega-menu-header"><i class="bi bi-cart3 me-1"></i>Órdenes de compra</span>
-                                        <a class="dropdown-item" asp-controller="Pedidos" asp-action="Index"><i class="bi bi-clipboard-list me-2"></i>Ver órdenes</a>
-                                        <a class="dropdown-item" asp-controller="Pedidos" asp-action="Create"><i class="bi bi-plus-circle me-2"></i>Nueva orden</a>
-                                    </li>
+                                    @* ORDENES — todos los roles *@
+                                    @if (User.IsInRole("Administrador") || User.IsInRole("Gerente") || User.IsInRole("Contador") ||
+                                         User.IsInRole("Operador de Planta") || User.IsInRole("Vendedor") || User.IsInRole("Usuario"))
+                                    {
+                                        <li class="mega-menu-col">
+                                            <span class="mega-menu-header"><i class="bi bi-cart3 me-1"></i>Órdenes de compra</span>
+                                            <a class="dropdown-item" asp-controller="Pedidos" asp-action="Index"><i class="bi bi-clipboard-list me-2"></i>Ver órdenes</a>
+                                            <a class="dropdown-item" asp-controller="Pedidos" asp-action="Create"><i class="bi bi-plus-circle me-2"></i>Nueva orden</a>
+                                        </li>
+                                    }
 
+                                    @* ACCESO RAPIDO *@
                                     <li class="mega-menu-col">
                                         <span class="mega-menu-header">Acceso rápido</span>
-                                        <a class="mega-menu-card" asp-controller="Productos" asp-action="Index">
-                                            <div class="card-title"><i class="bi bi-boxes me-1"></i>Stock actual</div>
-                                            <div class="card-desc">Consulte existencias y movimientos del inventario.</div>
-                                        </a>
-                                        <a class="mega-menu-card" asp-controller="Pedidos" asp-action="Create">
-                                            <div class="card-title"><i class="bi bi-cart-plus me-1"></i>Crear orden</div>
-                                            <div class="card-desc">Registre una nueva orden de compra al sistema.</div>
-                                        </a>
+                                        @if (User.IsInRole("Administrador") || User.IsInRole("Gerente") || User.IsInRole("Operador de Planta"))
+                                        {
+                                            <a class="mega-menu-card" asp-controller="Productos" asp-action="Index">
+                                                <div class="card-title"><i class="bi bi-boxes me-1"></i>Stock actual</div>
+                                                <div class="card-desc">Consulte existencias y movimientos del inventario.</div>
+                                            </a>
+                                        }
+                                        @if (User.IsInRole("Administrador") || User.IsInRole("Vendedor"))
+                                        {
+                                            <a class="mega-menu-card" asp-controller="Pedidos" asp-action="Create">
+                                                <div class="card-title"><i class="bi bi-cart-plus me-1"></i>Crear orden</div>
+                                                <div class="card-desc">Registre una nueva orden de compra al sistema.</div>
+                                            </a>
+                                        }
                                     </li>
 
                                     <li class="mega-menu-footer">
@@ -73,6 +90,7 @@
                                 </ul>
                             </li>
 
+                            @* ADMINISTRACION — Admin, Gerente, Contador *@
                             @if (User.IsInRole("Administrador") || User.IsInRole("Gerente") || User.IsInRole("Contador"))
                             {
                                 <li class="nav-item mega-parent">
@@ -81,6 +99,7 @@
                                     </a>
                                     <ul class="dropdown-menu mega-menu" style="display:none">
 
+                                        @* FACTURACION — Admin, Gerente, Contador *@
                                         @if (User.IsInRole("Administrador") || User.IsInRole("Gerente") || User.IsInRole("Contador"))
                                         {
                                             <li class="mega-menu-col">
@@ -88,25 +107,37 @@
                                                 <a class="dropdown-item" asp-controller="Facturacion" asp-action="Index"><i class="bi bi-file-earmark-text me-2"></i>Ver facturas</a>
                                                 <a class="dropdown-item" asp-controller="Facturacion" asp-action="Create"><i class="bi bi-plus-circle me-2"></i>Nueva factura</a>
                                             </li>
+                                        }
 
+                                        @* PLANILLA — Admin y Contador *@
+                                        @if (User.IsInRole("Administrador") || User.IsInRole("Contador"))
+                                        {
                                             <li class="mega-menu-col">
                                                 <span class="mega-menu-header"><i class="bi bi-cash-stack me-1"></i>Planilla</span>
                                                 <a class="dropdown-item" asp-controller="Planilla" asp-action="Index"><i class="bi bi-table me-2"></i>Ver planilla</a>
                                             </li>
                                         }
 
-                                        @if (User.IsInRole("Administrador") || User.IsInRole("Gerente"))
+                                        @* EMPLEADOS — solo Admin *@
+                                        @if (User.IsInRole("Administrador"))
                                         {
                                             <li class="mega-menu-col">
                                                 <span class="mega-menu-header"><i class="bi bi-person-badge me-1"></i>Empleados</span>
                                                 <a class="dropdown-item" asp-controller="Empleados" asp-action="Index"><i class="bi bi-people-fill me-2"></i>Ver empleados</a>
                                                 <a class="dropdown-item" asp-controller="Empleados" asp-action="Create"><i class="bi bi-person-plus me-2"></i>Nuevo empleado</a>
-                                                <div style="height:10px"></div>
+                                            </li>
+                                        }
+
+                                        @* REPORTES — Admin y Gerente *@
+                                        @if (User.IsInRole("Administrador") || User.IsInRole("Gerente"))
+                                        {
+                                            <li class="mega-menu-col">
                                                 <span class="mega-menu-header"><i class="bi bi-bar-chart me-1"></i>Reportes</span>
                                                 <a class="dropdown-item" asp-controller="Reportes" asp-action="Index"><i class="bi bi-graph-up me-2"></i>Ver reportes</a>
                                             </li>
                                         }
 
+                                        @* SISTEMA/USUARIOS — solo Admin *@
                                         @if (User.IsInRole("Administrador"))
                                         {
                                             <li class="mega-menu-col">
@@ -146,6 +177,12 @@
                                 </a>
                                 <ul class="dropdown-menu dropdown-menu-end">
                                     <li><h6 class="dropdown-header">Sesión activa</h6></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="Account" asp-action="Perfil">
+                                            <i class="bi bi-person-gear me-2"></i>Mi Perfil
+                                        </a>
+                                    </li>
                                     <li><hr class="dropdown-divider"></li>
                                     <li>
                                         <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
@@ -200,7 +237,6 @@
 
         function posicionarYAbrir() {
         clearTimeout(timer);
-        // Calcular posición desde el navbar (position:fixed ignora el DOM)
         var rect = nav.getBoundingClientRect();
         menu.style.position = 'fixed';
         menu.style.top = rect.bottom + 'px';
@@ -222,7 +258,6 @@
         menu.addEventListener('mouseleave', cerrar);
         });
 
-        // Cerrar al hacer clic fuera
         document.addEventListener('click', function (e) {
         if (!nav.contains(e.target)) {
         nav.querySelectorAll('.dropdown-menu.mega-menu').forEach(function (m) {
