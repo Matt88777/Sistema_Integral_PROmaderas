@@ -70,6 +70,7 @@
                     <th>Correo</th>
                     <th>Teléfono</th>
                     <th>Dirección</th>
+                    <th>Estado</th>
                     <th>Acciones</th>
                 </tr>
             </thead>
@@ -82,6 +83,16 @@
                         <td class="searchable">@item.Correo</td>
                         <td class="searchable">@(item.Telefono ?? "N/A")</td>
                         <td class="searchable">@(item.Direccion ?? "N/A")</td>
+                        <td>
+                            @if (item.Estado)
+                            {
+                                <span class="badge bg-success">Activo</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">Inactivo</span>
+                            }
+                        </td>
                         
 
                         <td>
@@ -100,13 +111,32 @@
                                     <i class="bi bi-trash"></i>
                                 </a>
                             }
+                            @if (User.IsInRole("Administrador") || User.IsInRole("Gerente"))
+                            {
+                                <form asp-action="CambiarEstado" asp-route-id="@item.Id" method="post" class="d-inline">
+                                    @Html.AntiForgeryToken()
+
+                                    @if (item.Estado)
+                                    {
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Inactivar">
+                                            <i class="bi bi-toggle-off"></i>
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <button type="submit" class="btn btn-sm btn-outline-success" title="Activar">
+                                            <i class="bi bi-toggle-on"></i>
+                                        </button>
+                                    }
+                                </form>
+                            }
                         </td>
 
                     </tr>
                 }
 
                 <tr id="filaSinResultadosClientes" style="display:none;">
-                    <td colspan="6" class="text-center text-muted">No se encontraron coincidencias.</td>
+                    <td colspan="7" class="text-center text-muted">No se encontraron coincidencias.</td>
                 </tr>
             </tbody>
         </table>

@@ -8,6 +8,7 @@ namespace PROmaderas.Abstracciones.LogicaDeNegocio
 		Task<ClienteAD?> ObtenerPorId(int id);
 		Task<ClienteAD> Crear(ClienteAD cliente);
 		Task<ClienteAD> Actualizar(ClienteAD cliente, ContextoAuditoria auditoria);
+		Task CambiarEstado(int id, ContextoAuditoria auditoria);
 		Task<bool> Eliminar(int id);
 		Task<bool> Existe(int id);
 		Task<List<ClienteAD>> BuscarPorNombre(string nombre);

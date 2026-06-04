@@ -71,6 +71,43 @@ namespace PROmaderas.AccesoADatos.Clientes
 			return cliente;
 		}
 
+		public async Task CambiarEstado(int id, ContextoAuditoria auditoria)
+		{
+			var cliente = await _contexto.Clientes
+				.FirstOrDefaultAsync(c => c.Id == id);
+
+			if (cliente == null)
+			{
+				throw new Exception($"No se encontró el cliente con ID {id}.");
+			}
+
+			var estadoAnterior = cliente.Estado;
+			var estadoNuevo = !estadoAnterior;
+
+			cliente.Estado = estadoNuevo;
+
+			var valoresAnteriores = new
+			{
+				Estado = estadoAnterior ? "Activo" : "Inactivo"
+			};
+
+			var valoresNuevos = new
+			{
+				Estado = estadoNuevo ? "Activo" : "Inactivo"
+			};
+
+			_contexto.Clientes.Update(cliente);
+
+			_contexto.Bitacoras.Add(ConstructorBitacora.Construir(
+				"Cliente",
+				cliente.Id,
+				auditoria,
+				valoresAnteriores,
+				valoresNuevos));
+
+			await _contexto.SaveChangesAsync();
+		}
+
 		public async Task<bool> Eliminar(int id)
 		{
 			var cliente = await _contexto.Clientes.FindAsync(id);

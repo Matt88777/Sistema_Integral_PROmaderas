@@ -129,6 +129,33 @@ namespace PROmaderas.UI.Controllers
 			return View(cliente);
 		}
 
+		[HttpPost]
+		[ValidateAntiForgeryToken]
+		[Authorize(Roles = Roles.Administrador + "," + Roles.Gerente)]
+		public async Task<IActionResult> CambiarEstado(int id)
+		{
+			try
+			{
+				var contextoAuditoria = new ContextoAuditoria
+				{
+					UsuarioIdentityId = User.FindFirstValue(ClaimTypes.NameIdentifier),
+					Email = User.Identity?.Name,
+					Ip = HttpContext.Connection.RemoteIpAddress?.ToString(),
+					Accion = "Cambio de estado"
+				};
+
+				await _clienteLogica.CambiarEstado(id, contextoAuditoria);
+
+				TempData["Mensaje"] = "El estado del cliente fue actualizado correctamente.";
+			}
+			catch (Exception)
+			{
+				TempData["Error"] = "Ocurrió un error al cambiar el estado del cliente.";
+			}
+
+			return RedirectToAction(nameof(Index));
+		}
+
 		[HttpPost, ActionName("Delete")]
 		[ValidateAntiForgeryToken]
 		[Authorize(Roles = Roles.Administrador)]

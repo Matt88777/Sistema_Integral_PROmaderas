@@ -51,6 +51,17 @@ namespace PROmaderas.LogicaDeNegocio.Clientes
 			return await _repositorio.Actualizar(cliente, auditoria);
 		}
 
+		public async Task CambiarEstado(int id, ContextoAuditoria auditoria)
+		{
+			var existe = await _repositorio.Existe(id);
+
+			if (!existe)
+			{
+				throw new ArgumentException("El cliente no existe");
+			}
+
+			await _repositorio.CambiarEstado(id, auditoria);
+		}
 		public async Task<bool> Eliminar(int id)
 		{
 			var existe = await _repositorio.Existe(id);
