@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace PROmaderas.UI.Models;
 
@@ -19,7 +20,13 @@ public class AdminCreateUserViewModel
     [Display(Name = "Telefono")]
     public string? Telefono { get; set; }
 
-    [Required(ErrorMessage = "El rol es requerido")]
+	[Required(ErrorMessage = "Debe seleccionar un empleado activo")]
+	[Display(Name = "Empleado")]
+	public int IdEmpleado { get; set; }
+
+	public IEnumerable<SelectListItem> EmpleadosActivos { get; set; } = new List<SelectListItem>();
+
+	[Required(ErrorMessage = "El rol es requerido")]
     [Display(Name = "Rol interno")]
     public string Rol { get; set; } = "Vendedor";
 }

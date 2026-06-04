@@ -8,6 +8,8 @@ using PROmaderas.AccesoADatos.Seguridad;
 using PROmaderas.UI.Models;
 using PROmaderas.UI.Services;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using PROmaderas.Abstracciones.LogicaDeNegocio;
 
 namespace PROmaderas.UI.Controllers;
 
@@ -25,11 +27,16 @@ public class AdminUsuariosController : Controller
 
 	private readonly UserManager<UsuarioIdentity> _userManager;
 	private readonly IMailStore _mailStore;
+	private readonly IEmpleadoLogica _empleadoLogica;
 
-	public AdminUsuariosController(UserManager<UsuarioIdentity> userManager, IMailStore mailStore)
+	public AdminUsuariosController(
+	UserManager<UsuarioIdentity> userManager,
+	IMailStore mailStore,
+	IEmpleadoLogica empleadoLogica)
 	{
 		_userManager = userManager;
 		_mailStore = mailStore;
+		_empleadoLogica = empleadoLogica;
 	}
 
 	public async Task<IActionResult> Index()
@@ -68,15 +75,20 @@ public class AdminUsuariosController : Controller
 		return View(resultado);
 	}
 
-	public IActionResult Create()
+	public async Task<IActionResult> Create()
 	{
-		return View(new AdminCreateUserViewModel());
+		var model = new AdminCreateUserViewModel();
+		await CargarEmpleadosActivosAsync(model);
+
+		return View(model);
 	}
 
 	[HttpPost]
 	[ValidateAntiForgeryToken]
 	public async Task<IActionResult> Create(AdminCreateUserViewModel model)
 	{
+		await CargarEmpleadosActivosAsync(model);
+
 		if (!ModelState.IsValid)
 		{
 			return View(model);
@@ -89,6 +101,21 @@ public class AdminUsuariosController : Controller
 				"Solo se pueden crear usuarios con un rol permitido (Administrador, Gerente, Contador, Operador de Planta o Vendedor)."
 			);
 
+			return View(model);
+		}
+
+		var empleados = await _empleadoLogica.ObtenerTodos();
+		var empleado = empleados.FirstOrDefault(e => e.IdEmpleado == model.IdEmpleado);
+
+		if (empleado is null)
+		{
+			ModelState.AddModelError(nameof(model.IdEmpleado), "El empleado seleccionado no existe.");
+			return View(model);
+		}
+
+		if (empleado.Estado != true)
+		{
+			ModelState.AddModelError(nameof(model.IdEmpleado), "No se puede crear un usuario para un empleado inactivo.");
 			return View(model);
 		}
 
@@ -360,6 +387,20 @@ public class AdminUsuariosController : Controller
 		}
 
 		return View(mail);
+	}
+	private async Task CargarEmpleadosActivosAsync(AdminCreateUserViewModel model)
+	{
+		var empleados = await _empleadoLogica.ObtenerTodos();
+
+		model.EmpleadosActivos = empleados
+			.Where(e => e.Estado == true)
+			.OrderBy(e => e.Nombre)
+			.Select(e => new SelectListItem
+			{
+				Value = e.IdEmpleado.ToString(),
+				Text = $"{e.Nombre} - {e.Correo}"
+			})
+			.ToList();
 	}
 
 	private async Task<MailMessage> CrearCorreoInvitacionAsync(UsuarioIdentity usuario)
