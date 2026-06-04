@@ -117,7 +117,33 @@ namespace PROmaderas.UI.Controllers
             }
         }
 
-        [HttpGet]
+		[HttpPost]
+		[ValidateAntiForgeryToken]
+		public async Task<IActionResult> CambiarEstado(int id)
+		{
+			try
+			{
+				var contextoAuditoria = new ContextoAuditoria
+				{
+					UsuarioIdentityId = User.FindFirstValue(ClaimTypes.NameIdentifier),
+					Email = User.Identity?.Name,
+					Ip = HttpContext.Connection.RemoteIpAddress?.ToString(),
+					Accion = "Cambio de estado"
+				};
+
+				await _empleadoLogica.CambiarEstado(id, contextoAuditoria);
+
+				TempData["SuccessMessage"] = "El estado del empleado fue actualizado correctamente.";
+			}
+			catch (Exception)
+			{
+				TempData["ErrorMessage"] = "Ocurrió un error al cambiar el estado del empleado.";
+			}
+
+			return RedirectToAction(nameof(Index));
+		}
+
+		[HttpGet]
         public async Task<IActionResult> Delete(int id)
         {
             var empleado = (await _empleadoLogica.ObtenerTodos())

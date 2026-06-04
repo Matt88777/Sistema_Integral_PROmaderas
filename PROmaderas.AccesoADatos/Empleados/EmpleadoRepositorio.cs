@@ -94,25 +94,60 @@ namespace PROmaderas.AccesoADatos.Empleados
                 valoresNuevos));
             await _contexto.SaveChangesAsync();
         }
-        //Metodo actualizar antiguo
-        //public async Task Actualizar(EmpleadoAD empleado)
-        //{
-        //    var existente = await _contexto.Empleados.FindAsync(empleado.IdEmpleado);
+		//Metodo actualizar antiguo
+		//public async Task Actualizar(EmpleadoAD empleado)
+		//{
+		//    var existente = await _contexto.Empleados.FindAsync(empleado.IdEmpleado);
 
-        //    if (existente != null)
-        //    {
-        //        existente.Nombre = empleado.Nombre;
-        //        existente.Cedula = empleado.Cedula;
-        //        existente.Departamento = empleado.Departamento;
-        //        existente.Telefono = empleado.Telefono;
-        //        existente.Correo = empleado.Correo;
-        //        existente.IdPuesto = empleado.IdPuesto;
-        //
-        //        await _contexto.SaveChangesAsync();
-        //    }
-        //}
+		//    if (existente != null)
+		//    {
+		//        existente.Nombre = empleado.Nombre;
+		//        existente.Cedula = empleado.Cedula;
+		//        existente.Departamento = empleado.Departamento;
+		//        existente.Telefono = empleado.Telefono;
+		//        existente.Correo = empleado.Correo;
+		//        existente.IdPuesto = empleado.IdPuesto;
+		//
+		//        await _contexto.SaveChangesAsync();
+		//    }
+		//}
+		public async Task CambiarEstado(int id, ContextoAuditoria auditoria)
+		{
+			var empleado = await _contexto.Empleados
+				.FirstOrDefaultAsync(e => e.IdEmpleado == id);
 
-        public async Task Eliminar(int id)
+			if (empleado == null)
+			{
+				throw new Exception($"No se encontró el empleado con ID {id}.");
+			}
+
+			var estadoAnterior = empleado.Estado ?? true;
+			var estadoNuevo = !estadoAnterior;
+
+			empleado.Estado = estadoNuevo;
+
+			var valoresAnteriores = new
+			{
+				Estado = estadoAnterior ? "Activo" : "Inactivo"
+			};
+
+			var valoresNuevos = new
+			{
+				Estado = estadoNuevo ? "Activo" : "Inactivo"
+			};
+
+			_contexto.Empleados.Update(empleado);
+
+			_contexto.Bitacoras.Add(ConstructorBitacora.Construir(
+				"Empleado",
+				empleado.IdEmpleado,
+				auditoria,
+				valoresAnteriores,
+				valoresNuevos));
+
+			await _contexto.SaveChangesAsync();
+		}
+		public async Task Eliminar(int id)
         {
             var empleado = await _contexto.Empleados.FindAsync(id);
             if (empleado != null)
