@@ -1,0 +1,71 @@
+﻿@model PROmaderas.UI.Models.AdminEditRoleViewModel
+
+@{
+    ViewData["Title"] = "Modificar rol de usuario";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-7">
+            <div class="card shadow-sm">
+                <div class="card-body p-4">
+                    <h2 class="mb-2">Modificar rol de usuario</h2>
+                    <p class="text-muted">
+                        Cambie el rol para definir los permisos y las vistas disponibles segun la funcion del empleado.
+                    </p>
+
+                    <form asp-action="EditarRol" method="post">
+                        @Html.AntiForgeryToken()
+
+                        <input type="hidden" asp-for="UserId" />
+                        <input type="hidden" asp-for="Nombre" />
+                        <input type="hidden" asp-for="Email" />
+
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                        <div class="mb-3">
+                            <label asp-for="Nombre" class="form-label"></label>
+                            <input asp-for="Nombre" class="form-control" readonly />
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Email" class="form-label"></label>
+                            <input asp-for="Email" class="form-control" readonly />
+                        </div>
+
+                        <div class="mb-4">
+                            <label asp-for="Rol" class="form-label"></label>
+                            <select asp-for="Rol" class="form-select">
+                                <option value="Administrador">Administrador</option>
+                                <option value="Gerente">Gerente</option>
+                                <option value="Contador">Contador</option>
+                                <option value="Operador de Planta">Operador de Planta</option>
+                                <option value="Vendedor">Vendedor</option>
+                            </select>
+                            <span asp-validation-for="Rol" class="text-danger"></span>
+                        </div>
+
+                        <div class="alert alert-warning">
+                            <i class="bi bi-shield-lock me-2"></i>
+                            El cambio de rol modifica los permisos de acceso del usuario en el sistema.
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-floppy me-2"></i>Guardar rol
+                            </button>
+
+                            <a asp-action="Index" class="btn btn-outline-secondary">
+                                Cancelar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

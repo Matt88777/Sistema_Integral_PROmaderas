@@ -9,7 +9,7 @@
             <div class="card shadow-sm">
                 <div class="card-body p-4">
                     <h2 class="mb-2">Registrar usuario interno</h2>
-                    <p class="text-muted">Crea accesos para roles internos (Gerente, Contador, Operador de Planta, Vendedor). La contrasena se define desde el correo enviado al usuario.</p>
+                    <p class="text-muted">Crea accesos para roles internos (Administrador, Gerente, Contador, Operador de Planta, Vendedor). La contrasena se define desde el correo enviado al usuario.</p>
 
                     <form asp-action="Create" method="post">
                         @Html.AntiForgeryToken()
@@ -35,7 +35,8 @@
 
                         <div class="mb-4">
                             <label asp-for="Rol" class="form-label"></label>
-                            <select asp-for="Rol" class="form-select">
+                                <select asp-for="Rol" class="form-select">
+                                <option value="Administrador">Administrador</option>
                                 <option value="Gerente">Gerente</option>
                                 <option value="Contador">Contador</option>
                                 <option value="Operador de Planta">Operador de Planta</option>
