@@ -15,8 +15,19 @@
 
     <form asp-action="Create" method="post" id="formCreate">
         @Html.AntiForgeryToken()
-        <div asp-validation-summary="All" class="alert alert-danger mb-3" style="display:none" id="divErrores"></div>
-
+        @if (!ViewData.ModelState.IsValid)
+        {
+            <div class="alert alert-danger mb-3">
+                <strong><i class="bi bi-exclamation-triangle me-1"></i>No se pudo guardar la orden:</strong>
+                <ul class="mb-0 mt-1">
+                    @foreach (var err in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                    {
+                        <li>@err.ErrorMessage</li>
+                    }
+                </ul>
+            </div>
+        }
+        <div id="divErrores" class="alert alert-danger mb-3" style="display:none"></div>
         <div class="card mb-4">
             <div class="card-header"><strong>Datos generales</strong></div>
             <div class="card-body">
@@ -181,8 +192,8 @@
         function recalcular(){
             let sub = 0;
             document.querySelectorAll('.fila-detalle').forEach(tr => {
-                const precio = parseFloat(tr.querySelector('.inp-precio').value)||0;
-                const cant   = parseInt(tr.querySelector('.inp-cant').value)||0;
+        const precio = parseFloat(tr.querySelector('.inp-precio-val').value)||0; 
+        const cant   = parseInt(tr.querySelector('.inp-cant').value)||0;
                 const subt   = precio * cant;
                 tr.querySelector('.td-subt').textContent = fmt(subt);
                 sub += subt;
@@ -194,7 +205,7 @@
             document.getElementById('divSinLineas').style.display =
                 document.querySelectorAll('.fila-detalle').length === 0 ? 'block' : 'none';
         }
-
+        // agregar linea funcion
         function agregarLinea(){
             const i = lineaIdx++;
             const tr = document.createElement('tr');
@@ -205,7 +216,7 @@
                         <option value="">— Seleccionar —</option>
                         ${PRODUCTOS.map(p=>`<option value="${p.id}" data-precio="${p.precio}">${p.nombre}</option>`).join('')}
                     </select>
-                    <input type="hidden" name="Detalles[${i}].PrecioUnit" class="inp-precio-hidden" value="0"/>
+                
                 </td>
                 <td class="td-stock text-center text-muted">—</td>
                 <td>
@@ -228,7 +239,7 @@
                 const precio = parseFloat(opt.dataset.precio)||0;
                 const prodId = parseInt(this.value)||0;
                 tr.querySelector('.inp-precio').textContent = precio > 0 ? fmt(precio) : '—';
-                tr.querySelector('.inp-precio-val').value   = precio.toFixed(2);
+                tr.querySelector('.inp-precio-val').value   = precio;
                 tr.querySelector('.inp-precio-hidden').value = precio.toFixed(2);
                 const stock = STOCK[prodId] ?? 0;
                 const tdS = tr.querySelector('.td-stock');
@@ -273,8 +284,8 @@
                 filas.forEach(tr => {
                     const prod = tr.querySelector('.sel-prod').value;
                     const cant = parseInt(tr.querySelector('.inp-cant').value)||0;
-                    if(!prod || cant < 1) errores.push('Verifique tipo y cantidad de los productos.');
-                });
+                    const precio = parseFloat(tr.querySelector('.inp-precio-val').value)||0;
+        if(!prod || cant < 1 || precio <= 0) errores.push('Seleccione producto y verifique cantidad.');                });
             }
 
             if(errores.length){

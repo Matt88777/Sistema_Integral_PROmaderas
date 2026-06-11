@@ -14,7 +14,7 @@ using ClosedXML.Excel;
 
 namespace PROmaderas.UI.Controllers
 {
-    [Authorize(Roles = Roles.Administrador + "," + Roles.Gerente + "," + Roles.Contador + "," + Roles.OperadorDePlanta + "," + Roles.Vendedor + "," + Roles.Usuario)]
+    [Authorize(Roles = "Administrador,Gerente,Contador,Vendedor,Operador de Planta,Usuario")]
     public class PedidosController : Controller
     {
         private readonly IProductoLogica _productoLogica;
@@ -113,7 +113,44 @@ namespace PROmaderas.UI.Controllers
             ViewBag.EstadosValidos = EstadosValidos;
             ViewBag.PuedeCambiarEstado = User.IsInRole("Administrador") ||
                                          User.IsInRole("Operador de Planta");
-            return View(pedido);
+
+            
+            // OC-HU-004: cargar historial de cambios de estado
+            var historial = new List<HistorialItemDto>();
+            try
+            {
+                var conn = _contexto.Database.GetDbConnection();
+                if (conn.State != System.Data.ConnectionState.Open)
+                    await conn.OpenAsync();
+                using var cmd = conn.CreateCommand();
+                cmd.CommandText = "SELECT h.FechaCambio, h.EstadoAnterior, h.EstadoNuevo, " +
+                    "ISNULL(h.Observacion,'') AS Observacion, " +
+                    "ISNULL(u.Correo,'Sistema') AS UsuarioCambio " +
+                    "FROM HistorialEstadoOrden h " +
+                    "LEFT JOIN Usuario u ON u.IdUsuario = h.IdUsuarioCambio " +
+                    "WHERE h.IdOrdenCompra = @id " +
+                    "ORDER BY h.FechaCambio DESC";
+                var param = cmd.CreateParameter();
+                param.ParameterName = "@id";
+                param.Value = id;
+                cmd.Parameters.Add(param);
+                using var reader = await cmd.ExecuteReaderAsync();
+                while (await reader.ReadAsync())
+                {
+                    historial.Add(new HistorialItemDto
+                    {
+                        FechaCambio = reader.GetDateTime(0),
+                        EstadoAnterior = reader.GetString(1),
+                        EstadoNuevo = reader.GetString(2),
+                        Observacion = reader.GetString(3),
+                        UsuarioCambio = reader.GetString(4)
+                    });
+                }
+            }
+            catch { }
+            ViewBag.Historial = historial;
+
+            return View(pedido); 
         }
 
         // ── CREATE GET ─────────────────────────────────────────────────────
@@ -163,7 +200,7 @@ namespace PROmaderas.UI.Controllers
                 foreach (var det in vm.Detalles)
                 {
                     int stockDisp = stockDict.TryGetValue(det.ProductoId, out var s) ? s : 0;
-                    if (det.Cantidad > stockDisp)
+                    if (stockDisp > 0 && det.Cantidad > stockDisp)
                     {
                         var prod = await _contexto.Productos.FindAsync(det.ProductoId);
                         erroresStock.Add(

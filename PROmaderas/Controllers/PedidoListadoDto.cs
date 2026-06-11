@@ -12,4 +12,13 @@
         public decimal Total { get; set; }
         public string Estado { get; set; } = string.Empty;
     }
+    // CLASE NUEVA:OC-HU-004:
+    public class HistorialItemDto
+    {
+        public DateTime FechaCambio { get; set; }
+        public string EstadoAnterior { get; set; } = string.Empty;
+        public string EstadoNuevo { get; set; } = string.Empty;
+        public string Observacion { get; set; } = string.Empty;
+        public string UsuarioCambio { get; set; } = string.Empty;
+    }
 }
