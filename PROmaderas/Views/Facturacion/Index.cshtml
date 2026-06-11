@@ -1,41 +1,77 @@
-﻿@model IEnumerable<PROmaderas.Abstracciones.Models.FacturacionAD>
-
+﻿@model List<PROmaderas.Abstracciones.Models.FacturacionAD>
 @{
-    ViewData["Title"] = "Facturación";
+    ViewData["Title"] = "Facturas";
 }
 
-<h2>Facturación</h2>
-
-<p>
-    <a asp-action="Create" class="btn btn-primary">Nueva Factura</a>
-</p>
-
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th>Cliente</th>
-            <th>Pedido</th>
-            <th>Fecha</th>
-            <th>Total</th>
-            <th>Estado</th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model)
+<div class="container mt-4">
+    <div class="row mb-3 align-items-center">
+        <div class="col">
+            <h2><i class="bi bi-receipt me-2" style="color:#c9a03c"></i>Facturas</h2>
+        </div>
+        @if (User.IsInRole("Administrador") || User.IsInRole("Contador"))
         {
-            <tr>
-                <td>@item.ClienteId</td>
-                <td>@item.PedidoId</td>
-                <td>@item.Fecha.ToShortDateString()</td>
-                <td>@item.Total</td>
-                <td>@item.Estado</td>
-                <td>
-                    <a asp-action="Edit" asp-route-id="@item.Id">Editar</a> |
-                    <a asp-action="Details" asp-route-id="@item.Id">Detalle</a> |
-                    <a asp-action="Delete" asp-route-id="@item.Id">Eliminar</a>
-                </td>
-            </tr>
+            <div class="col-auto">
+                <a asp-action="Create" class="btn btn-warning fw-bold">
+                    <i class="bi bi-plus-circle me-1"></i>Nueva factura
+                </a>
+            </div>
         }
-    </tbody>
-</table>
+    </div>
+
+    @if (TempData["Mensaje"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            @TempData["Mensaje"]<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info"><i class="bi bi-info-circle me-1"></i>No hay facturas aún.</div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th>N° Factura</th>
+                        <th>Orden</th>
+                        <th>Cliente</th>
+                        <th>Fecha</th>
+                        <th class="text-end">Subtotal</th>
+                        <th class="text-end">Exoneración</th>
+                        <th class="text-end">IVA</th>
+                        <th class="text-end">Total</th>
+                        <th>Estado</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var f in Model)
+                    {
+                        var badge = f.Estado switch
+                        {
+                            "Pagada" => "bg-success",
+                            "Pendiente de pago" => "bg-warning text-dark",
+                            "Cancelada" => "bg-danger",
+                            _ => "bg-info text-dark"
+                        };
+                        <tr>
+                            <td class="fw-semibold text-warning">@f.NumeroFactura</td>
+                            <td>@f.Pedido?.NumeroOrden</td>
+                            <td>@f.Cliente?.Nombre</td>
+                            <td>@f.Fecha.ToString("dd/MM/yyyy")</td>
+                            <td class="text-end">₡@f.Subtotal.ToString("N2")</td>
+                            <td class="text-end text-success">@(f.Exoneracion > 0 ? "₡" + f.Exoneracion.ToString("N2") : "—")</td>
+                            <td class="text-end">₡@f.Impuestos.ToString("N2")</td>
+                            <td class="text-end fw-bold">₡@f.Total.ToString("N2")</td>
+                            <td><span class="badge @badge">@f.Estado</span></td>
+                            <td><a asp-action="Details" asp-route-id="@f.Id" class="btn btn-sm btn-outline-secondary"><i class="bi bi-eye"></i></a></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

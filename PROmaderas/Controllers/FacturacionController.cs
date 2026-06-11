@@ -3,69 +3,128 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PROmaderas.Abstracciones.Models;
 using PROmaderas.AccesoADatos;
+using PROmaderas.UI.Models;
 using PROmaderas.UI.Seguridad;
 
 namespace PROmaderas.UI.Controllers
 {
-	// Sprint 0 PROMADERAS: la BD nueva exige NumeroFactura (UNIQUE), IdUsuarioEmisor
-	// y SaldoPendiente como NOT NULL — el modelo FacturacionAD no los tiene.
-	// Index/Details siguen funcionando (solo lectura). Create/Edit/Delete quedan
-	// en construcción hasta que se mapee la generación de NumeroFactura y se
-	// conecte la lógica de usuario emisor / pagos.
-	[Authorize(Roles = Roles.Administrador + "," + Roles.Gerente + "," + Roles.Contador)]
-	public class FacturacionController : Controller
-	{
-		private readonly Contexto _contexto;
+    [Authorize(Roles = Roles.Administrador + "," + Roles.Contador + "," + Roles.Gerente)]
+    public class FacturacionController : Controller
+    {
+        private readonly Contexto _contexto;
+        public FacturacionController(Contexto contexto) { _contexto = contexto; }
 
-		public FacturacionController(Contexto contexto)
-		{
-			_contexto = contexto;
-		}
+        public async Task<IActionResult> Index()
+        {
+            var facturas = await _contexto.Facturaciones
+                .Include(f => f.Pedido)
+                .Include(f => f.Cliente)
+                .Where(f => f.Activa)
+                .OrderByDescending(f => f.Fecha)
+                .ToListAsync();
+            return View(facturas);
+        }
 
-		public async Task<IActionResult> Index()
-		{
-			var lista = await _contexto.Facturaciones
-				.Include(f => f.Cliente)
-				.Include(f => f.Pedido)
-				.ToListAsync();
+        [Authorize(Roles = Roles.Administrador + "," + Roles.Contador)]
+        public async Task<IActionResult> Create(int? pedidoId)
+        {
+            var idsYaFacturados = await _contexto.Facturaciones
+                .Where(f => f.Activa).Select(f => f.PedidoId).ToListAsync();
 
-			return View(lista);
-		}
+            var ordenesDisponibles = await _contexto.Pedidos
+                .Include(p => p.Cliente)
+                .Where(p => p.Activa && p.Estado != "Cancelada"
+                         && !idsYaFacturados.Contains(p.Id))
+                .OrderByDescending(p => p.Fecha)
+                .ToListAsync();
 
-		public async Task<IActionResult> Details(int? id)
-		{
-			if (id == null) return NotFound();
+            ViewBag.OrdenesDisponibles = ordenesDisponibles;
+            var vm = new CreateFacturaViewModel();
 
-			var factura = await _contexto.Facturaciones
-				.Include(f => f.Cliente)
-				.Include(f => f.Pedido)
-				.FirstOrDefaultAsync(f => f.Id == id);
+            if (pedidoId.HasValue)
+            {
+                var oc = ordenesDisponibles.FirstOrDefault(p => p.Id == pedidoId.Value);
+                if (oc != null)
+                {
+                    var cli = oc.Cliente!;
+                    decimal exo = oc.Subtotal * (cli.PorcentajeExoneracion / 100m);
+                    decimal iva = Math.Round((oc.Subtotal - exo) * 0.13m, 2);
+                    vm.PedidoId = oc.Id;
+                    vm.NumeroOrden = oc.NumeroOrden;
+                    vm.ClienteNombre = cli.Nombre;
+                    vm.Exonerado = cli.Exonerado;
+                    vm.PorcentajeExo = cli.PorcentajeExoneracion;
+                    vm.SubtotalOC = oc.Subtotal;
+                    vm.ExoneracionCalc = Math.Round(exo, 2);
+                    vm.ImpuestoCalc = iva;
+                    vm.TotalCalc = Math.Round(oc.Subtotal + iva, 2);
+                }
+            }
+            return View(vm);
+        }
 
-			if (factura == null) return NotFound();
+        [HttpPost, ValidateAntiForgeryToken]
+        [Authorize(Roles = Roles.Administrador + "," + Roles.Contador)]
+        public async Task<IActionResult> Create(CreateFacturaViewModel vm)
+        {
+            bool yaFacturada = await _contexto.Facturaciones
+                .AnyAsync(f => f.PedidoId == vm.PedidoId && f.Activa);
+            if (yaFacturada)
+                ModelState.AddModelError("", "Esta orden ya tiene una factura emitida.");
 
-			return View(factura);
-		}
+            var oc = await _contexto.Pedidos.Include(p => p.Cliente)
+                .FirstOrDefaultAsync(p => p.Id == vm.PedidoId);
+            if (oc == null)
+                ModelState.AddModelError("PedidoId", "La orden no existe.");
 
-		private IActionResult EnConstruccion()
-		{
-			ViewBag.Modulo = "La creación, edición y eliminación de facturas";
-			ViewBag.Detalle = "PROMADERAS exige NumeroFactura, IdUsuarioEmisor y SaldoPendiente que aún no están conectados al modelo. Estará disponible en el próximo sprint.";
-			return View("EnConstruccion");
-		}
+            if (!ModelState.IsValid)
+            {
+                var ids = await _contexto.Facturaciones
+                    .Where(f => f.Activa).Select(f => f.PedidoId).ToListAsync();
+                ViewBag.OrdenesDisponibles = await _contexto.Pedidos
+                    .Include(p => p.Cliente)
+                    .Where(p => p.Activa && p.Estado != "Cancelada" && !ids.Contains(p.Id))
+                    .OrderByDescending(p => p.Fecha).ToListAsync();
+                return View(vm);
+            }
 
-		public IActionResult Create() => EnConstruccion();
+            var cli2 = oc!.Cliente!;
+            decimal exo2 = cli2.Exonerado
+                ? Math.Round(oc.Subtotal * (cli2.PorcentajeExoneracion / 100m), 2) : 0m;
+            decimal iva2 = Math.Round((oc.Subtotal - exo2) * 0.13m, 2);
+            var ahora = DateTime.Now;
+            var maxId = await _contexto.Facturaciones.MaxAsync(f => (int?)f.Id) ?? 0;
 
-		[HttpPost, ValidateAntiForgeryToken]
-		public IActionResult Create(FacturacionAD factura) => EnConstruccion();
+            var factura = new FacturacionAD
+            {
+                NumeroFactura = $"FAC-{ahora:yyyyMMdd}-{(maxId + 1):D4}",
+                PedidoId = oc.Id,
+                ClienteId = oc.ClienteId,
+                Fecha = ahora,
+                Subtotal = oc.Subtotal,
+                Exoneracion = exo2,
+                Impuestos = iva2,
+                Total = Math.Round(oc.Subtotal + iva2, 2),
+                Estado = "Emitida",
+                Activa = true
+            };
 
-		public IActionResult Edit(int? id) => EnConstruccion();
+            _contexto.Facturaciones.Add(factura);
+            await _contexto.SaveChangesAsync();
+            TempData["Mensaje"] = $"Factura {factura.NumeroFactura} emitida exitosamente.";
+            return RedirectToAction(nameof(Details), new { id = factura.Id });
+        }
 
-		[HttpPost, ValidateAntiForgeryToken]
-		public IActionResult Edit(int id, FacturacionAD factura) => EnConstruccion();
-
-		public IActionResult Delete(int? id) => EnConstruccion();
-
-		[HttpPost, ActionName("Delete"), ValidateAntiForgeryToken]
-		public IActionResult DeleteConfirmed(int id) => EnConstruccion();
-	}
+        public async Task<IActionResult> Details(int id)
+        {
+            var factura = await _contexto.Facturaciones
+                .Include(f => f.Pedido)
+                    .ThenInclude(p => p!.Detalles!)
+                        .ThenInclude(d => d.Producto)
+                .Include(f => f.Cliente)
+                .FirstOrDefaultAsync(f => f.Id == id);
+            if (factura == null) return NotFound();
+            return View(factura);
+        }
+    }
 }

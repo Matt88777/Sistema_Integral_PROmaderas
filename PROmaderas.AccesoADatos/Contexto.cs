@@ -100,19 +100,23 @@ namespace PROmaderas.AccesoADatos
                 e.Ignore(x => x.ImpuestoPorc);
             });
 
-            // FacturacionAD -> Factura
+            
+            // FacturacionAD -> Factura  (FAC-HU-001)
             modelBuilder.Entity<FacturacionAD>(e =>
             {
                 e.ToTable("Factura");
                 e.HasKey(x => x.Id);
                 e.Property(x => x.Id).HasColumnName("IdFactura");
+                e.Property(x => x.NumeroFactura).HasColumnName("NumeroFactura");
                 e.Property(x => x.PedidoId).HasColumnName("IdOrdenCompra");
                 e.Property(x => x.ClienteId).HasColumnName("IdCliente");
                 e.Property(x => x.Fecha).HasColumnName("FechaEmision");
                 e.Property(x => x.Subtotal).HasColumnName("Subtotal");
+                e.Property(x => x.Exoneracion).HasColumnName("Exoneracion");
                 e.Property(x => x.Impuestos).HasColumnName("Impuesto");
                 e.Property(x => x.Total).HasColumnName("Total");
                 e.Property(x => x.Estado).HasColumnName("Estado");
+                e.Property(x => x.Activa).HasColumnName("Activa");
                 e.Ignore(x => x.MetodoPago);
             });
 

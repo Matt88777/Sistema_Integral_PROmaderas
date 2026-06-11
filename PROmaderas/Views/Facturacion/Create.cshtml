@@ -1,37 +1,102 @@
-﻿@model PROmaderas.Abstracciones.Models.FacturacionAD
+﻿@model PROmaderas.UI.Models.CreateFacturaViewModel
+@{
+    ViewData["Title"] = "Nueva Factura";
+    var ordenes = ViewBag.OrdenesDisponibles as List<PROmaderas.Abstracciones.Models.PedidoAD> ?? new();
+}
+<div class="container mt-4">
+    <div class="row mb-3"><div class="col"><h2><i class="bi bi-receipt me-2"></i>Nueva Factura</h2></div></div>
 
-<h2>Crear Factura</h2>
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="alert alert-danger mb-3">
+            <strong><i class="bi bi-exclamation-triangle me-1"></i>No se pudo emitir:</strong>
+            <ul class="mb-0 mt-1">
+                @foreach (var err in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                { <li>@err.ErrorMessage</li> }
+            </ul>
+        </div>
+    }
 
-<form asp-action="Create">
-    <div class="form-group">
-        <label>Cliente ID</label>
-        <input asp-for="ClienteId" class="form-control" />
-    </div>
+    <form asp-action="Create" method="post">
+        @Html.AntiForgeryToken()
+        <div class="card mb-4">
+            <div class="card-header fw-bold" style="background-color:#c9a03c;color:#fff;">
+                <i class="bi bi-cart3 me-1"></i>Seleccionar Orden de Compra
+            </div>
+            <div class="card-body">
+                @if (!ordenes.Any())
+                {
+                    <div class="alert alert-warning mb-0">No hay órdenes disponibles para facturar.</div>
+                }
+                else
+                {
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Orden de Compra <span class="text-danger">*</span></label>
+                        <select asp-for="PedidoId" id="selOrden" class="form-select" required>
+                            <option value="">— Seleccionar —</option>
+                            @foreach (var oc in ordenes)
+                            {
+                                <option value="@oc.Id"
+                                            data-subtotal="@oc.Subtotal"
+                                            data-cliente="@oc.Cliente?.Nombre"
+                                            data-exonerado="@oc.Cliente?.Exonerado.ToString().ToLower()"
+                                            data-porcexo="@oc.Cliente?.PorcentajeExoneracion">
+                                        @oc.NumeroOrden — @oc.Cliente?.Nombre
+                                    </option>
+                            }
+                        </select>
+                    </div>
+                }
+            </div>
+        </div>
 
-    <div class="form-group">
-        <label>Pedido ID</label>
-        <input asp-for="PedidoId" class="form-control" />
-    </div>
+        <div class="card mb-4" id="cardResumen" style="display:none">
+            <div class="card-header fw-bold" style="background-color:#c9a03c;color:#fff;">
+                <i class="bi bi-calculator me-1"></i>Resumen
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+<div class="col-md-4"><div class="small text-white-50">Cliente</div><div class="fw-semibold text-white" id="lblCliente">—</div></div>
+<div class="col-md-4"><div class="small text-white-50">Exoneración</div><div class="fw-semibold text-white" id="lblExo">—</div></div>                </div>
+                <table class="table table-bordered mb-0">
+                    <tbody>
+                        <tr><td class="text-end fw-semibold" style="width:60%">Subtotal:</td><td class="text-end" id="lblSubtotal">₡0,00</td></tr>
+                        <tr class="text-success"><td class="text-end">Exoneración aplicada:</td><td class="text-end" id="lblExoMonto">₡0,00</td></tr>
+                        <tr><td class="text-end">Base imponible:</td><td class="text-end" id="lblBase">₡0,00</td></tr>
+                        <tr><td class="text-end">IVA (13%):</td><td class="text-end" id="lblIva">₡0,00</td></tr>
+                        <tr class="fw-bold" style="background-color:#c9a03c;color:#fff;">
+                            <td class="text-end fs-5">TOTAL:</td><td class="text-end fs-5" id="lblTotal">₡0,00</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
 
-    <div class="form-group">
-        <label>Subtotal</label>
-        <input asp-for="Subtotal" class="form-control" />
-    </div>
+        <div class="d-flex gap-2" id="divBotones" style="display:none">
+            <button type="submit" class="btn btn-warning fw-bold"><i class="bi bi-check-circle me-1"></i>Emitir Factura</button>
+            <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+        </div>
+    </form>
+</div>
 
-    <div class="form-group">
-        <label>Impuestos</label>
-        <input asp-for="Impuestos" class="form-control" />
-    </div>
-
-    <div class="form-group">
-        <label>Total</label>
-        <input asp-for="Total" class="form-control" />
-    </div>
-
-    <div class="form-group">
-        <label>Método de Pago</label>
-        <input asp-for="MetodoPago" class="form-control" />
-    </div>
-
-    <button type="submit" class="btn btn-success">Guardar</button>
-</form>
+@section Scripts {
+<script>
+    function fmt(n){ return '₡'+parseFloat(n).toLocaleString('es-CR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+    function calcular(opt){
+        if(!opt||!opt.value){ document.getElementById('cardResumen').style.display='none'; document.getElementById('divBotones').style.display='none'; return; }
+        var sub=parseFloat(opt.dataset.subtotal)||0, exo=opt.dataset.exonerado==='true', prc=parseFloat(opt.dataset.porcexo)||0;
+        var exoM=exo?Math.round(sub*prc/100*100)/100:0, base=sub-exoM, iva=Math.round(base*0.13*100)/100, tot=Math.round((sub+iva)*100)/100;
+        document.getElementById('lblCliente').textContent=opt.dataset.cliente||'';
+        document.getElementById('lblExo').textContent=exo?prc+'% de exoneración':'Sin exoneración';
+        document.getElementById('lblSubtotal').textContent=fmt(sub);
+        document.getElementById('lblExoMonto').textContent=fmt(exoM);
+        document.getElementById('lblBase').textContent=fmt(base);
+        document.getElementById('lblIva').textContent=fmt(iva);
+        document.getElementById('lblTotal').textContent=fmt(tot);
+        document.getElementById('cardResumen').style.display='block';
+        document.getElementById('divBotones').style.display='flex';
+    }
+    var sel=document.getElementById('selOrden');
+    if(sel){ sel.addEventListener('change',function(){calcular(this.selectedOptions[0]);}); if(sel.value)calcular(sel.selectedOptions[0]); }
+</script>
+}
