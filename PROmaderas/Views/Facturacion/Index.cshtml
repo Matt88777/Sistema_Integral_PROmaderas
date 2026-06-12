@@ -1,6 +1,8 @@
 ﻿@model List<PROmaderas.Abstracciones.Models.FacturacionAD>
 @{
     ViewData["Title"] = "Facturas";
+    int paginaActual = ViewBag.PaginaActual != null ? (int)ViewBag.PaginaActual : 1;
+    int totalPaginas = ViewBag.TotalPaginas != null ? (int)ViewBag.TotalPaginas : 1;
 }
 
 <div class="container mt-4">
@@ -11,8 +13,8 @@
         @if (User.IsInRole("Administrador") || User.IsInRole("Contador"))
         {
             <div class="col-auto">
-                <a asp-action="Create" class="btn btn-warning fw-bold">
-                    <i class="bi bi-plus-circle me-1"></i>Nueva factura
+                <a asp-action="Create" class="btn btn-warning fw-bold px-4">
+                    <i class="bi bi-plus-circle me-1"></i>Nueva Factura
                 </a>
             </div>
         }
@@ -21,7 +23,8 @@
     @if (TempData["Mensaje"] != null)
     {
         <div class="alert alert-success alert-dismissible fade show">
-            @TempData["Mensaje"]<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            <i class="bi bi-check-circle me-1"></i>@TempData["Mensaje"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     }
 
@@ -32,7 +35,7 @@
     else
     {
         <div class="table-responsive">
-            <table class="table table-bordered table-hover align-middle">
+            <table class="table table-striped table-hover align-middle">
                 <thead class="table-dark">
                     <tr>
                         <th>N° Factura</th>
@@ -44,21 +47,14 @@
                         <th class="text-end">IVA</th>
                         <th class="text-end">Total</th>
                         <th>Estado</th>
-                        <th></th>
+                        <th class="text-center" style="min-width:80px">Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach (var f in Model)
                     {
-                        var badge = f.Estado switch
-                        {
-                            "Pagada" => "bg-success",
-                            "Pendiente de pago" => "bg-warning text-dark",
-                            "Cancelada" => "bg-danger",
-                            _ => "bg-info text-dark"
-                        };
                         <tr>
-                            <td class="fw-semibold text-warning">@f.NumeroFactura</td>
+                            <td class="fw-semibold" style="color:#c9a03c">@f.NumeroFactura</td>
                             <td>@f.Pedido?.NumeroOrden</td>
                             <td>@f.Cliente?.Nombre</td>
                             <td>@f.Fecha.ToString("dd/MM/yyyy")</td>
@@ -66,12 +62,67 @@
                             <td class="text-end text-success">@(f.Exoneracion > 0 ? "₡" + f.Exoneracion.ToString("N2") : "—")</td>
                             <td class="text-end">₡@f.Impuestos.ToString("N2")</td>
                             <td class="text-end fw-bold">₡@f.Total.ToString("N2")</td>
-                            <td><span class="badge @badge">@f.Estado</span></td>
-                            <td><a asp-action="Details" asp-route-id="@f.Id" class="btn btn-sm btn-outline-secondary"><i class="bi bi-eye"></i></a></td>
+                            <td>
+                                @if (f.Estado == "Pagada")
+                                {
+                                    <span class="badge" style="background:#15803D;color:#fff">Pagada</span>
+                                }
+                                else if (f.Estado == "Emitida")
+                                {
+                                    <span class="badge" style="background:#0369A1;color:#fff">Emitida</span>
+                                }
+                                else if (f.Estado == "Pendiente de pago")
+                                {
+                                    <span class="badge" style="background:#B45309;color:#fff">Pendiente de pago</span>
+                                }
+                                else if (f.Estado == "Cancelada")
+                                {
+                                    <span class="badge" style="background:#475569;color:#fff">Cancelada</span>
+                                }
+                                else
+                                {
+                                    <span class="badge" style="background:#374151;color:#fff">@f.Estado</span>
+                                }
+                            </td>
+                            <td class="text-center">
+                                <a asp-action="Details" asp-route-id="@f.Id"
+                                   class="btn btn-sm btn-accion-ver" title="Ver detalles">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                            </td>
                         </tr>
                     }
                 </tbody>
             </table>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center mt-3 flex-wrap gap-2">
+            <small class="text-muted">
+                Página <strong>@paginaActual</strong> de <strong>@totalPaginas</strong>
+            </small>
+            @if (totalPaginas > 1)
+            {
+                <nav>
+                    <ul class="pagination mb-0">
+                        <li class="page-item @(paginaActual == 1 ? "disabled" : "")">
+                            <a class="page-link" asp-action="Index" asp-route-pagina="@(paginaActual - 1)">
+                                <i class="bi bi-chevron-left"></i>
+                            </a>
+                        </li>
+                        @for (int i = 1; i <= totalPaginas; i++)
+                        {
+                            <li class="page-item @(i == paginaActual ? "active" : "")">
+                                <a class="page-link" asp-action="Index" asp-route-pagina="@i">@i</a>
+                            </li>
+                        }
+                        <li class="page-item @(paginaActual == totalPaginas ? "disabled" : "")">
+                            <a class="page-link" asp-action="Index" asp-route-pagina="@(paginaActual + 1)">
+                                <i class="bi bi-chevron-right"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            }
         </div>
     }
 </div>

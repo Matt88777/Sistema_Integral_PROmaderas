@@ -1,47 +1,51 @@
 ﻿@model IEnumerable<PROmaderas.Abstracciones.Models.ProductoAD>
-
 @{
     ViewData["Title"] = "Productos";
+    int paginaActual = ViewBag.PaginaActual != null ? (int)ViewBag.PaginaActual : 1;
+    int totalPaginas = ViewBag.TotalPaginas != null ? (int)ViewBag.TotalPaginas : 1;
 }
 
 <div class="container mt-4">
-    <div class="row mb-3">
+    <div class="row mb-3 align-items-center">
         <div class="col">
-            <h2>Catálogo de Productos</h2>
+            <h2><i class="bi bi-box-seam me-2" style="color:#c9a03c"></i>Catálogo de Productos</h2>
         </div>
-        <div class="col text-end">
-            @if (User.IsInRole("Administrador"))
-            {
-            <a asp-action="Create" class="btn btn-primary">
-                <i class="bi bi-box-seam"></i> Nuevo Producto
-            </a>
-            }
-        </div>
+        @if (User.IsInRole("Administrador"))
+        {
+            <div class="col-auto">
+                <a asp-action="Create" class="btn btn-warning fw-bold px-4">
+                    <i class="bi bi-plus-circle me-1"></i>Nuevo Producto
+                </a>
+            </div>
+        }
     </div>
 
     @if (TempData["Mensaje"] != null)
     {
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            @TempData["Mensaje"]
+        <div class="alert alert-success alert-dismissible fade show">
+            <i class="bi bi-check-circle me-1"></i>@TempData["Mensaje"]
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     }
-
     @if (TempData["Error"] != null)
     {
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            @TempData["Error"]
+        <div class="alert alert-danger alert-dismissible fade show">
+            <i class="bi bi-exclamation-triangle me-1"></i>@TempData["Error"]
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     }
 
-   
-    <form method="get" class="row g-3 mb-4">
-        <div class="col-md-4" style="position: relative;">
-            <input type="text" id="filtroNombreInput" name="filtroNombre" class="form-control" placeholder="Buscar por nombre..." value="@ViewBag.FiltroNombre" autocomplete="off" />
-            <ul id="sugerenciasProductos" class="list-group mt-1" style="position:absolute; z-index:1000; display:none; max-height:200px; overflow:auto; width:100%;"></ul>
+    <form method="get" class="row g-2 mb-4">
+        <div class="col-md-4" style="position:relative;">
+            <input type="text" id="filtroNombreInput" name="filtroNombre"
+                   class="form-control" placeholder="Buscar por nombre..."
+                   value="@ViewBag.FiltroNombre" autocomplete="off" />
+            <ul id="sugerenciasProductos" class="list-group mt-1"
+                style="position:absolute;z-index:1000;display:none;max-height:200px;
+            overflow:auto;width:100%;background:#0B1B3A;
+            border:1px solid rgba(201,168,76,0.25);border-radius:6px;"></ul>
         </div>
-        <div class="col-md-4">
+        <div class="col-md-3">
             <select name="categoriaId" class="form-select">
                 <option value="">Todas las categorías</option>
                 @foreach (var cat in ViewBag.Categorias)
@@ -50,17 +54,16 @@
                 }
             </select>
         </div>
-        <div class="col-md-4">
+        <div class="col-auto d-flex gap-2">
             <button type="submit" class="btn btn-secondary">
-                <i class="bi bi-search"></i> Filtrar
+                <i class="bi bi-search me-1"></i>Filtrar
             </button>
             <a asp-action="Index" class="btn btn-outline-secondary">Limpiar</a>
         </div>
     </form>
 
-   
     <div class="table-responsive">
-        <table class="table table-striped table-hover">
+        <table class="table table-striped table-hover align-middle">
             <thead class="table-dark">
                 <tr>
                     <th>Imagen</th>
@@ -70,7 +73,7 @@
                     <th>Impuesto %</th>
                     <th>Stock</th>
                     <th>Estado</th>
-                    <th>Acciones</th>
+                    <th class="text-center" style="min-width:160px">Acciones</th>
                 </tr>
             </thead>
             <tbody>
@@ -78,58 +81,74 @@
                 {
                     <tr>
                         <td>
-                            <img src="@item.ImagenUrl" alt="@item.Nombre" style="width: 60px; height: 60px; object-fit: cover;" class="rounded" />
+                            <img src="@item.ImagenUrl" alt="@item.Nombre"
+                                 style="width:55px;height:55px;object-fit:cover;" class="rounded" />
                         </td>
-                        <td>@item.Nombre</td>
+                        <td class="fw-semibold">@item.Nombre</td>
                         <td>@item.Categoria?.Nombre</td>
                         <td>₡@item.Precio.ToString("N2")</td>
                         <td>@item.ImpuestoPorc%</td>
                         <td>
                             @if (item.Stock <= 0)
                             {
-                                <span class="badge bg-danger">Agotado</span>
+                                <span class="badge" style="background:#6D28D9;color:#fff">
+                                    <i class="bi bi-x-circle me-1"></i>Agotado
+                                </span>
                             }
                             else if (item.Stock < 10)
                             {
-                                <span class="badge bg-warning text-dark">@item.Stock</span>
+                                <span class="badge" style="background:#0891B2;color:#fff">
+                                    <i class="bi bi-exclamation-triangle me-1"></i>@item.Stock uds.
+                                </span>
                             }
                             else
                             {
-                                <span class="badge bg-success">@item.Stock</span>
+                                <span class="badge" style="background:#1A6B3A;color:#fff">
+                                    <i class="bi bi-check-circle me-1"></i>@item.Stock uds.
+                                </span>
                             }
                         </td>
                         <td>
-                            @if (item.Activo)
-                            {
-                                <span class="badge bg-success">Activo</span>
-                            }
-                            else
-                            {
-                                <span class="badge bg-secondary">Inactivo</span>
-                            }
+                            <span class="badge @(item.Activo ? "bg-success" : "bg-secondary")">
+                                @(item.Activo ? "Activo" : "Inactivo")
+                            </span>
                         </td>
-                        <td>
-                            <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info" title="Ver detalles">
-                                <i class="bi bi-eye"></i>
-                            </a>
-                            @if (User.IsInRole("Administrador"))
-                            {
-                            <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning" title="Editar">
-                                <i class="bi bi-pencil"></i>
-                            </a>
-                            }
-                            @if (User.IsInRole("Administrador") || User.IsInRole("Operador de Planta"))
-                            {
-                            <a asp-action="AjustarStock" asp-route-id="@item.Id" class="btn btn-sm btn-secondary" title="Ajustar stock">
-                                <i class="bi bi-plus-slash-minus"></i>
-                            </a>
-                            }
-                            @if (User.IsInRole("Administrador"))
-                            {
-                            <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger" title="Eliminar">
-                                <i class="bi bi-trash"></i>
-                            </a>
-                            }
+                        <td class="text-center">
+                            <div class="d-flex gap-2 justify-content-center flex-nowrap">
+                                <a asp-action="Details" asp-route-id="@item.Id"
+                                   class="btn btn-sm btn-accion-ver" title="Ver detalles">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                @if (User.IsInRole("Administrador"))
+                                {
+                                    <a asp-action="Edit" asp-route-id="@item.Id"
+                                       class="btn btn-sm btn-accion-editar" title="Editar">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                }
+                                @if (User.IsInRole("Administrador") || User.IsInRole("Operador de Planta"))
+                                {
+                                    <a asp-action="AjustarStock" asp-route-id="@item.Id"
+                                       class="btn btn-sm btn-accion-ajustar" title="Ajustar stock">
+                                        <i class="bi bi-plus-slash-minus"></i>
+                                    </a>
+                                }
+                                @if (User.IsInRole("Administrador"))
+                                {
+                                    <a asp-action="Delete" asp-route-id="@item.Id"
+                                       class="btn btn-sm btn-accion-eliminar" title="Eliminar">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                }
+                            </div>
+                        </td>
+                    </tr>
+                }
+                @if (!Model.Any())
+                {
+                    <tr>
+                        <td colspan="8" class="text-center text-muted py-4">
+                            <i class="bi bi-inbox me-1"></i>No se encontraron productos.
                         </td>
                     </tr>
                 }
@@ -137,29 +156,43 @@
         </table>
     </div>
 
-    @if (Model == null || !Model.Any())
-    {
-        <div class="alert alert-info text-center">
-            No se encontraron productos.
-        </div>
-    }
-
-    
-    @if (ViewBag.TotalPaginas > 1)
-    {
-        <nav aria-label="Paginación de productos">
-            <ul class="pagination justify-content-center">
-                @for (int i = 1; i <= ViewBag.TotalPaginas; i++)
-                {
-                    <li class="page-item @(i == ViewBag.PaginaActual ? "active" : "")">
-                        <a class="page-link" asp-action="Index" asp-route-pagina="@i" asp-route-filtroNombre="@ViewBag.FiltroNombre" asp-route-categoriaId="@ViewBag.CategoriaId">
-                            @i
+    <div class="d-flex justify-content-between align-items-center mt-3 flex-wrap gap-2">
+        <small class="text-muted">
+            Página <strong>@paginaActual</strong> de <strong>@totalPaginas</strong>
+        </small>
+        @if (totalPaginas > 1)
+        {
+            <nav>
+                <ul class="pagination mb-0">
+                    <li class="page-item @(paginaActual == 1 ? "disabled" : "")">
+                        <a class="page-link" asp-action="Index"
+                           asp-route-pagina="@(paginaActual - 1)"
+                           asp-route-filtroNombre="@ViewBag.FiltroNombre"
+                           asp-route-categoriaId="@ViewBag.CategoriaId">
+                            <i class="bi bi-chevron-left"></i>
                         </a>
                     </li>
-                }
-            </ul>
-        </nav>
-    }
+                    @for (int i = 1; i <= totalPaginas; i++)
+                    {
+                        <li class="page-item @(i == paginaActual ? "active" : "")">
+                            <a class="page-link" asp-action="Index"
+                               asp-route-pagina="@i"
+                               asp-route-filtroNombre="@ViewBag.FiltroNombre"
+                               asp-route-categoriaId="@ViewBag.CategoriaId">@i</a>
+                        </li>
+                    }
+                    <li class="page-item @(paginaActual == totalPaginas ? "disabled" : "")">
+                        <a class="page-link" asp-action="Index"
+                           asp-route-pagina="@(paginaActual + 1)"
+                           asp-route-filtroNombre="@ViewBag.FiltroNombre"
+                           asp-route-categoriaId="@ViewBag.CategoriaId">
+                            <i class="bi bi-chevron-right"></i>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        }
+    </div>
 </div>
 
 @section Scripts {
@@ -174,13 +207,12 @@
                 var q = $(this).val().trim();
                 clearTimeout(debounceTimer);
                 if (q.length < 2) { $sugerencias.hide().empty(); return; }
-
                 debounceTimer = setTimeout(function () {
                     $.get('/api/productos/buscar', { q: q }, function (data) {
                         $sugerencias.empty();
                         if (!data || data.length === 0) { $sugerencias.hide(); return; }
                         data.forEach(function (p) {
-                            var $li = $('<li class="list-group-item list-group-item-action" style="cursor:pointer;"></li>').text(p.nombre);
+                            var $li = $('<li class="list-group-item list-group-item-action" style="background:#0B1B3A;color:rgba(255,255,255,0.85);border-color:rgba(201,168,76,0.15);cursor:pointer;"></li>').text(p.nombre);
                             $li.on('click', function () {
                                 $input.val(p.nombre);
                                 $sugerencias.hide().empty();

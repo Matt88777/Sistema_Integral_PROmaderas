@@ -1,84 +1,152 @@
 ﻿@model IEnumerable<PROmaderas.UI.Models.UsuarioListItemViewModel>
 @{
-    ViewBag.Title = "Gestión de Usuarios";
+    ViewData["Title"] = "Gestión de Usuarios";
+    int paginaActual = ViewBag.PaginaActual != null ? (int)ViewBag.PaginaActual : 1;
+    int totalPaginas = ViewBag.TotalPaginas != null ? (int)ViewBag.TotalPaginas : 1;
 }
 
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h2><i class="bi bi-people-fill me-2"></i>Gestión de Usuarios</h2>
-    <a asp-action="Crear" class="btn btn-success">
-        <i class="bi bi-person-plus-fill me-1"></i>Nuevo Usuario
-    </a>
-</div>
-
-@if (TempData["Mensaje"] != null)
-{
-    <div class="alert alert-success alert-dismissible fade show" role="alert">
-        @TempData["Mensaje"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+<div class="container mt-4">
+    <div class="row mb-3 align-items-center">
+        <div class="col">
+            <h2><i class="bi bi-people-fill me-2" style="color:#c9a03c"></i>Gestión de Usuarios</h2>
+        </div>
+        @if (User.IsInRole("Administrador"))
+        {
+            <div class="col-auto">
+                <a asp-action="Crear" class="btn btn-warning fw-bold px-4">
+                    <i class="bi bi-person-plus me-1"></i>Nuevo Usuario
+                </a>
+            </div>
+        }
     </div>
-}
-@if (TempData["Error"] != null)
-{
-    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-        @TempData["Error"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-}
 
-<div class="card shadow-sm">
-    <div class="card-body p-0">
-        <table class="table table-hover mb-0">
+    @if (TempData["Mensaje"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            <i class="bi bi-check-circle me-1"></i>@TempData["Mensaje"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show">
+            <i class="bi bi-exclamation-triangle me-1"></i>@TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="table-responsive">
+        <table class="table table-striped table-hover align-middle">
             <thead class="table-dark">
                 <tr>
                     <th>Nombre</th>
                     <th>Correo</th>
                     <th>Rol</th>
-                    <th class="text-center">Estado</th>
-                    <th class="text-center">Acciones</th>
+                    <th>Estado</th>
+                    <th class="text-center" style="min-width:120px">Acciones</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach (var u in Model)
                 {
                     <tr>
-                        <td>@u.Nombre</td>
+                        <td class="fw-semibold">@u.Nombre</td>
                         <td>@u.Email</td>
                         <td>
-                            <span class="badge bg-secondary">@u.Rol</span>
+                            @if (u.Rol == "Administrador")
+                            {
+                                <span class="badge" style="background:#1A6B3A;color:#fff">@u.Rol</span>
+                            }
+                            else if (u.Rol == "Gerente")
+                            {
+                                <span class="badge" style="background:#2563EB;color:#fff">@u.Rol</span>
+                            }
+                            else if (u.Rol == "Contador")
+                            {
+                                <span class="badge" style="background:#0891B2;color:#fff">@u.Rol</span>
+                            }
+                            else if (u.Rol == "Operador de Planta")
+                            {
+                                <span class="badge" style="background:#5B21B6;color:#fff">@u.Rol</span>
+                            }
+                            else if (u.Rol == "Vendedor")
+                            {
+                                <span class="badge" style="background:#92400E;color:#fff">@u.Rol</span>
+                            }
+                            else
+                            {
+                                <span class="badge" style="background:#374151;color:#fff">@u.Rol</span>
+                            }
                         </td>
-                        <td class="text-center">
+                        <td>
                             @if (u.Activo)
                             {
                                 <span class="badge bg-success">Activo</span>
                             }
                             else
                             {
-                                <span class="badge bg-danger">Bloqueado</span>
+                                <span class="badge bg-secondary">Bloqueado</span>
                             }
                         </td>
                         <td class="text-center">
-                            <a asp-action="Editar" asp-route-id="@u.Id"
-                               class="btn btn-sm btn-outline-primary me-1" title="Editar">
-                                <i class="bi bi-pencil-fill"></i>
-                            </a>
-                            <form asp-action="Eliminar" asp-route-id="@u.Id"
-                                  method="post" class="d-inline"
-                                  onsubmit="return confirm('¿Eliminar al usuario @u.Nombre?');">
-                                @Html.AntiForgeryToken()
-                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Eliminar">
-                                    <i class="bi bi-trash-fill"></i>
-                                </button>
-                            </form>
+                            <div class="d-flex gap-2 justify-content-center flex-nowrap">
+                                @if (User.IsInRole("Administrador"))
+                                {
+                                    <a asp-action="Editar" asp-route-id="@u.Id"
+                                       class="btn btn-sm btn-accion-editar" title="Editar">
+                                        <i class="bi bi-pencil-fill"></i>
+                                    </a>
+                                    <form asp-action="Eliminar" asp-route-id="@u.Id"
+                                          method="post" class="d-inline m-0"
+                                          onsubmit="return confirm('¿Eliminar este usuario?');">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-sm btn-accion-eliminar" title="Eliminar">
+                                            <i class="bi bi-trash-fill"></i>
+                                        </button>
+                                    </form>
+                                }
+                            </div>
                         </td>
                     </tr>
                 }
                 @if (!Model.Any())
                 {
                     <tr>
-                        <td colspan="5" class="text-center text-muted py-4">No hay usuarios registrados.</td>
+                        <td colspan="5" class="text-center text-muted py-4">
+                            <i class="bi bi-inbox me-1"></i>No hay usuarios registrados.
+                        </td>
                     </tr>
                 }
             </tbody>
         </table>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mt-3 flex-wrap gap-2">
+        <small class="text-muted">
+            Página <strong>@paginaActual</strong> de <strong>@totalPaginas</strong>
+        </small>
+        @if (totalPaginas > 1)
+        {
+            <nav>
+                <ul class="pagination mb-0">
+                    <li class="page-item @(paginaActual == 1 ? "disabled" : "")">
+                        <a class="page-link" asp-action="Index" asp-route-pagina="@(paginaActual - 1)">
+                            <i class="bi bi-chevron-left"></i>
+                        </a>
+                    </li>
+                    @for (int i = 1; i <= totalPaginas; i++)
+                    {
+                        <li class="page-item @(i == paginaActual ? "active" : "")">
+                            <a class="page-link" asp-action="Index" asp-route-pagina="@i">@i</a>
+                        </li>
+                    }
+                    <li class="page-item @(paginaActual == totalPaginas ? "disabled" : "")">
+                        <a class="page-link" asp-action="Index" asp-route-pagina="@(paginaActual + 1)">
+                            <i class="bi bi-chevron-right"></i>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        }
     </div>
 </div>

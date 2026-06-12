@@ -9,7 +9,7 @@
 <div class="container mt-4">
     <div class="row mb-3">
         <div class="col">
-            <h2><i class="bi bi-cart-plus me-2"></i>Nueva Orden de Compra</h2>
+            <h2><i class="bi bi-cart-plus me-2" style="color:#c9a03c"></i>Nueva Orden de Compra</h2>
         </div>
     </div>
 
@@ -28,6 +28,7 @@
             </div>
         }
         <div id="divErrores" class="alert alert-danger mb-3" style="display:none"></div>
+
         <div class="card mb-4">
             <div class="card-header"><strong>Datos generales</strong></div>
             <div class="card-body">
@@ -37,13 +38,12 @@
                         <div class="position-relative">
                             <input type="text" id="clienteBuscar" class="form-control"
                                    placeholder="Escriba para buscar cliente..."
-                                   autocomplete="off"
-                                   style="background-color:#2a2a2a;color:#f0f0f0;border-color:#555;" />
+                                   autocomplete="off" />
                             <input type="hidden" asp-for="ClienteId" id="ClienteId" />
                             <ul id="clienteDropdown"
                                 class="list-group position-absolute w-100 shadow"
                                 style="display:none;max-height:220px;overflow-y:auto;z-index:999;
-                                background-color:#2a2a2a;border:1px solid #555;">
+                                background:#0B1B3A;border:1px solid rgba(201,160,60,0.25);border-radius:6px;">
                             </ul>
                         </div>
                         <span asp-validation-for="ClienteId" class="text-danger small" id="clienteError"></span>
@@ -55,16 +55,16 @@
                     </div>
                     <div class="col-md-6">
                         <label class="form-label">Vendedor responsable</label>
-                        <div style="background-color:#2a2a2a;border:1px solid #555;border-radius:6px;
-                            padding:8px 12px;color:#f0f0f0;">
+                        <div style="background:#1e3a5f;border:1px solid rgba(201,160,60,0.25);
+                            border-radius:6px;padding:8px 12px;">
                             <i class="bi bi-person-fill me-2" style="color:#c9a03c"></i>
                             <strong>@ViewBag.VendedorEmail</strong>
                         </div>
                     </div>
                     <div class="col-md-6">
                         <label class="form-label">Fecha de la orden</label>
-                        <div style="background-color:#2a2a2a;border:1px solid #555;border-radius:6px;
-                            padding:8px 12px;color:#f0f0f0;">
+                        <div style="background:#1e3a5f;border:1px solid rgba(201,160,60,0.25);
+                            border-radius:6px;padding:8px 12px;">
                             <i class="bi bi-calendar-event me-2" style="color:#c9a03c"></i>
                             <strong>@DateTime.Now.ToString("dd/MM/yyyy HH:mm")</strong>
                         </div>
@@ -76,8 +76,7 @@
         <div class="card mb-4">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <strong>Productos del pedido</strong>
-                <button type="button" class="btn btn-sm btn-outline-secondary"
-                        id="btnAgregarLinea">
+                <button type="button" class="btn btn-sm btn-warning fw-semibold" id="btnAgregarLinea">
                     <i class="bi bi-plus-circle me-1"></i>Agregar producto
                 </button>
             </div>
@@ -99,18 +98,18 @@
                         </tbody>
                         <tfoot>
                             <tr style="background:rgba(255,255,255,0.08)">
-                                <td colspan="3" class="text-end fw-bold" style="color:var(--bs-body-color,#e0e0e0)">Subtotal:</td>
-                                <td colspan="2" class="fw-bold" id="tdSubtotal" style="color:#f0c040">₡0.00</td>
+                                <td colspan="3" class="text-end fw-bold">Subtotal:</td>
+                                <td colspan="2" class="fw-bold" id="tdSubtotal" style="color:#c9a03c">₡0.00</td>
                                 <td></td>
                             </tr>
                             <tr style="background:rgba(255,255,255,0.08)">
-                                <td colspan="3" class="text-end fw-bold" style="color:var(--bs-body-color,#e0e0e0)">IVA (13%):</td>
-                                <td colspan="2" class="fw-bold" id="tdIva" style="color:#f0c040">₡0.00</td>
+                                <td colspan="3" class="text-end fw-bold">IVA (13%):</td>
+                                <td colspan="2" class="fw-bold" id="tdIva" style="color:#c9a03c">₡0.00</td>
                                 <td></td>
                             </tr>
                             <tr style="background:rgba(201,160,60,0.25);border-top:2px solid #c9a03c">
-                                <td colspan="3" class="text-end fw-bold fs-5" style="color:#f0c040">TOTAL:</td>
-                                <td colspan="2" class="fw-bold fs-5" id="tdTotal" style="color:#f0c040">₡0.00</td>
+                                <td colspan="3" class="text-end fw-bold fs-5" style="color:#c9a03c">TOTAL:</td>
+                                <td colspan="2" class="fw-bold fs-5" id="tdTotal" style="color:#c9a03c">₡0.00</td>
                                 <td></td>
                             </tr>
                         </tfoot>
@@ -140,12 +139,11 @@
 
         function fmt(n){ return '₡' + parseFloat(n).toLocaleString('es-CR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
 
-        // ── AUTOCOMPLETE CLIENTE ──────────────────────────────────────────────────────
         (function(){
-            const inp  = document.getElementById('clienteBuscar');
-            const hid  = document.getElementById('ClienteId');
-            const ul   = document.getElementById('clienteDropdown');
-            const err  = document.getElementById('clienteError');
+            const inp = document.getElementById('clienteBuscar');
+            const hid = document.getElementById('ClienteId');
+            const ul  = document.getElementById('clienteDropdown');
+            const err = document.getElementById('clienteError');
 
             function mostrar(lista){
                 ul.innerHTML = '';
@@ -153,10 +151,10 @@
                 lista.forEach(c => {
                     const li = document.createElement('li');
                     li.className = 'list-group-item list-group-item-action py-1 px-2';
-                    li.style.cssText = 'cursor:pointer;background-color:#2a2a2a;color:#f0f0f0;border-color:#555;';
+                    li.style.cssText = 'cursor:pointer;background:#0B1B3A;color:rgba(255,255,255,0.85);border-color:rgba(201,160,60,0.15);';
                     li.textContent = c.nombre;
-                    li.addEventListener('mouseover', ()=>{ li.style.backgroundColor='#3a3a3a'; });
-                    li.addEventListener('mouseout',  ()=>{ li.style.backgroundColor='#2a2a2a'; });
+                    li.addEventListener('mouseover', ()=>{ li.style.backgroundColor='#1e3a5f'; });
+                    li.addEventListener('mouseout',  ()=>{ li.style.backgroundColor='#0B1B3A'; });
                     li.addEventListener('mousedown', e => {
                         e.preventDefault();
                         inp.value = c.nombre;
@@ -192,8 +190,8 @@
         function recalcular(){
             let sub = 0;
             document.querySelectorAll('.fila-detalle').forEach(tr => {
-        const precio = parseFloat(tr.querySelector('.inp-precio-val').value)||0; 
-        const cant   = parseInt(tr.querySelector('.inp-cant').value)||0;
+                const precio = parseFloat(tr.querySelector('.inp-precio-val').value)||0;
+                const cant   = parseInt(tr.querySelector('.inp-cant').value)||0;
                 const subt   = precio * cant;
                 tr.querySelector('.td-subt').textContent = fmt(subt);
                 sub += subt;
@@ -205,7 +203,7 @@
             document.getElementById('divSinLineas').style.display =
                 document.querySelectorAll('.fila-detalle').length === 0 ? 'block' : 'none';
         }
-        // agregar linea funcion
+
         function agregarLinea(){
             const i = lineaIdx++;
             const tr = document.createElement('tr');
@@ -216,7 +214,6 @@
                         <option value="">— Seleccionar —</option>
                         ${PRODUCTOS.map(p=>`<option value="${p.id}" data-precio="${p.precio}">${p.nombre}</option>`).join('')}
                     </select>
-                
                 </td>
                 <td class="td-stock text-center text-muted">—</td>
                 <td>
@@ -229,31 +226,32 @@
                 </td>
                 <td class="td-subt fw-semibold">₡0.00</td>
                 <td class="text-center">
-                    <button type="button" class="btn btn-sm btn-outline-danger btn-quitar" title="Quitar">
+                    <button type="button" class="btn btn-sm btn-accion-eliminar btn-quitar" title="Quitar línea">
                         <i class="bi bi-trash"></i>
                     </button>
                 </td>`;
 
             tr.querySelector('.sel-prod').addEventListener('change', function(){
-                const opt = this.selectedOptions[0];
+                const opt    = this.selectedOptions[0];
                 const precio = parseFloat(opt.dataset.precio)||0;
                 const prodId = parseInt(this.value)||0;
                 tr.querySelector('.inp-precio').textContent = precio > 0 ? fmt(precio) : '—';
                 tr.querySelector('.inp-precio-val').value   = precio;
-                tr.querySelector('.inp-precio-hidden').value = precio.toFixed(2);
                 const stock = STOCK[prodId] ?? 0;
-                const tdS = tr.querySelector('.td-stock');
+                const tdS   = tr.querySelector('.td-stock');
                 tdS.textContent = stock;
-                tdS.className = 'td-stock text-center fw-semibold ' + (stock <= 0 ? 'text-danger' : 'text-success');
+                tdS.className   = 'td-stock text-center fw-semibold ' + (stock <= 0 ? 'text-danger' : 'text-success');
                 recalcular();
             });
+
             tr.querySelector('.inp-cant').addEventListener('input', function(){
                 const prodId = parseInt(tr.querySelector('.sel-prod').value)||0;
-                const stock = STOCK[prodId] ?? 0;
-                const cant = parseInt(this.value)||0;
+                const stock  = STOCK[prodId] ?? 0;
+                const cant   = parseInt(this.value)||0;
                 this.classList.toggle('is-invalid', cant > stock && stock > 0);
                 recalcular();
             });
+
             tr.querySelector('.btn-quitar').addEventListener('click', function(){
                 tr.remove(); recalcular();
             });
@@ -264,28 +262,26 @@
 
         document.getElementById('btnAgregarLinea').addEventListener('click', agregarLinea);
 
-        // Validación antes de enviar
         document.getElementById('formCreate').addEventListener('submit', function(e){
             const div = document.getElementById('divErrores');
             div.style.display = 'none';
             const errores = [];
 
-            // Validar cliente seleccionado
             if(!document.getElementById('ClienteId').value){
                 document.getElementById('clienteError').textContent = 'Seleccione un cliente de la lista.';
                 errores.push('Debe seleccionar un cliente.');
             }
 
-            // Validar líneas de producto
             const filas = document.querySelectorAll('.fila-detalle');
             if(filas.length === 0){
                 errores.push('Debe agregar al menos un producto al pedido.');
             } else {
                 filas.forEach(tr => {
-                    const prod = tr.querySelector('.sel-prod').value;
-                    const cant = parseInt(tr.querySelector('.inp-cant').value)||0;
+                    const prod   = tr.querySelector('.sel-prod').value;
+                    const cant   = parseInt(tr.querySelector('.inp-cant').value)||0;
                     const precio = parseFloat(tr.querySelector('.inp-precio-val').value)||0;
-        if(!prod || cant < 1 || precio <= 0) errores.push('Seleccione producto y verifique cantidad.');                });
+                    if(!prod || cant < 1 || precio <= 0) errores.push('Seleccione producto y verifique cantidad.');
+                });
             }
 
             if(errores.length){
@@ -297,7 +293,6 @@
             }
         });
 
-        // Agregar primera línea al cargar
         agregarLinea();
     </script>
 }

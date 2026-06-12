@@ -1,113 +1,162 @@
 @using PROmaderas.Abstracciones
 @model List<EmpleadoAD>
-
 @{
     ViewData["Title"] = "Empleados";
+    int paginaActual = ViewBag.PaginaActual != null ? (int)ViewBag.PaginaActual : 1;
+    int totalPaginas = ViewBag.TotalPaginas != null ? (int)ViewBag.TotalPaginas : 1;
 }
 
 <div class="container mt-4">
+    <div class="row mb-3 align-items-center">
+        <div class="col">
+            <h2><i class="bi bi-people me-2" style="color:#c9a03c"></i>Lista de Empleados</h2>
+        </div>
+        @if (User.IsInRole("Administrador") || User.IsInRole("Gerente"))
+        {
+            <div class="col-auto">
+                <a asp-action="Create" class="btn btn-warning fw-bold px-4">
+                    <i class="bi bi-plus-circle me-1"></i>Nuevo Empleado
+                </a>
+            </div>
+        }
+    </div>
 
-    @* Escenario 3: Confirmación de cambios exitosa (EMP-HU-007) *@
     @if (TempData["SuccessMessage"] != null)
     {
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            <i class="bi bi-check-circle-fill me-2"></i>
-            @TempData["SuccessMessage"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+        <div class="alert alert-success alert-dismissible fade show">
+            <i class="bi bi-check-circle me-1"></i>@TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     }
-
-    @* Escenario 2: Error general al guardar *@
     @if (TempData["ErrorMessage"] != null)
     {
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            <i class="bi bi-exclamation-triangle-fill me-2"></i>
-            @TempData["ErrorMessage"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+        <div class="alert alert-danger alert-dismissible fade show">
+            <i class="bi bi-exclamation-triangle me-1"></i>@TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     }
 
-    <h2>Lista de Empleados</h2>
-
-    <a asp-action="Create" class="btn btn-primary mb-3">
-        Nuevo Empleado
-    </a>
-
-    <form method="get" asp-action="Index" class="mb-3">
-        <div class="row">
-            <div class="col-md-4">
-                <input type="text" name="filtro" class="form-control"
-                       placeholder="Buscar por nombre o cédula" />
-            </div>
-            <div class="col-md-4">
-                <input type="text" name="departamento" class="form-control"
-                       placeholder="Buscar por departamento" />
-            </div>
-            <div class="col-md-2">
-                <button type="submit" class="btn btn-primary">Buscar</button>
-            </div>
+    <form method="get" asp-action="Index" class="row g-2 mb-4">
+        <div class="col-md-4">
+            <input type="text" name="filtro" class="form-control"
+                   placeholder="Buscar por nombre o cédula..."
+                   value="@ViewBag.FiltroNombre" />
+        </div>
+        <div class="col-md-3">
+            <input type="text" name="departamento" class="form-control"
+                   placeholder="Buscar por departamento..."
+                   value="@ViewBag.FiltroDepartamento" />
+        </div>
+        <div class="col-auto d-flex gap-2">
+            <button type="submit" class="btn btn-secondary">
+                <i class="bi bi-search me-1"></i>Buscar
+            </button>
+            <a asp-action="Index" class="btn btn-outline-secondary">Limpiar</a>
         </div>
     </form>
 
-    <table class="table table-bordered table-striped">
-        <thead>
-            <tr>
-
-                <th>Nombre</th>
-                <th>Cédula</th>
-                <th>Teléfono</th>
-                <th>Correo</th>
-                <th>Departamento</th>
-                <th>Estado</th>
-                <th>Acciones</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var item in Model)
-            {
+    <div class="table-responsive">
+        <table class="table table-striped table-hover align-middle">
+            <thead class="table-dark">
                 <tr>
-                    <td>@item.Nombre</td>
-                    <td>@item.Cedula</td>
-                    <td>@item.Telefono</td>
-                    <td>@item.Correo</td>
-                    <td>@(item.Departamento ?? "Sin asignar")</td>
-
-                    <td>
-                        @if (item.Estado == true)
-                        {
-                            <span class="badge bg-success">Activo</span>
-                        }
-                        else
-                        {
-                            <span class="badge bg-secondary">Inactivo</span>
-                        }
-                    </td>
-
-                    <td>
-                    <td>
-                        <a asp-action="Edit" asp-route-id="@item.IdEmpleado"
-                           class="btn btn-sm btn-warning">Editar</a>
-
-                            <form asp-action="CambiarEstado" asp-route-id="@item.IdEmpleado" method="post" class="d-inline">
-                                @Html.AntiForgeryToken()
-
-                                @if (item.Estado == true)
-                                {
-                                    <button type="submit" class="btn btn-sm btn-outline-danger">
-                                        Inactivar
-                                    </button>
-                                }
-                                else
-                                {
-                                    <button type="submit" class="btn btn-sm btn-outline-success">
-                                        Activar
-                                    </button>
-                                }
-                            </form>
-                    </td>
+                    <th>Nombre</th>
+                    <th>Cédula</th>
+                    <th>Teléfono</th>
+                    <th>Correo</th>
+                    <th>Departamento</th>
+                    <th>Estado</th>
+                    <th class="text-center" style="min-width:130px">Acciones</th>
                 </tr>
-            }
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td class="fw-semibold">@item.Nombre</td>
+                        <td>@item.Cedula</td>
+                        <td>@item.Telefono</td>
+                        <td>@item.Correo</td>
+                        <td>@(item.Departamento ?? "Sin asignar")</td>
+                        <td>
+                            <span class="badge @(item.Estado == true ? "bg-success" : "bg-secondary")">
+                                @(item.Estado == true ? "Activo" : "Inactivo")
+                            </span>
+                        </td>
+                        <td class="text-center">
+                            <div class="d-flex gap-2 justify-content-center flex-nowrap">
+                                <a asp-action="Edit" asp-route-id="@item.IdEmpleado"
+                                   class="btn btn-sm btn-accion-editar" title="Editar">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <form asp-action="CambiarEstado" asp-route-id="@item.IdEmpleado"
+                                      method="post" class="d-inline m-0">
+                                    @Html.AntiForgeryToken()
+                                    @if (item.Estado == true)
+                                    {
+                                        <button type="submit" class="btn btn-sm btn-accion-inactivar"
+                                                title="Inactivar empleado">
+                                            <i class="bi bi-toggle-on"></i>
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <button type="submit" class="btn btn-sm btn-accion-activar"
+                                                title="Activar empleado">
+                                            <i class="bi bi-toggle-off"></i>
+                                        </button>
+                                    }
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                }
+                @if (!Model.Any())
+                {
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-4">
+                            <i class="bi bi-inbox me-1"></i>No se encontraron empleados.
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
 
+    <div class="d-flex justify-content-between align-items-center mt-3 flex-wrap gap-2">
+        <small class="text-muted">
+            Página <strong>@paginaActual</strong> de <strong>@totalPaginas</strong>
+        </small>
+        @if (totalPaginas > 1)
+        {
+            <nav>
+                <ul class="pagination mb-0">
+                    <li class="page-item @(paginaActual == 1 ? "disabled" : "")">
+                        <a class="page-link" asp-action="Index"
+                           asp-route-pagina="@(paginaActual - 1)"
+                           asp-route-filtro="@ViewBag.FiltroNombre"
+                           asp-route-departamento="@ViewBag.FiltroDepartamento">
+                            <i class="bi bi-chevron-left"></i>
+                        </a>
+                    </li>
+                    @for (int i = 1; i <= totalPaginas; i++)
+                    {
+                        <li class="page-item @(i == paginaActual ? "active" : "")">
+                            <a class="page-link" asp-action="Index"
+                               asp-route-pagina="@i"
+                               asp-route-filtro="@ViewBag.FiltroNombre"
+                               asp-route-departamento="@ViewBag.FiltroDepartamento">@i</a>
+                        </li>
+                    }
+                    <li class="page-item @(paginaActual == totalPaginas ? "disabled" : "")">
+                        <a class="page-link" asp-action="Index"
+                           asp-route-pagina="@(paginaActual + 1)"
+                           asp-route-filtro="@ViewBag.FiltroNombre"
+                           asp-route-departamento="@ViewBag.FiltroDepartamento">
+                            <i class="bi bi-chevron-right"></i>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        }
+    </div>
 </div>

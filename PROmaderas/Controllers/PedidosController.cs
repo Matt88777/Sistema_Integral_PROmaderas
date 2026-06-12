@@ -11,6 +11,7 @@ using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
 using ClosedXML.Excel;
+using Microsoft.Data.SqlClient;
 
 namespace PROmaderas.UI.Controllers
 {

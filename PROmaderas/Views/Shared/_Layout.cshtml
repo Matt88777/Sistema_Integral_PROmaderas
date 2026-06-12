@@ -33,7 +33,7 @@
                                 </a>
                                 <ul class="dropdown-menu mega-menu" style="display:none">
 
-                                    @* INVENTARIO — Admin, Gerente, Operador *@
+                                    @* INVENTARIO *@
                                     @if (User.IsInRole("Administrador") || User.IsInRole("Gerente") || User.IsInRole("Operador de Planta"))
                                     {
                                         <li class="mega-menu-col">
@@ -43,7 +43,7 @@
                                         </li>
                                     }
 
-                                    @* CLIENTES — Admin, Gerente, Vendedor *@
+                                    @* CLIENTES *@
                                     @if (User.IsInRole("Administrador") || User.IsInRole("Gerente") || User.IsInRole("Vendedor"))
                                     {
                                         <li class="mega-menu-col">
@@ -53,7 +53,7 @@
                                         </li>
                                     }
 
-                                    @* ORDENES — todos los roles *@
+                                    @* ÓRDENES DE COMPRA *@
                                     @if (User.IsInRole("Administrador") || User.IsInRole("Gerente") || User.IsInRole("Contador") ||
                                          User.IsInRole("Operador de Planta") || User.IsInRole("Vendedor") || User.IsInRole("Usuario"))
                                     {
@@ -62,47 +62,31 @@
                                             <a class="dropdown-item" asp-controller="Pedidos" asp-action="Index"><i class="bi bi-clipboard-list me-2"></i>Ver órdenes</a>
                                             <a class="dropdown-item" asp-controller="Pedidos" asp-action="Create"><i class="bi bi-plus-circle me-2"></i>Nueva orden</a>
                                         </li>
-                                        // factura//
-                                        @if (User.IsInRole("Administrador") || User.IsInRole("Contador") || User.IsInRole("Gerente"))
-                                        {
-                                            <li class="mega-menu-col">
-                                                <span class="mega-menu-header"><i class="bi bi-receipt me-1"></i>Facturación</span>
-                                                <a class="dropdown-item" asp-controller="Facturacion" asp-action="Index"><i class="bi bi-receipt me-2"></i>Ver facturas</a>
-                                                @if (User.IsInRole("Administrador") || User.IsInRole("Contador"))
-                                                {
-                                                    <a class="dropdown-item" asp-controller="Facturacion" asp-action="Create"><i class="bi bi-plus-circle me-2"></i>Nueva factura</a>
-                                                }
-                                            </li>
-                                        }
                                     }
 
-                                    @* ACCESO RAPIDO *@
-                                    <li class="mega-menu-col">
-                                        <span class="mega-menu-header">Acceso rápido</span>
-                                        @if (User.IsInRole("Administrador") || User.IsInRole("Gerente") || User.IsInRole("Operador de Planta"))
-                                        {
-                                            <a class="mega-menu-card" asp-controller="Productos" asp-action="Index">
-                                                <div class="card-title"><i class="bi bi-boxes me-1"></i>Stock actual</div>
-                                                <div class="card-desc">Consulte existencias y movimientos del inventario.</div>
-                                            </a>
-                                        }
-                                        @if (User.IsInRole("Administrador") || User.IsInRole("Vendedor"))
-                                        {
-                                            <a class="mega-menu-card" asp-controller="Pedidos" asp-action="Create">
-                                                <div class="card-title"><i class="bi bi-cart-plus me-1"></i>Crear orden</div>
-                                                <div class="card-desc">Registre una nueva orden de compra al sistema.</div>
-                                            </a>
-                                        }
-                                    </li>
+                                    @* FACTURACIÓN *@
+                                    @if (User.IsInRole("Administrador") || User.IsInRole("Contador") || User.IsInRole("Gerente"))
+                                    {
+                                        <li class="mega-menu-col">
+                                            <span class="mega-menu-header"><i class="bi bi-receipt me-1"></i>Facturación</span>
+                                            <a class="dropdown-item" asp-controller="Facturacion" asp-action="Index"><i class="bi bi-receipt me-2"></i>Ver facturas</a>
+                                            @if (User.IsInRole("Administrador") || User.IsInRole("Contador"))
+                                            {
+                                                <a class="dropdown-item" asp-controller="Facturacion" asp-action="Create"><i class="bi bi-plus-circle me-2"></i>Nueva factura</a>
+                                            }
+                                        </li>
+                                    }
 
                                     <li class="mega-menu-footer">
-                                        <a asp-controller="Dashboard" asp-action="Index">Ver Panel principal →</a>
+                                        <a asp-controller="Dashboard" asp-action="Index">
+                                            <i class="bi bi-house me-1"></i>Ver Panel principal →
+                                        </a>
                                     </li>
 
                                 </ul>
                             </li>
 
-                            @* ADMINISTRACION — Admin, Gerente, Contador *@
+                            @* ADMINISTRACIÓN *@
                             @if (User.IsInRole("Administrador") || User.IsInRole("Gerente") || User.IsInRole("Contador"))
                             {
                                 <li class="nav-item mega-parent">
@@ -111,17 +95,7 @@
                                     </a>
                                     <ul class="dropdown-menu mega-menu" style="display:none">
 
-                                        @* FACTURACION — Admin, Gerente, Contador *@
-                                        @if (User.IsInRole("Administrador") || User.IsInRole("Gerente") || User.IsInRole("Contador"))
-                                        {
-                                            <li class="mega-menu-col">
-                                                <span class="mega-menu-header"><i class="bi bi-receipt me-1"></i>Facturación</span>
-                                                <a class="dropdown-item" asp-controller="Facturacion" asp-action="Index"><i class="bi bi-file-earmark-text me-2"></i>Ver facturas</a>
-                                                <a class="dropdown-item" asp-controller="Facturacion" asp-action="Create"><i class="bi bi-plus-circle me-2"></i>Nueva factura</a>
-                                            </li>
-                                        }
-
-                                        @* PLANILLA — Admin y Contador *@
+                                        @* PLANILLA *@
                                         @if (User.IsInRole("Administrador") || User.IsInRole("Contador"))
                                         {
                                             <li class="mega-menu-col">
@@ -130,7 +104,7 @@
                                             </li>
                                         }
 
-                                        @* EMPLEADOS — solo Admin *@
+                                        @* EMPLEADOS *@
                                         @if (User.IsInRole("Administrador"))
                                         {
                                             <li class="mega-menu-col">
@@ -140,7 +114,7 @@
                                             </li>
                                         }
 
-                                        @* REPORTES — Admin, Gerente y Contador *@
+                                        @* REPORTES *@
                                         @if (User.IsInRole("Administrador") || User.IsInRole("Gerente") || User.IsInRole("Contador"))
                                         {
                                             <li class="mega-menu-col">
@@ -149,16 +123,13 @@
                                             </li>
                                         }
 
-                                        @* SISTEMA/USUARIOS — solo Admin *@
+                                        @* USUARIOS *@
                                         @if (User.IsInRole("Administrador"))
                                         {
                                             <li class="mega-menu-col">
                                                 <span class="mega-menu-header"><i class="bi bi-shield-lock me-1"></i>Sistema</span>
                                                 <a class="dropdown-item" asp-controller="AdminUsuarios" asp-action="Index"><i class="bi bi-people me-2"></i>Gestión de usuarios</a>
-                                                <a class="mega-menu-card" asp-controller="AdminUsuarios" asp-action="Create">
-                                                    <div class="card-title"><i class="bi bi-person-plus me-1"></i>Nuevo usuario</div>
-                                                    <div class="card-desc">Registre acceso y defina el rol del nuevo usuario.</div>
-                                                </a>
+                                                <a class="dropdown-item" asp-controller="AdminUsuarios" asp-action="Create"><i class="bi bi-person-plus me-2"></i>Nuevo usuario</a>
                                             </li>
                                         }
 

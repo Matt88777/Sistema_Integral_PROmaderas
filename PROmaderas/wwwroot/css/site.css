@@ -20,7 +20,17 @@
     --pm-accent-h: #235F3E;
     --pm-danger: #B03A2E;
 }
+.btn {
+    border-radius: 6px !important;
+}
 
+.btn-sm {
+    border-radius: 5px !important;
+}
+
+.page-link {
+    border-radius: 4px !important;
+}
 /* =========================
    BASE
 ========================= */
@@ -623,18 +633,22 @@ header .navbar-brand, header .nav-link {
         box-shadow: 0 6px 20px rgba(160,107,46,0.40);
     }
 
-.btn-danger {
-    background: #2C3347;
-    border-color: #2C3347;
-    color: rgba(255,255,255,0.90);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.20);
+.btn-danger,
+a.btn-danger,
+button.btn-danger {
+    background: #C2511F !important;
+    border-color: #C2511F !important;
+    color: #FFFFFF !important;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(194,81,31,0.30);
 }
 
-    .btn-danger:hover {
-        background: #1e2438;
-        border-color: #1e2438;
-        color: #FFFFFF;
-        transform: translateY(-1px);
+    .btn-danger:hover,
+    a.btn-danger:hover,
+    button.btn-danger:hover {
+        background: #A84318 !important;
+        border-color: #A84318 !important;
+        color: #FFFFFF !important;
     }
 
 /* El rojo solo se usa para alertas y advertencias del sistema, NO para botones de acción */
@@ -1590,3 +1604,293 @@ footer {
         font-size: 12.5px !important;
         margin-bottom: 0 !important;
     }
+
+/* ── Botones uniformes (rectangulares, tamaño consistente) ── */
+.btn {
+    border-radius: 6px !important;
+}
+
+.btn-sm {
+    border-radius: 5px !important;
+    min-width: 36px;
+    min-height: 32px;
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    padding: 4px 8px;
+}
+/* Columna acciones — no romper a segunda línea */
+.td-acciones {
+    white-space: nowrap;
+    min-width: 160px;
+}
+
+/* Solo botones icono dentro de columnas de acciones */
+.td-acciones .btn-sm,
+td .btn-sm {
+    border-radius: 5px !important;
+    min-width: 34px;
+    min-height: 30px;
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    padding: 4px 7px;
+}
+
+/* ══ Dashboard cards mejoradas ══ */
+.pm-dash-card {
+    border: 1px solid rgba(201,168,76,0.20) !important;
+    border-top: 3px solid rgba(201,168,76,0.60) !important;
+    background: rgba(255,255,255,0.04) !important;
+    border-radius: 14px !important;
+    transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+}
+
+    .pm-dash-card:hover {
+        transform: translateY(-5px);
+        border-color: rgba(201,168,76,0.90) !important;
+        border-top-color: #c9a03c !important;
+        box-shadow: 0 16px 40px rgba(0,0,0,0.35) !important;
+    }
+
+.pm-dash-icon {
+    width: 52px;
+    height: 52px;
+    background: rgba(201,168,76,0.12);
+    border: 1px solid rgba(201,168,76,0.30);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+    .pm-dash-icon .bi {
+        font-size: 24px;
+        color: #c9a03c;
+    }
+
+.pm-dash-title {
+    font-family: 'Playfair Display', serif !important;
+    font-size: 16px !important;
+    font-weight: 700 !important;
+    color: rgba(255,255,255,0.92) !important;
+    margin-bottom: 6px !important;
+}
+
+.pm-dash-text {
+    font-size: 13px !important;
+    color: rgba(255,255,255,0.50) !important;
+    line-height: 1.6;
+}
+
+.mega-quick-link {
+    display: flex;
+    align-items: center;
+    padding: 6px 10px;
+    border-radius: 6px;
+    color: rgba(255,255,255,0.75);
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 500;
+    transition: background 0.15s, color 0.15s;
+    margin-bottom: 2px;
+}
+
+    .mega-quick-link:hover {
+        background: rgba(201,168,76,0.12);
+        color: #c9a03c;
+    }
+
+.mega-section-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: rgba(201,168,76,0.70);
+    margin-bottom: 8px;
+    padding: 0 10px;
+}
+
+.mega-quick-link {
+    display: flex;
+    align-items: center;
+    padding: 6px 10px;
+    border-radius: 6px;
+    color: rgba(255,255,255,0.75);
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 500;
+    transition: background 0.15s, color 0.15s;
+    margin-bottom: 2px;
+}
+
+    .mega-quick-link:hover {
+        background: rgba(201,168,76,0.12);
+        color: #c9a03c;
+    }
+
+/* ── Botones de acción uniformes ─────────────────────────── */
+.btn-accion-ver {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.35);
+    color: rgba(255,255,255,0.85);
+}
+
+    .btn-accion-ver:hover {
+        background: rgba(255,255,255,0.18);
+        color: #fff;
+    }
+
+.btn-accion-editar {
+    background: #2563EB;
+    border-color: #2563EB;
+    color: #fff;
+}
+
+    .btn-accion-editar:hover {
+        background: #1D4ED8;
+        border-color: #1D4ED8;
+        color: #fff;
+    }
+
+.btn-accion-ajustar {
+    background: #0891B2;
+    border-color: #0891B2;
+    color: #fff;
+}
+
+    .btn-accion-ajustar:hover {
+        background: #0E7490;
+        border-color: #0E7490;
+        color: #fff;
+    }
+
+.btn-accion-eliminar {
+    background: #C2511F !important;
+    border-color: #C2511F !important;
+    color: #fff !important;
+}
+
+    .btn-accion-eliminar:hover {
+        background: #A8431A !important;
+        border-color: #A8431A !important;
+        color: #fff !important;
+    }
+
+/* Activar = verde */
+.btn-accion-activar {
+    background: #1A6B3A;
+    border-color: #1A6B3A;
+    color: #fff;
+}
+
+    .btn-accion-activar:hover {
+        background: #155C30;
+        border-color: #155C30;
+        color: #fff;
+    }
+
+/* Inactivar = ámbar */
+.btn-accion-inactivar {
+    background: #D97706;
+    border-color: #D97706;
+    color: #fff;
+}
+
+    .btn-accion-inactivar:hover {
+        background: #B45309;
+        border-color: #B45309;
+        color: #fff;
+    }
+
+/* Historial = rosa oscuro */
+.btn-accion-historial {
+    background: #BE185D;
+    border-color: #BE185D;
+    color: #fff;
+}
+
+    .btn-accion-historial:hover {
+        background: #9D174D;
+        border-color: #9D174D;
+        color: #fff;
+    }
+
+/* ── btn-warning override (Nuevo / botones principales) ─── */
+.btn-warning {
+    background-color: #c9a03c !important;
+    border-color: #c9a03c !important;
+    color: #000 !important;
+}
+
+    .btn-warning:hover {
+        background-color: #b08932 !important;
+        border-color: #b08932 !important;
+        color: #000 !important;
+    }
+
+/* ── btn-danger override ─────────────────────────────────── */
+.btn-danger {
+    background-color: #C2511F !important;
+    border-color: #C2511F !important;
+    color: #fff !important;
+}
+
+    .btn-danger:hover {
+        background-color: #A8431A !important;
+        border-color: #A8431A !important;
+        color: #fff !important;
+    }
+
+/* ── Dashboard cards ─────────────────────────────────────── */
+.pm-dash-card {
+    border-top: 3px solid #c9a03c;
+    transition: transform .15s ease, box-shadow .15s ease;
+}
+
+    .pm-dash-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 20px rgba(0,0,0,.35);
+    }
+
+    .pm-dash-card .pm-icon-box {
+        width: 52px;
+        height: 52px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.4rem;
+        background: rgba(201,160,60,.15);
+        color: #c9a03c;
+    }
+
+/* ── Paginación activa ───────────────────────────────────── */
+.pagination .page-item.active .page-link {
+    background-color: #c9a03c;
+    border-color: #c9a03c;
+    color: #000;
+}
+
+.pagination .page-link {
+    color: #c9a03c;
+}
+
+    .pagination .page-link:hover {
+        color: #b08932;
+    }
+
+/* ── Autocomplete dropdown oscuro ───────────────────────── */
+#sugerenciasProductos .list-group-item:hover,
+#sugerenciasClientes .list-group-item:hover {
+    background: #1a2f54 !important;
+    color: #fff !important;
+}
+
+/* ── Input group addon oscuro (%, ₡, iconos) ────────────── */
+.input-group-text {
+    background-color: #1e3a5f;
+    border-color: #3a5a8a;
+    color: #c9a03c;
+    font-weight: 600;
+}
