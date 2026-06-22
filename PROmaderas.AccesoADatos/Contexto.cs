@@ -117,6 +117,8 @@ namespace PROmaderas.AccesoADatos
                 e.Property(x => x.Total).HasColumnName("Total");
                 e.Property(x => x.Estado).HasColumnName("Estado");
                 e.Property(x => x.Activa).HasColumnName("Activa");
+                e.Property(x => x.IdUsuarioEmisor).HasColumnName("IdUsuarioEmisor");
+                e.Property(x => x.SaldoPendiente).HasColumnName("SaldoPendiente");
                 e.Ignore(x => x.MetodoPago);
             });
 

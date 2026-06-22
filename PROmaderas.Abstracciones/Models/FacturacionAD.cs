@@ -33,6 +33,11 @@ namespace PROmaderas.Abstracciones.Models
         [StringLength(50)]
         public string Estado { get; set; } = "Emitida";
         public bool Activa { get; set; } = true;
+        [Required]
+        public int IdUsuarioEmisor { get; set; }
+        [Required]
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal SaldoPendiente { get; set; }
         public string MetodoPago { get; set; } = string.Empty;
         [ForeignKey("PedidoId")]
         public virtual PedidoAD? Pedido { get; set; }
