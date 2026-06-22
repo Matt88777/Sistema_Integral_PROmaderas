@@ -18,6 +18,14 @@ namespace PROmaderas.LogicaDeNegocio.Facturacion
             return await _repositorio.ObtenerTodasActivas();
         }
 
+        public async Task<List<FacturacionAD>> BuscarConFiltros(int? clienteId, DateTime? fechaDesde,
+                                                                DateTime? fechaHasta, string? numeroFactura)
+        {
+            // Normalizamos el número acá (no en el repo): así el repo recibe ya sea null o texto limpio.
+            var numero = string.IsNullOrWhiteSpace(numeroFactura) ? null : numeroFactura.Trim();
+            return await _repositorio.BuscarConFiltros(clienteId, fechaDesde, fechaHasta, numero);
+        }
+
         public async Task<FacturacionAD?> ObtenerDetalle(int id)
         {
             return await _repositorio.ObtenerPorId(id);

@@ -23,6 +23,33 @@ namespace PROmaderas.AccesoADatos.Facturacion
                 .ToListAsync();
         }
 
+        public async Task<List<FacturacionAD>> BuscarConFiltros(int? clienteId, DateTime? fechaDesde,
+                                                                DateTime? fechaHasta, string? numeroFactura)
+        {
+            // Mismo query base que ObtenerTodasActivas; se le suman .Where() condicionales.
+            var consulta = _contexto.Facturaciones
+                .Include(f => f.Pedido)
+                .Include(f => f.Cliente)
+                .Where(f => f.Activa);
+
+            if (clienteId.HasValue)
+                consulta = consulta.Where(f => f.ClienteId == clienteId.Value);
+
+            if (fechaDesde.HasValue)
+                consulta = consulta.Where(f => f.Fecha >= fechaDesde.Value);
+
+            if (fechaHasta.HasValue)
+                // Sumar un día para incluir todo el día "hasta", ya que Fecha tiene hora.
+                consulta = consulta.Where(f => f.Fecha < fechaHasta.Value.AddDays(1));
+
+            if (!string.IsNullOrWhiteSpace(numeroFactura))
+                consulta = consulta.Where(f => f.NumeroFactura.Contains(numeroFactura));
+
+            return await consulta
+                .OrderByDescending(f => f.Fecha)
+                .ToListAsync();
+        }
+
         public async Task<FacturacionAD?> ObtenerPorId(int id)
         {
             return await _contexto.Facturaciones

@@ -11,12 +11,26 @@ namespace PROmaderas.UI.Controllers
     public class FacturacionController : Controller
     {
         private readonly IFacturacionLogica _logica;
-        public FacturacionController(IFacturacionLogica logica) { _logica = logica; }
-
-        public async Task<IActionResult> Index()
+        private readonly IClienteLogica _clienteLogica;
+        public FacturacionController(IFacturacionLogica logica, IClienteLogica clienteLogica)
         {
-            var facturas = await _logica.ObtenerListado();
-            return View(facturas);
+            _logica = logica;
+            _clienteLogica = clienteLogica;
+        }
+
+        public async Task<IActionResult> Index(int? clienteId, DateTime? fechaDesde,
+                                               DateTime? fechaHasta, string? numeroFactura)
+        {
+            var vm = new ConsultaFacturasViewModel
+            {
+                ClienteId = clienteId,
+                FechaDesde = fechaDesde,
+                FechaHasta = fechaHasta,
+                NumeroFactura = numeroFactura,
+                Facturas = await _logica.BuscarConFiltros(clienteId, fechaDesde, fechaHasta, numeroFactura),
+                Clientes = await _clienteLogica.ObtenerTodos()
+            };
+            return View(vm);
         }
 
         [Authorize(Roles = Roles.Administrador + "," + Roles.Contador)]

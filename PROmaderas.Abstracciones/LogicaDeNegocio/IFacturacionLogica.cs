@@ -7,6 +7,10 @@ namespace PROmaderas.Abstracciones.LogicaDeNegocio
         // Index: listado de facturas activas.
         Task<List<FacturacionAD>> ObtenerListado();
 
+        // Index con filtros: cliente, rango de fechas y número consecutivo (todos opcionales).
+        Task<List<FacturacionAD>> BuscarConFiltros(int? clienteId, DateTime? fechaDesde,
+                                                   DateTime? fechaHasta, string? numeroFactura);
+
         // Details: factura por Id con sus relaciones.
         Task<FacturacionAD?> ObtenerDetalle(int id);
 

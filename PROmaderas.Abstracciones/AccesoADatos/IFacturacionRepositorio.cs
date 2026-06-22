@@ -7,6 +7,10 @@ namespace PROmaderas.Abstracciones.AccesoADatos
         // Listado del Index: facturas activas con Pedido y Cliente, más recientes primero.
         Task<List<FacturacionAD>> ObtenerTodasActivas();
 
+        // Listado del Index con filtros opcionales (cliente, rango de fechas, número consecutivo).
+        Task<List<FacturacionAD>> BuscarConFiltros(int? clienteId, DateTime? fechaDesde,
+                                                   DateTime? fechaHasta, string? numeroFactura);
+
         // Detalle: factura con Pedido -> Detalles -> Producto y Cliente.
         Task<FacturacionAD?> ObtenerPorId(int id);
 
