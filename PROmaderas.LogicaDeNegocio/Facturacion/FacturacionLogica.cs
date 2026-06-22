@@ -48,6 +48,50 @@ namespace PROmaderas.LogicaDeNegocio.Facturacion
             await _repositorio.CambiarEstado(id, nuevoEstado, auditoria);
         }
 
+        public async Task RegistrarPago(int idFactura, decimal monto, string formaPago, string? referencia,
+                                        DateTime fechaPago, string correoOperador, ContextoAuditoria auditoria)
+        {
+            var factura = await _repositorio.ObtenerPorId(idFactura);
+            if (factura == null)
+                throw new ArgumentException("La factura no existe");
+
+            if (!factura.Activa)
+                throw new ArgumentException("No se puede registrar el pago de una factura inactiva.");
+
+            if (factura.Estado == EstadosFactura.Pagada || factura.SaldoPendiente <= 0)
+                throw new ArgumentException("La factura ya está pagada.");
+
+            if (monto <= 0)
+                throw new ArgumentException("El monto debe ser mayor a cero.");
+
+            if (monto > factura.SaldoPendiente)
+                throw new ArgumentException($"El monto excede el saldo pendiente (₡{factura.SaldoPendiente:N2}).");
+
+            if (!FormasPago.Todas.Contains(formaPago))
+                throw new ArgumentException("Forma de pago no válida.");
+
+            // Resolver el usuario que registra (FK NOT NULL). La identidad llega por parámetro,
+            // no se toca Identity acá. Fallback a admin (IdUsuario = 1) como en la emisión.
+            var idUsuario = await _repositorio.ObtenerIdUsuarioPorCorreo(correoOperador) ?? 1;
+
+            var pago = new PagoFacturaAD
+            {
+                IdFactura = idFactura,
+                Monto = monto,
+                FormaPago = formaPago,
+                Referencia = referencia,
+                FechaPago = fechaPago,
+                IdUsuarioRegistro = idUsuario
+            };
+
+            await _repositorio.RegistrarPago(pago, auditoria);
+        }
+
+        public async Task<List<PagoFacturaAD>> ObtenerPagosPorFactura(int idFactura)
+        {
+            return await _repositorio.ObtenerPagosPorFactura(idFactura);
+        }
+
         public async Task<FacturacionAD> Crear(FacturacionAD factura, string correoEmisor)
         {
             // Regla de negocio (antes en el Create POST del controller):

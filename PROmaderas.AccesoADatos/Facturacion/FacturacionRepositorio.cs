@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using PROmaderas.Abstracciones.AccesoADatos;
+using PROmaderas.Abstracciones.Catalogos;
 using PROmaderas.Abstracciones.Models;
 using PROmaderas.AccesoADatos.Auditoria;
 
@@ -96,6 +97,49 @@ namespace PROmaderas.AccesoADatos.Facturacion
                 valoresNuevos));
 
             await _contexto.SaveChangesAsync();
+        }
+
+        public async Task RegistrarPago(PagoFacturaAD pago, ContextoAuditoria auditoria)
+        {
+            // Patrón atómico extendido de CambiarEstado: 3 operaciones en UN SaveChangesAsync.
+            var factura = await _contexto.Facturaciones
+                .FirstOrDefaultAsync(f => f.Id == pago.IdFactura);
+
+            if (factura == null)
+                throw new Exception($"No se encontró la factura con ID {pago.IdFactura}.");
+
+            var saldoAnterior = factura.SaldoPendiente;
+            var estadoAnterior = factura.Estado;
+
+            // Decimal exacto (sin pérdida de precisión): saldo y monto son decimal(18,2).
+            factura.SaldoPendiente = factura.SaldoPendiente - pago.Monto;
+            factura.Estado = factura.SaldoPendiente == 0
+                ? EstadosFactura.Pagada
+                : EstadosFactura.PendienteDePago;
+
+            _contexto.PagosFactura.Add(pago);                 // INSERT pago
+            _contexto.Facturaciones.Update(factura);          // UPDATE saldo/estado
+            _contexto.Bitacoras.Add(ConstructorBitacora.Construir(  // INSERT bitácora
+                "Factura",
+                factura.Id,
+                auditoria,
+                new { SaldoPendiente = saldoAnterior, Estado = estadoAnterior },
+                new
+                {
+                    Pago = new { pago.Monto, pago.FormaPago, pago.Referencia, pago.FechaPago },
+                    SaldoPendiente = factura.SaldoPendiente,
+                    Estado = factura.Estado
+                }));
+
+            await _contexto.SaveChangesAsync();               // los 3 en una sola transacción
+        }
+
+        public async Task<List<PagoFacturaAD>> ObtenerPagosPorFactura(int idFactura)
+        {
+            return await _contexto.PagosFactura
+                .Where(p => p.IdFactura == idFactura)
+                .OrderByDescending(p => p.FechaPago)
+                .ToListAsync();
         }
 
         public async Task<int> ObtenerMaximoId()

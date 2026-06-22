@@ -23,6 +23,9 @@ namespace PROmaderas.AccesoADatos
 
         public DbSet<PuestoAD> Puestos { get; set; }
 
+        // FAC-HU-004: tabla PagoFactura ya existe en el script; solo se mapea (sin migración).
+        public DbSet<PagoFacturaAD> PagosFactura { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -161,6 +164,20 @@ namespace PROmaderas.AccesoADatos
                 e.Property(x => x.ValorNuevo).HasColumnName("ValorNuevo");
                 e.Property(x => x.FechaAccion).HasColumnName("FechaAccion");
                 e.Property(x => x.DireccionIP).HasColumnName("DireccionIP");
+            });
+
+            // PagoFacturaAD -> PagoFactura  (FAC-HU-004: mapeo de tabla existente, sin migración)
+            modelBuilder.Entity<PagoFacturaAD>(e =>
+            {
+                e.ToTable("PagoFactura");
+                e.HasKey(x => x.IdPagoFactura);
+                e.Property(x => x.IdPagoFactura).HasColumnName("IdPagoFactura");
+                e.Property(x => x.IdFactura).HasColumnName("IdFactura");
+                e.Property(x => x.FechaPago).HasColumnName("FechaPago");
+                e.Property(x => x.Monto).HasColumnName("Monto");
+                e.Property(x => x.FormaPago).HasColumnName("FormaPago");
+                e.Property(x => x.Referencia).HasColumnName("Referencia");
+                e.Property(x => x.IdUsuarioRegistro).HasColumnName("IdUsuarioRegistro");
             });
 
             // PuestoAD -> Puesto (read-only; usado para poblar dropdowns)

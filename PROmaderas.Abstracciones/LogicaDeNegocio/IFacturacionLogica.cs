@@ -17,6 +17,13 @@ namespace PROmaderas.Abstracciones.LogicaDeNegocio
         // FAC-HU-003: cambia el estado de la factura (valida catálogo y que sea distinto del actual).
         Task CambiarEstado(int id, string nuevoEstado, ContextoAuditoria auditoria);
 
+        // FAC-HU-004: registra un pago (parcial o total), baja el saldo y ajusta el estado.
+        Task RegistrarPago(int idFactura, decimal monto, string formaPago, string? referencia,
+                           DateTime fechaPago, string correoOperador, ContextoAuditoria auditoria);
+
+        // Historial de pagos de una factura (para Details).
+        Task<List<PagoFacturaAD>> ObtenerPagosPorFactura(int idFactura);
+
         // Emite la factura: resuelve el emisor por correo, genera el consecutivo,
         // fija Estado = "Emitida", SaldoPendiente = Total y persiste.
         Task<FacturacionAD> Crear(FacturacionAD factura, string correoEmisor);

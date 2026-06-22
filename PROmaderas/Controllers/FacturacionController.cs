@@ -109,6 +109,8 @@ namespace PROmaderas.UI.Controllers
         {
             var factura = await _logica.ObtenerDetalle(id);
             if (factura == null) return NotFound();
+            // Historial de pagos vía ViewBag para no cambiar el @model FacturacionAD de la vista.
+            ViewBag.Pagos = await _logica.ObtenerPagosPorFactura(id);
             return View(factura);
         }
 
@@ -157,6 +159,63 @@ namespace PROmaderas.UI.Controllers
                 if (factura == null) return NotFound();
                 vm.NumeroFactura = factura.NumeroFactura;
                 vm.EstadoActual = factura.Estado;
+                return View(vm);
+            }
+        }
+
+        // FAC-HU-004: el Contador registra un pago (parcial o total) de una factura.
+        [Authorize(Roles = Roles.Administrador + "," + Roles.Contador)]
+        public async Task<IActionResult> RegistrarPago(int id)
+        {
+            var factura = await _logica.ObtenerDetalle(id);
+            if (factura == null) return NotFound();
+
+            if (!factura.Activa || factura.Estado == EstadosFactura.Pagada || factura.SaldoPendiente <= 0)
+            {
+                TempData["Error"] = "Esta factura no admite registro de pagos (inactiva o ya pagada).";
+                return RedirectToAction(nameof(Details), new { id });
+            }
+
+            var vm = new RegistrarPagoViewModel
+            {
+                FacturaId = factura.Id,
+                NumeroFactura = factura.NumeroFactura,
+                SaldoPendiente = factura.SaldoPendiente
+            };
+            return View(vm);
+        }
+
+        [HttpPost, ValidateAntiForgeryToken]
+        [Authorize(Roles = Roles.Administrador + "," + Roles.Contador)]
+        public async Task<IActionResult> RegistrarPago(RegistrarPagoViewModel vm)
+        {
+            try
+            {
+                // La identidad viaja en el DTO / por parámetro (Lógica y AD no conocen Identity).
+                var ctx = new ContextoAuditoria
+                {
+                    UsuarioIdentityId = User.FindFirstValue(ClaimTypes.NameIdentifier),
+                    Email = User.Identity?.Name,
+                    Ip = HttpContext.Connection.RemoteIpAddress?.ToString(),
+                    Accion = "Registro de pago factura"
+                };
+                var correoOperador = User.Identity?.Name ?? "";
+
+                await _logica.RegistrarPago(vm.FacturaId, vm.Monto, vm.FormaPago, vm.Referencia,
+                    vm.FechaPago, correoOperador, ctx);
+
+                TempData["Mensaje"] = "Pago registrado correctamente.";
+                return RedirectToAction(nameof(Details), new { id = vm.FacturaId });
+            }
+            catch (ArgumentException ex)
+            {
+                ModelState.AddModelError("", ex.Message);
+
+                // Recargar saldo/contexto para re-renderizar la vista.
+                var factura = await _logica.ObtenerDetalle(vm.FacturaId);
+                if (factura == null) return NotFound();
+                vm.NumeroFactura = factura.NumeroFactura;
+                vm.SaldoPendiente = factura.SaldoPendiente;
                 return View(vm);
             }
         }

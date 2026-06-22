@@ -20,6 +20,12 @@ namespace PROmaderas.Abstracciones.AccesoADatos
         // Cambia SOLO el campo Estado y registra la bitácora en el mismo SaveChanges (atómico).
         Task CambiarEstado(int id, string nuevoEstado, ContextoAuditoria auditoria);
 
+        // FAC-HU-004: INSERT pago + UPDATE factura (saldo/estado) + INSERT bitácora en UN SaveChanges.
+        Task RegistrarPago(PagoFacturaAD pago, ContextoAuditoria auditoria);
+
+        // Historial de pagos de una factura (para Details).
+        Task<List<PagoFacturaAD>> ObtenerPagosPorFactura(int idFactura);
+
         // Mayor Id existente (0 si no hay) para calcular el consecutivo.
         Task<int> ObtenerMaximoId();
 

@@ -8,6 +8,10 @@
     {
         <div class="alert alert-success alert-dismissible fade show">@TempData["Mensaje"]<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
     }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-warning alert-dismissible fade show">@TempData["Error"]<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+    }
 
     <div class="row mb-3 align-items-center">
         <div class="col"><h2>Factura <span class="text-warning">@Model.NumeroFactura</span></h2></div>
@@ -76,9 +80,50 @@
         </div>
     }
 
+    <div class="card mb-4">
+        <div class="card-header fw-bold d-flex justify-content-between align-items-center" style="background-color:#c9a03c;color:#fff;">
+            <span><i class="bi bi-cash-stack me-1"></i>Historial de pagos</span>
+            <span>Saldo pendiente: <strong>₡@Model.SaldoPendiente.ToString("N2")</strong></span>
+        </div>
+        @{
+            var pagos = ViewBag.Pagos as List<PagoFacturaAD>;
+        }
+        @if (pagos == null || !pagos.Any())
+        {
+            <div class="card-body"><span class="text-muted">Sin pagos registrados.</span></div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-striped mb-0">
+                    <thead class="table-dark">
+                        <tr><th>Fecha</th><th class="text-end">Monto</th><th>Forma de pago</th><th>Referencia</th></tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var p in pagos)
+                        {
+                            <tr>
+                                <td>@p.FechaPago.ToString("dd/MM/yyyy")</td>
+                                <td class="text-end">₡@p.Monto.ToString("N2")</td>
+                                <td>@p.FormaPago</td>
+                                <td>@(string.IsNullOrWhiteSpace(p.Referencia) ? "—" : p.Referencia)</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+
     <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i>Volver al listado</a>
     @if (User.IsInRole("Administrador") || User.IsInRole("Contador"))
     {
+        @if (Model.Activa && Model.Estado != EstadosFactura.Pagada && Model.SaldoPendiente > 0)
+        {
+            <a asp-action="RegistrarPago" asp-route-id="@Model.Id" class="btn btn-success fw-bold">
+                <i class="bi bi-cash-coin me-1"></i>Registrar pago
+            </a>
+        }
         <a asp-action="CambiarEstado" asp-route-id="@Model.Id" class="btn btn-warning fw-bold">
             <i class="bi bi-arrow-repeat me-1"></i>Cambiar estado
         </a>
