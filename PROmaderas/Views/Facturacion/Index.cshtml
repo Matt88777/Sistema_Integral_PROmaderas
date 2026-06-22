@@ -101,21 +101,21 @@
                             <td class="text-end">₡@f.Impuestos.ToString("N2")</td>
                             <td class="text-end fw-bold">₡@f.Total.ToString("N2")</td>
                             <td>
-                                @if (f.Estado == "Pagada")
+                                @if (f.Estado == EstadosFactura.Pagada)
                                 {
-                                    <span class="badge" style="background:#15803D;color:#fff">Pagada</span>
+                                    <span class="badge" style="background:#15803D;color:#fff">@EstadosFactura.Pagada</span>
                                 }
-                                else if (f.Estado == "Emitida")
+                                else if (f.Estado == EstadosFactura.Emitida)
                                 {
-                                    <span class="badge" style="background:#0369A1;color:#fff">Emitida</span>
+                                    <span class="badge" style="background:#0369A1;color:#fff">@EstadosFactura.Emitida</span>
                                 }
-                                else if (f.Estado == "Pendiente de pago")
+                                else if (f.Estado == EstadosFactura.PendienteDePago)
                                 {
-                                    <span class="badge" style="background:#B45309;color:#fff">Pendiente de pago</span>
+                                    <span class="badge" style="background:#B45309;color:#fff">@EstadosFactura.PendienteDePago</span>
                                 }
-                                else if (f.Estado == "Cancelada")
+                                else if (f.Estado == EstadosFactura.Anulada)
                                 {
-                                    <span class="badge" style="background:#475569;color:#fff">Cancelada</span>
+                                    <span class="badge" style="background:#475569;color:#fff">@EstadosFactura.Anulada</span>
                                 }
                                 else
                                 {
@@ -127,6 +127,13 @@
                                    class="btn btn-sm btn-accion-ver" title="Ver detalles">
                                     <i class="bi bi-eye"></i>
                                 </a>
+                                @if (User.IsInRole("Administrador") || User.IsInRole("Contador"))
+                                {
+                                    <a asp-action="CambiarEstado" asp-route-id="@f.Id"
+                                       class="btn btn-sm btn-outline-secondary" title="Cambiar estado">
+                                        <i class="bi bi-arrow-repeat"></i>
+                                    </a>
+                                }
                             </td>
                         </tr>
                     }

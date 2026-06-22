@@ -17,6 +17,9 @@ namespace PROmaderas.Abstracciones.AccesoADatos
         // Inserta la factura y guarda.
         Task<FacturacionAD> Crear(FacturacionAD factura);
 
+        // Cambia SOLO el campo Estado y registra la bitácora en el mismo SaveChanges (atómico).
+        Task CambiarEstado(int id, string nuevoEstado, ContextoAuditoria auditoria);
+
         // Mayor Id existente (0 si no hay) para calcular el consecutivo.
         Task<int> ObtenerMaximoId();
 

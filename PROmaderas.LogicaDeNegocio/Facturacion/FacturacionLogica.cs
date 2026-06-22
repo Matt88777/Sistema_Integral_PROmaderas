@@ -1,4 +1,5 @@
 using PROmaderas.Abstracciones.AccesoADatos;
+using PROmaderas.Abstracciones.Catalogos;
 using PROmaderas.Abstracciones.LogicaDeNegocio;
 using PROmaderas.Abstracciones.Models;
 
@@ -29,6 +30,22 @@ namespace PROmaderas.LogicaDeNegocio.Facturacion
         public async Task<FacturacionAD?> ObtenerDetalle(int id)
         {
             return await _repositorio.ObtenerPorId(id);
+        }
+
+        public async Task CambiarEstado(int id, string nuevoEstado, ContextoAuditoria auditoria)
+        {
+            var factura = await _repositorio.ObtenerPorId(id);
+            if (factura == null)
+                throw new ArgumentException("La factura no existe");
+
+            // FAC-HU-003: solo se permiten estos dos estados (Pagada/Anulada son de otras HU).
+            if (nuevoEstado != EstadosFactura.Emitida && nuevoEstado != EstadosFactura.PendienteDePago)
+                throw new ArgumentException("El estado seleccionado no es válido.");
+
+            if (nuevoEstado == factura.Estado)
+                throw new ArgumentException("La factura ya está en ese estado.");
+
+            await _repositorio.CambiarEstado(id, nuevoEstado, auditoria);
         }
 
         public async Task<FacturacionAD> Crear(FacturacionAD factura, string correoEmisor)

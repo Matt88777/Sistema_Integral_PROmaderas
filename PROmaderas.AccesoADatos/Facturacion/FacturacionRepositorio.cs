@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using PROmaderas.Abstracciones.AccesoADatos;
 using PROmaderas.Abstracciones.Models;
+using PROmaderas.AccesoADatos.Auditoria;
 
 namespace PROmaderas.AccesoADatos.Facturacion
 {
@@ -65,6 +66,36 @@ namespace PROmaderas.AccesoADatos.Facturacion
             _contexto.Facturaciones.Add(factura);
             await _contexto.SaveChangesAsync();
             return factura;
+        }
+
+        public async Task CambiarEstado(int id, string nuevoEstado, ContextoAuditoria auditoria)
+        {
+            // Mismo patrón atómico que ClienteRepositorio.CambiarEstado:
+            // Update + Bitacoras.Add en UN solo SaveChangesAsync.
+            var factura = await _contexto.Facturaciones
+                .FirstOrDefaultAsync(f => f.Id == id);
+
+            if (factura == null)
+                throw new Exception($"No se encontró la factura con ID {id}.");
+
+            var estadoAnterior = factura.Estado;
+
+            var valoresAnteriores = new { Estado = estadoAnterior };
+            var valoresNuevos = new { Estado = nuevoEstado };
+
+            // Regla "sin alterar el documento original": solo se toca Estado.
+            factura.Estado = nuevoEstado;
+
+            _contexto.Facturaciones.Update(factura);
+
+            _contexto.Bitacoras.Add(ConstructorBitacora.Construir(
+                "Factura",
+                factura.Id,
+                auditoria,
+                valoresAnteriores,
+                valoresNuevos));
+
+            await _contexto.SaveChangesAsync();
         }
 
         public async Task<int> ObtenerMaximoId()

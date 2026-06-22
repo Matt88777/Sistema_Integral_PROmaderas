@@ -1,5 +1,7 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using PROmaderas.Abstracciones.Catalogos;
 using PROmaderas.Abstracciones.LogicaDeNegocio;
 using PROmaderas.Abstracciones.Models;
 using PROmaderas.UI.Models;
@@ -108,6 +110,55 @@ namespace PROmaderas.UI.Controllers
             var factura = await _logica.ObtenerDetalle(id);
             if (factura == null) return NotFound();
             return View(factura);
+        }
+
+        // FAC-HU-003: el Contador cambia el estado de una factura (Emitida <-> Pendiente de Pago).
+        [Authorize(Roles = Roles.Administrador + "," + Roles.Contador)]
+        public async Task<IActionResult> CambiarEstado(int id)
+        {
+            var factura = await _logica.ObtenerDetalle(id);
+            if (factura == null) return NotFound();
+
+            var vm = new CambiarEstadoFacturaViewModel
+            {
+                FacturaId = factura.Id,
+                NumeroFactura = factura.NumeroFactura,
+                EstadoActual = factura.Estado,
+                NuevoEstado = factura.Estado
+            };
+            return View(vm);
+        }
+
+        [HttpPost, ValidateAntiForgeryToken]
+        [Authorize(Roles = Roles.Administrador + "," + Roles.Contador)]
+        public async Task<IActionResult> CambiarEstado(CambiarEstadoFacturaViewModel vm)
+        {
+            try
+            {
+                // La identidad viaja en el DTO (la Lógica/AD no conocen Identity ni HttpContext).
+                var ctx = new ContextoAuditoria
+                {
+                    UsuarioIdentityId = User.FindFirstValue(ClaimTypes.NameIdentifier),
+                    Email = User.Identity?.Name,
+                    Ip = HttpContext.Connection.RemoteIpAddress?.ToString(),
+                    Accion = "Cambio de estado factura"
+                };
+
+                await _logica.CambiarEstado(vm.FacturaId, vm.NuevoEstado, ctx);
+                TempData["Mensaje"] = "El estado de la factura fue actualizado correctamente.";
+                return RedirectToAction(nameof(Details), new { id = vm.FacturaId });
+            }
+            catch (ArgumentException ex)
+            {
+                ModelState.AddModelError("", ex.Message);
+
+                // Recargar el contexto de la factura para re-renderizar la vista.
+                var factura = await _logica.ObtenerDetalle(vm.FacturaId);
+                if (factura == null) return NotFound();
+                vm.NumeroFactura = factura.NumeroFactura;
+                vm.EstadoActual = factura.Estado;
+                return View(vm);
+            }
         }
     }
 }

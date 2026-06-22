@@ -14,6 +14,9 @@ namespace PROmaderas.Abstracciones.LogicaDeNegocio
         // Details: factura por Id con sus relaciones.
         Task<FacturacionAD?> ObtenerDetalle(int id);
 
+        // FAC-HU-003: cambia el estado de la factura (valida catálogo y que sea distinto del actual).
+        Task CambiarEstado(int id, string nuevoEstado, ContextoAuditoria auditoria);
+
         // Emite la factura: resuelve el emisor por correo, genera el consecutivo,
         // fija Estado = "Emitida", SaldoPendiente = Total y persiste.
         Task<FacturacionAD> Crear(FacturacionAD factura, string correoEmisor);
