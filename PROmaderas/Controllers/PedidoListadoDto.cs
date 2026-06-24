@@ -11,7 +11,8 @@
         public decimal Impuestos { get; set; }
         public decimal Total { get; set; }
         public string Estado { get; set; } = string.Empty;
-    }
+		public bool Activa { get; set; }
+	}
     // CLASE NUEVA:OC-HU-004:
     public class HistorialItemDto
     {

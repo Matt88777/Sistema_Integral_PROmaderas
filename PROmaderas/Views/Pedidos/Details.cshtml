@@ -2,8 +2,17 @@
 @{
     ViewData["Title"] = $"Pedido {Model.NumeroOrden}";
     var estados = new[] { "Pendiente", "En Produccion", "Lista para Entrega", "Entregada", "Cancelada" };
+    bool usuarioPuedeCancelar = (bool)(ViewBag.PuedeCancelar ?? false);
+
     bool puedeCambiar = (bool)(ViewBag.PuedeCambiarEstado ?? false)
-                        && Model.Estado != "Cancelada" && Model.Estado != "Entregada";
+                        && Model.Activa
+                        && Model.Estado != "Cancelada"
+                        && Model.Estado != "Entregada";
+
+    bool puedeCancelar = usuarioPuedeCancelar
+                         && Model.Activa
+                         && Model.Estado != "Cancelada"
+                         && Model.Estado != "Entregada"; 
     var badgeClass = Model.Estado switch
     {
         "Entregada" => "bg-success",
@@ -31,6 +40,13 @@
         </div>
         <div class="col-auto">
             <span class="badge @badgeClass fs-6">@Model.Estado</span>
+            @if (!Model.Activa || Model.Estado == "Cancelada")
+            {
+                <div class="alert alert-secondary border-0 shadow-sm mt-3">
+                    <i class="bi bi-info-circle me-1"></i>
+                    Esta orden se encuentra cancelada/inactiva. El registro, los productos y el historial se conservan para trazabilidad.
+                </div>
+            }
         </div>
     </div>
 
@@ -100,7 +116,7 @@
                             <option value="">— Seleccionar —</option>
                             @foreach (var e in estados)
                             {
-                                if (e != Model.Estado)
+                                if (e != Model.Estado && e != "Cancelada")
                                 {
                                     <option value="@e">@e</option>
                                 }
@@ -123,6 +139,81 @@
         </div>
     }
 
+    @if (puedeCambiar)
+    {
+        <div class="card mb-4" style="border-color:#c9a03c;">
+            <div class="card-header fw-bold" style="background-color:#c9a03c;color:#fff;">
+                <i class="bi bi-arrow-repeat me-1"></i>Actualizar estado del pedido
+            </div>
+            <div class="card-body">
+                <form asp-action="CambiarEstado" method="post" class="row g-2 align-items-end">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" value="@Model.Id" />
+
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">Nuevo estado</label>
+                        <select name="nuevoEstado" class="form-select" required>
+                            <option value="">— Seleccionar —</option>
+                            @foreach (var e in estados)
+                            {
+                                if (e != Model.Estado && e != "Cancelada")
+                                {
+                                    <option value="@e">@e</option>
+                                }
+                            }
+                        </select>
+                    </div>
+
+                    <div class="col-md-5">
+                        <label class="form-label fw-semibold">Observación (opcional)</label>
+                        <input type="text" name="observacion" class="form-control"
+                               placeholder="Motivo del cambio..." maxlength="250" />
+                    </div>
+
+                    <div class="col-md-3">
+                        <button type="submit" class="btn btn-warning w-100"
+                                onclick="return confirm('¿Confirma el cambio de estado?')">
+                            <i class="bi bi-check-circle me-1"></i>Confirmar cambio
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    }
+
+    @if (puedeCancelar)
+    {
+        <div class="card mb-4 border-danger">
+            <div class="card-header fw-bold bg-danger text-white">
+                <i class="bi bi-x-circle me-1"></i>Cancelar orden de compra
+            </div>
+
+            <div class="card-body">
+                <form asp-action="Cancelar" method="post" class="row g-3">
+                    @Html.AntiForgeryToken()
+
+                    <input type="hidden" name="id" value="@Model.Id" />
+
+                    <div class="col-md-9">
+                        <label class="form-label fw-semibold">Motivo de cancelación</label>
+                        <input type="text"
+                               name="motivo"
+                               class="form-control"
+                               maxlength="250"
+                               placeholder="Ejemplo: Cliente canceló el pedido o no se completará la orden." />
+                    </div>
+
+                    <div class="col-md-3 d-flex align-items-end">
+                        <button type="submit"
+                                class="btn btn-danger w-100"
+                                onclick="return confirm('¿Seguro que desea cancelar esta orden? Esta acción no eliminará el registro, pero marcará la orden como cancelada.')">
+                            <i class="bi bi-x-circle me-1"></i>Cancelar orden
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    }
 
     <h4 class="mb-3">Productos del pedido</h4>
     <div class="table-responsive mb-4">

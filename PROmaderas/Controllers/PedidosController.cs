@@ -80,8 +80,9 @@ namespace PROmaderas.UI.Controllers
                 Subtotal = p.Subtotal,
                 Impuestos = p.Impuestos,
                 Total = p.Total,
-                Estado = p.Estado
-            }).ToList();
+				Estado = p.Estado,
+				Activa = p.Activa
+			}).ToList();
 
             ViewBag.FiltroCliente = filtroCliente;
             ViewBag.FiltroEstado = filtroEstado;
@@ -112,12 +113,12 @@ namespace PROmaderas.UI.Controllers
 
             ViewBag.NombreVendedor = vendedor?.Correo ?? $"Usuario #{pedido.VendedorId}";
             ViewBag.EstadosValidos = EstadosValidos;
-            ViewBag.PuedeCambiarEstado = User.IsInRole("Administrador") ||
-                                         User.IsInRole("Operador de Planta");
+			ViewBag.PuedeCancelar = User.IsInRole(Roles.Administrador) ||
+						User.IsInRole(Roles.Gerente);
 
-            
-            // OC-HU-004: cargar historial de cambios de estado
-            var historial = new List<HistorialItemDto>();
+
+			// OC-HU-004: cargar historial de cambios de estado
+			var historial = new List<HistorialItemDto>();
             try
             {
                 var conn = _contexto.Database.GetDbConnection();
@@ -262,56 +263,164 @@ namespace PROmaderas.UI.Controllers
             return RedirectToAction(nameof(Details), new { id = pedido.Id });
         }
 
-        // ── CAMBIAR ESTADO (OC-HU-004) ─────────────────────────────────────
-        [HttpPost, ValidateAntiForgeryToken]
-        [Authorize(Roles = "Administrador,Operador de Planta")]
-        public async Task<IActionResult> CambiarEstado(
-            int id, string nuevoEstado, string? observacion)
-        {
-            if (!EstadosValidos.Contains(nuevoEstado))
-            {
-                TempData["Error"] = "Estado no válido.";
-                return RedirectToAction(nameof(Details), new { id });
-            }
+		// ── CAMBIAR ESTADO (OC-HU-004) ─────────────────────────────────────
 
-            var pedido = await _contexto.Pedidos.FindAsync(id);
-            if (pedido == null) return NotFound();
+		// ── CAMBIAR ESTADO (OC-HU-004) ─────────────────────────────────────
+		[HttpPost, ValidateAntiForgeryToken]
+		[Authorize(Roles = Roles.Administrador + "," + Roles.OperadorDePlanta)]
+		public async Task<IActionResult> CambiarEstado(
+			int id, string nuevoEstado, string? observacion)
+		{
+			if (!EstadosValidos.Contains(nuevoEstado))
+			{
+				TempData["Error"] = "Estado no válido.";
+				return RedirectToAction(nameof(Details), new { id });
+			}
 
-            if (!pedido.Activa)
-            {
-                TempData["Error"] = "No se puede cambiar el estado de una orden inactiva.";
-                return RedirectToAction(nameof(Details), new { id });
-            }
+			var pedido = await _contexto.Pedidos.FindAsync(id);
+			if (pedido == null) return NotFound();
 
-            var estadoAnterior = pedido.Estado;
-            pedido.Estado = nuevoEstado;
-            if (nuevoEstado == "Cancelada") pedido.Activa = false;
+			if (!pedido.Activa || pedido.Estado == "Cancelada")
+			{
+				TempData["Error"] = "No se puede cambiar el estado de una orden cancelada o inactiva.";
+				return RedirectToAction(nameof(Details), new { id });
+			}
 
-            await _contexto.SaveChangesAsync();
+			if (pedido.Estado == nuevoEstado)
+			{
+				TempData["Error"] = "La orden ya se encuentra en ese estado.";
+				return RedirectToAction(nameof(Details), new { id });
+			}
 
-            // Registrar en HistorialEstadoOrden (tabla ya existe en BD)
-            var emailActual = User.Identity!.Name ?? "";
-            var usuarioCambio = await _contexto.Usuarios
-                .FirstOrDefaultAsync(u => u.Correo == emailActual);
+			if (nuevoEstado == "Cancelada" &&
+				!(User.IsInRole(Roles.Administrador) || User.IsInRole(Roles.Gerente)))
+			{
+				TempData["Error"] = "Solo el Gerente o Administrador puede cancelar una orden.";
+				return RedirectToAction(nameof(Details), new { id });
+			}
 
-            if (usuarioCambio != null)
-            {
-                await _contexto.Database.ExecuteSqlRawAsync(
-                    @"INSERT INTO HistorialEstadoOrden
-                        (IdOrdenCompra, EstadoAnterior, EstadoNuevo, IdUsuarioCambio, FechaCambio, Observacion)
-                      VALUES ({0}, {1}, {2}, {3}, GETDATE(), {4})",
-                    pedido.Id, estadoAnterior, nuevoEstado,
-                    usuarioCambio.IdUsuario,
-                    (object?)observacion ?? DBNull.Value);
-            }
+			var estadoAnterior = pedido.Estado;
 
-            TempData["Mensaje"] =
-                $"Estado actualizado: '{estadoAnterior}' → '{nuevoEstado}'.";
-            return RedirectToAction(nameof(Details), new { id });
-        }
+			pedido.Estado = nuevoEstado;
 
-        // ── EXPORTAR PDF ───────────────────────────────────────────────────
-        public async Task<IActionResult> ExportarPdf(int id)
+			if (nuevoEstado == "Cancelada")
+			{
+				pedido.Activa = false;
+			}
+
+			await _contexto.SaveChangesAsync();
+
+			await RegistrarHistorialEstadoOrdenAsync(
+				pedido.Id,
+				estadoAnterior,
+				nuevoEstado,
+				observacion
+			);
+
+			TempData["Mensaje"] =
+				$"Estado actualizado: '{estadoAnterior}' → '{nuevoEstado}'.";
+
+			return RedirectToAction(nameof(Details), new { id });
+		}
+
+
+		// ── CANCELAR ORDEN (OC-HU-005) ─────────────────────────────────────
+		[HttpPost, ValidateAntiForgeryToken]
+		[Authorize(Roles = Roles.Administrador + "," + Roles.Gerente)]
+		public async Task<IActionResult> Cancelar(int id, string? motivo)
+		{
+			var pedido = await _contexto.Pedidos
+				.Include(p => p.Detalles)
+				.FirstOrDefaultAsync(p => p.Id == id);
+
+			if (pedido == null)
+			{
+				return NotFound();
+			}
+
+			if (!pedido.Activa || pedido.Estado == "Cancelada")
+			{
+				TempData["Error"] = "La orden ya se encuentra cancelada.";
+				return RedirectToAction(nameof(Details), new { id });
+			}
+
+			if (pedido.Estado == "Entregada")
+			{
+				TempData["Error"] = "No se puede cancelar una orden que ya fue entregada.";
+				return RedirectToAction(nameof(Details), new { id });
+			}
+
+			var estadoAnterior = pedido.Estado;
+
+			pedido.Estado = "Cancelada";
+			pedido.Activa = false;
+
+			await _contexto.SaveChangesAsync();
+
+			var observacionHistorial = string.IsNullOrWhiteSpace(motivo)
+				? "Orden cancelada."
+				: motivo.Trim();
+
+			await RegistrarHistorialEstadoOrdenAsync(
+				pedido.Id,
+				estadoAnterior,
+				"Cancelada",
+				observacionHistorial
+			);
+
+			TempData["Mensaje"] =
+				$"Orden {pedido.NumeroOrden} cancelada correctamente. El historial y detalle se conservaron.";
+
+			return RedirectToAction(nameof(Details), new { id = pedido.Id });
+		}
+
+
+		// ── REGISTRAR HISTORIAL DE ESTADO ──────────────────────────────────
+		private async Task RegistrarHistorialEstadoOrdenAsync(
+			int idOrdenCompra,
+			string? estadoAnterior,
+			string estadoNuevo,
+			string? observacion)
+		{
+			var emailActual = User.Identity?.Name ?? string.Empty;
+
+			int? idUsuarioCambio = await _contexto.Usuarios
+				.Where(u => u.Correo == emailActual)
+				.Select(u => (int?)u.IdUsuario)
+				.FirstOrDefaultAsync();
+
+			var observacionFinal = observacion;
+
+			if (!idUsuarioCambio.HasValue)
+			{
+				idUsuarioCambio = await _contexto.Usuarios
+					.OrderBy(u => u.IdUsuario)
+					.Select(u => (int?)u.IdUsuario)
+					.FirstOrDefaultAsync();
+
+				observacionFinal = string.IsNullOrWhiteSpace(observacionFinal)
+					? $"Cambio realizado por usuario Identity: {emailActual}"
+					: $"{observacionFinal} | Usuario Identity: {emailActual}";
+			}
+
+			if (!idUsuarioCambio.HasValue)
+			{
+				return;
+			}
+
+			await _contexto.Database.ExecuteSqlRawAsync(
+				@"INSERT INTO HistorialEstadoOrden
+            (IdOrdenCompra, EstadoAnterior, EstadoNuevo, IdUsuarioCambio, FechaCambio, Observacion)
+          VALUES ({0}, {1}, {2}, {3}, GETDATE(), {4})",
+				idOrdenCompra,
+				(object?)estadoAnterior ?? DBNull.Value,
+				estadoNuevo,
+				idUsuarioCambio.Value,
+				(object?)observacionFinal ?? DBNull.Value);
+		}
+
+		// ── EXPORTAR PDF ───────────────────────────────────────────────────
+		public async Task<IActionResult> ExportarPdf(int id)
         {
             var pedido = await ObtenerPedidoCompleto(id);
             if (pedido == null) return NotFound();

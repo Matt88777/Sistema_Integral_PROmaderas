@@ -1,16 +1,24 @@
 @model IEnumerable<PROmaderas.UI.Controllers.PedidoListadoDto>
+
 @{
     ViewData["Title"] = "Pedidos";
+
     int paginaActual = ViewBag.PaginaActual != null ? (int)ViewBag.PaginaActual : 1;
     int totalPaginas = ViewBag.TotalPaginas != null ? (int)ViewBag.TotalPaginas : 1;
+
     var estados = new[] { "Pendiente", "En Produccion", "Lista para Entrega", "Entregada", "Cancelada" };
+
+    bool puedeCancelarOrdenes = User.IsInRole("Administrador") || User.IsInRole("Gerente");
 }
 
 <div class="container mt-4">
     <div class="row mb-3 align-items-center">
         <div class="col">
-            <h2><i class="bi bi-cart3 me-2" style="color:#c9a03c"></i>Pedidos</h2>
+            <h2>
+                <i class="bi bi-cart3 me-2" style="color:#c9a03c"></i>Pedidos
+            </h2>
         </div>
+
         @if (User.IsInRole("Administrador") || User.IsInRole("Vendedor"))
         {
             <div class="col-auto">
@@ -28,6 +36,7 @@
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     }
+
     @if (TempData["Error"] != null)
     {
         <div class="alert alert-danger alert-dismissible fade show">
@@ -38,31 +47,50 @@
 
     <form method="get" asp-action="Index" class="row g-2 mb-4">
         <div class="col-md-3">
-            <input type="text" name="filtroCliente" value="@ViewBag.FiltroCliente"
-                   class="form-control" placeholder="Buscar por cliente..." />
+            <input type="text"
+                   name="filtroCliente"
+                   value="@ViewBag.FiltroCliente"
+                   class="form-control"
+                   placeholder="Buscar por cliente..." />
         </div>
+
         <div class="col-md-2">
             <select name="filtroEstado" class="form-select">
                 <option value="">Todos los estados</option>
+
                 @foreach (var e in estados)
                 {
-                    <option value="@e" selected="@(ViewBag.FiltroEstado == e)">@e</option>
+                    <option value="@e" selected="@(ViewBag.FiltroEstado == e ? "selected" : null)">
+                        @e
+                    </option>
                 }
             </select>
         </div>
+
         <div class="col-md-2">
-            <input type="date" name="fechaDesde" value="@ViewBag.FechaDesde"
-                   class="form-control" title="Fecha desde" />
+            <input type="date"
+                   name="fechaDesde"
+                   value="@ViewBag.FechaDesde"
+                   class="form-control"
+                   title="Fecha desde" />
         </div>
+
         <div class="col-md-2">
-            <input type="date" name="fechaHasta" value="@ViewBag.FechaHasta"
-                   class="form-control" title="Fecha hasta" />
+            <input type="date"
+                   name="fechaHasta"
+                   value="@ViewBag.FechaHasta"
+                   class="form-control"
+                   title="Fecha hasta" />
         </div>
+
         <div class="col-auto d-flex gap-2">
             <button type="submit" class="btn btn-secondary">
                 <i class="bi bi-search me-1"></i>Filtrar
             </button>
-            <a asp-action="Index" class="btn btn-outline-secondary">Limpiar</a>
+
+            <a asp-action="Index" class="btn btn-outline-secondary">
+                Limpiar
+            </a>
         </div>
     </form>
 
@@ -78,54 +106,112 @@
                     <th>Impuesto</th>
                     <th>Total</th>
                     <th>Estado</th>
-                    <th class="text-center" style="min-width:80px">Acciones</th>
+                    <th class="text-center" style="min-width:150px">Acciones</th>
                 </tr>
             </thead>
+
             <tbody>
                 @foreach (var p in Model)
                 {
-                    <tr>
-                        <td class="fw-semibold">@p.NumeroOrden</td>
-                        <td>@p.Cliente</td>
-                        <td>@p.Fecha.ToString("dd/MM/yyyy")</td>
-                        <td>@p.Usuario</td>
-                        <td>₡@p.Subtotal.ToString("N2")</td>
-                        <td>₡@p.Impuestos.ToString("N2")</td>
-                        <td class="fw-semibold">₡@p.Total.ToString("N2")</td>
+                    <tr class="@(p.Estado == "Cancelada" || !p.Activa ? "fila-cancelada" : "")">
+                        <td class="fw-semibold">
+                            @p.NumeroOrden
+                        </td>
+
+                        <td>
+                            @p.Cliente
+                        </td>
+
+                        <td>
+                            @p.Fecha.ToString("dd/MM/yyyy")
+                        </td>
+
+                        <td>
+                            @p.Usuario
+                        </td>
+
+                        <td>
+                            ₡@p.Subtotal.ToString("N2")
+                        </td>
+
+                        <td>
+                            ₡@p.Impuestos.ToString("N2")
+                        </td>
+
+                        <td class="fw-semibold">
+                            ₡@p.Total.ToString("N2")
+                        </td>
+
                         <td>
                             @if (p.Estado == "Entregada")
                             {
-                                <span class="badge" style="background:#059669;color:#fff">Entregada</span>
+                                <span class="badge" style="background:#059669;color:#fff">
+                                    Entregada
+                                </span>
                             }
-                            else if (p.Estado == "Cancelada")
+                            else if (p.Estado == "Cancelada" || !p.Activa)
                             {
-                                <span class="badge" style="background:#475569;color:#fff">Cancelada</span>
+                                <span class="badge" style="background:#475569;color:#fff">
+                                    Cancelada
+                                </span>
                             }
                             else if (p.Estado == "En Produccion")
                             {
-                                <span class="badge" style="background:#6366F1;color:#fff">En Producción</span>
+                                <span class="badge" style="background:#6366F1;color:#fff">
+                                    En Producción
+                                </span>
                             }
                             else if (p.Estado == "Lista para Entrega")
                             {
-                                <span class="badge" style="background:#F59E0B;color:#000">Lista para Entrega</span>
+                                <span class="badge" style="background:#F59E0B;color:#000">
+                                    Lista para Entrega
+                                </span>
                             }
                             else if (p.Estado == "Pendiente")
                             {
-                                <span class="badge" style="background:#0EA5E9;color:#fff">Pendiente</span>
+                                <span class="badge" style="background:#0EA5E9;color:#fff">
+                                    Pendiente
+                                </span>
                             }
                             else
                             {
-                                <span class="badge" style="background:#374151;color:#fff">@p.Estado</span>
+                                <span class="badge" style="background:#374151;color:#fff">
+                                    @p.Estado
+                                </span>
                             }
                         </td>
+
                         <td class="text-center">
-                            <a asp-action="Details" asp-route-id="@p.Id"
-                               class="btn btn-sm btn-accion-ver" title="Ver detalle">
+                            <a asp-action="Details"
+                               asp-route-id="@p.Id"
+                               class="btn btn-sm btn-accion-ver"
+                               title="Ver detalle">
                                 <i class="bi bi-eye"></i>
                             </a>
+
+                            @if (puedeCancelarOrdenes
+                                                    && p.Activa
+                                                    && p.Estado != "Cancelada"
+                                                    && p.Estado != "Entregada")
+                            {
+                                <form asp-action="Cancelar" method="post" class="d-inline">
+                                    @Html.AntiForgeryToken()
+
+                                    <input type="hidden" name="id" value="@p.Id" />
+                                    <input type="hidden" name="motivo" value="Cancelación desde el listado de órdenes." />
+
+                                    <button type="submit"
+                                            class="btn btn-sm btn-danger"
+                                            title="Cancelar orden"
+                                            onclick="return confirm('¿Seguro que desea cancelar esta orden? Se marcará como Cancelada/Inactiva, pero no se eliminará el registro.')">
+                                        <i class="bi bi-x-circle"></i>
+                                    </button>
+                                </form>
+                            }
                         </td>
                     </tr>
                 }
+
                 @if (!Model.Any())
                 {
                     <tr>
@@ -142,12 +228,14 @@
         <small class="text-muted">
             Página <strong>@paginaActual</strong> de <strong>@totalPaginas</strong>
         </small>
+
         @if (totalPaginas > 1)
         {
             <nav>
                 <ul class="pagination mb-0">
                     <li class="page-item @(paginaActual == 1 ? "disabled" : "")">
-                        <a class="page-link" asp-action="Index"
+                        <a class="page-link"
+                           asp-action="Index"
                            asp-route-pagina="@(paginaActual - 1)"
                            asp-route-filtroCliente="@ViewBag.FiltroCliente"
                            asp-route-filtroEstado="@ViewBag.FiltroEstado"
@@ -156,19 +244,25 @@
                             <i class="bi bi-chevron-left"></i>
                         </a>
                     </li>
+
                     @for (int i = 1; i <= totalPaginas; i++)
                     {
                         <li class="page-item @(i == paginaActual ? "active" : "")">
-                            <a class="page-link" asp-action="Index"
+                            <a class="page-link"
+                               asp-action="Index"
                                asp-route-pagina="@i"
                                asp-route-filtroCliente="@ViewBag.FiltroCliente"
                                asp-route-filtroEstado="@ViewBag.FiltroEstado"
                                asp-route-fechaDesde="@ViewBag.FechaDesde"
-                               asp-route-fechaHasta="@ViewBag.FechaHasta">@i</a>
+                               asp-route-fechaHasta="@ViewBag.FechaHasta">
+                                @i
+                            </a>
                         </li>
                     }
+
                     <li class="page-item @(paginaActual == totalPaginas ? "disabled" : "")">
-                        <a class="page-link" asp-action="Index"
+                        <a class="page-link"
+                           asp-action="Index"
                            asp-route-pagina="@(paginaActual + 1)"
                            asp-route-filtroCliente="@ViewBag.FiltroCliente"
                            asp-route-filtroEstado="@ViewBag.FiltroEstado"
@@ -182,3 +276,20 @@
         }
     </div>
 </div>
+
+
+<style>
+    .fila-cancelada {
+        background-color: rgba(71, 85, 105, 0.35) !important;
+    }
+
+        .fila-cancelada td {
+            background-color: rgba(71, 85, 105, 0.35) !important;
+            color: #e5e7eb !important;
+        }
+
+        .fila-cancelada:hover td {
+            background-color: rgba(71, 85, 105, 0.50) !important;
+            color: #ffffff !important;
+        }
+</style>
