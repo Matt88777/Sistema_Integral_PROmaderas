@@ -35,17 +35,32 @@ namespace PROmaderas.LogicaDeNegocio.Productos
 
 		public async Task<ProductoAD> Crear(ProductoAD producto)
 		{
+			producto.Codigo = producto.Codigo.Trim();
+			producto.Nombre = producto.Nombre.Trim();
+			producto.Medida = producto.Medida.Trim();
+			producto.Descripcion = producto.Descripcion?.Trim();
+
+			if (string.IsNullOrWhiteSpace(producto.Codigo))
+				throw new ArgumentException("El código del tipo de tarima es requerido.");
+
 			if (string.IsNullOrWhiteSpace(producto.Nombre))
-				throw new ArgumentException("El nombre del producto es requerido");
+				throw new ArgumentException("El nombre del tipo de tarima es requerido.");
+
+			if (string.IsNullOrWhiteSpace(producto.Medida))
+				throw new ArgumentException("La medida del tipo de tarima es requerida.");
 
 			if (producto.Precio <= 0)
-				throw new ArgumentException("El precio debe ser mayor a 0");
+				throw new ArgumentException("El precio unitario debe ser mayor a 0.");
 
-			if (producto.Stock < 0)
-				throw new ArgumentException("El stock no puede ser negativo");
+			if (producto.StockMinimo < 0)
+				throw new ArgumentException("El stock mínimo no puede ser negativo.");
 
-			if (string.IsNullOrWhiteSpace(producto.ImagenUrl))
-				throw new ArgumentException("La imagen es obligatoria");
+			var existeDuplicado = await _repositorio.ExisteDuplicado(producto.Codigo, producto.Nombre);
+
+			if (existeDuplicado)
+				throw new ArgumentException("Ya existe un tipo de tarima con el mismo código o nombre.");
+
+			producto.FechaCreacion = DateTime.Now;
 
 			return await _repositorio.Crear(producto);
 		}

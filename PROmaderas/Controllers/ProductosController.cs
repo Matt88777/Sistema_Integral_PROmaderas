@@ -84,10 +84,55 @@ namespace PROmaderas.UI.Controllers
 			return View("EnConstruccion");
 		}
 
-		public IActionResult Create() => ProductoEnConstruccion();
+		[Authorize(Roles = Roles.Administrador)]
+		public IActionResult Create()
+		{
+			return View(new TipoTarimaCrearDTO
+			{
+				Activo = true
+			});
+		}
 
 		[HttpPost, ValidateAntiForgeryToken]
-		public IActionResult Create(ProductoAD producto, IFormFile? imagen) => ProductoEnConstruccion();
+		[Authorize(Roles = Roles.Administrador)]
+		public async Task<IActionResult> Create(TipoTarimaCrearDTO modelo)
+		{
+			if (!ModelState.IsValid)
+			{
+				return View(modelo);
+			}
+
+			try
+			{
+				var producto = new ProductoAD
+				{
+					Codigo = modelo.Codigo,
+					Nombre = modelo.Nombre,
+					Medida = modelo.Medida,
+					Descripcion = modelo.Descripcion,
+					Precio = modelo.PrecioUnitario,
+					StockMinimo = modelo.StockMinimo,
+					Activo = modelo.Activo,
+					FechaCreacion = DateTime.Now,
+
+					// Campos ignorados por el mapeo actual, pero se asignan para evitar validaciones antiguas.
+					CategoriaId = 0,
+					ImpuestoPorc = 0,
+					Stock = 0,
+					ImagenUrl = "-"
+				};
+
+				await _productoLogica.Crear(producto);
+
+				TempData["Mensaje"] = "Tipo de tarima registrado correctamente.";
+				return RedirectToAction(nameof(Index));
+			}
+			catch (ArgumentException ex)
+			{
+				ModelState.AddModelError(string.Empty, ex.Message);
+				return View(modelo);
+			}
+		}
 
 		public IActionResult Edit(int? id) => ProductoEnConstruccion();
 

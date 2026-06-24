@@ -37,24 +37,31 @@ namespace PROmaderas.AccesoADatos
             modelBuilder.Ignore<CategoriaAD>();
             modelBuilder.Ignore<PlanillaAD>();
 
-            // ProductoAD -> TipoTarima
-            modelBuilder.Entity<ProductoAD>(e =>
-            {
-                e.ToTable("TipoTarima");
-                e.HasKey(x => x.Id);
-                e.Property(x => x.Id).HasColumnName("IdTipoTarima");
-                e.Property(x => x.Nombre).HasColumnName("Nombre");
-                e.Property(x => x.Precio).HasColumnName("PrecioUnitario");
-                e.Property(x => x.Activo).HasColumnName("Estado");
-                e.Ignore(x => x.CategoriaId);
-                e.Ignore(x => x.ImpuestoPorc);
-                e.Ignore(x => x.Stock);
-                e.Ignore(x => x.ImagenUrl);
-                e.Ignore(x => x.Categoria);
-            });
+			// ProductoAD -> TipoTarima
+			modelBuilder.Entity<ProductoAD>(e =>
+			{
+				e.ToTable("TipoTarima");
+				e.HasKey(x => x.Id);
 
-            // ClienteAD -> Cliente
-            modelBuilder.Entity<ClienteAD>(e =>
+				e.Property(x => x.Id).HasColumnName("IdTipoTarima");
+				e.Property(x => x.Codigo).HasColumnName("Codigo");
+				e.Property(x => x.Nombre).HasColumnName("Nombre");
+				e.Property(x => x.Medida).HasColumnName("Medida");
+				e.Property(x => x.Descripcion).HasColumnName("Descripcion");
+				e.Property(x => x.Precio).HasColumnName("PrecioUnitario");
+				e.Property(x => x.StockMinimo).HasColumnName("StockMinimo");
+				e.Property(x => x.Activo).HasColumnName("Estado");
+				e.Property(x => x.FechaCreacion).HasColumnName("FechaCreacion");
+
+				e.Ignore(x => x.CategoriaId);
+				e.Ignore(x => x.ImpuestoPorc);
+				e.Ignore(x => x.Stock);
+				e.Ignore(x => x.ImagenUrl);
+				e.Ignore(x => x.Categoria);
+			});
+
+			// ClienteAD -> Cliente
+			modelBuilder.Entity<ClienteAD>(e =>
             {
                 e.ToTable("Cliente");
                 e.HasKey(x => x.Id);

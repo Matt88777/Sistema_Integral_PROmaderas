@@ -9,6 +9,26 @@ namespace PROmaderas.Abstracciones.Models
 		[Key]
 		public int Id { get; set; }
 
+		[Required(ErrorMessage = "El código es requerido")]
+		[StringLength(50)]
+		[Display(Name = "Código")]
+		public string Codigo { get; set; } = string.Empty;
+
+		[Required(ErrorMessage = "La medida es requerida")]
+		[StringLength(100)]
+		[Display(Name = "Medida")]
+		public string Medida { get; set; } = string.Empty;
+
+		[StringLength(250)]
+		[Display(Name = "Descripción")]
+		public string? Descripcion { get; set; }
+
+		[Range(0, int.MaxValue, ErrorMessage = "El stock mínimo no puede ser negativo")]
+		[Display(Name = "Stock mínimo")]
+		public int StockMinimo { get; set; }
+
+		public DateTime FechaCreacion { get; set; } = DateTime.Now;
+
 		[Required(ErrorMessage = "El nombre es requerido")]
 		[StringLength(150)]
 		[Display(Name = "Nombre del Producto")]

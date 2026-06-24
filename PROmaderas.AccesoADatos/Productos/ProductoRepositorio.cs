@@ -54,7 +54,21 @@ namespace PROmaderas.AccesoADatos.Productos
 			_contexto.Productos.Update(producto);
 			await _contexto.SaveChangesAsync();
 			return producto;
+
+
 		}
+
+		public async Task<bool> ExisteDuplicado(string codigo, string nombre)
+		{
+			codigo = codigo.Trim().ToLower();
+			nombre = nombre.Trim().ToLower();
+
+			return await _contexto.Productos
+				.AnyAsync(p =>
+					p.Codigo.ToLower() == codigo ||
+					p.Nombre.ToLower() == nombre);
+		}
+
 
 		public async Task<bool> Eliminar(int id)
 		{

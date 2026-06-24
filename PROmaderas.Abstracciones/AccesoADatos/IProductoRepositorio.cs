@@ -3,6 +3,8 @@
 namespace PROmaderas.Abstracciones.AccesoADatos
 {
 	public interface IProductoRepositorio
+
+
 	{
 		Task<List<ProductoAD>> ObtenerTodos();
 		Task<ProductoAD?> ObtenerPorId(int id);
@@ -10,6 +12,7 @@ namespace PROmaderas.Abstracciones.AccesoADatos
 		Task<List<CategoriaAD>> ObtenerCategorias();
 		Task<ProductoAD> Crear(ProductoAD producto);
 		Task<ProductoAD> Actualizar(ProductoAD producto);
+		Task<bool> ExisteDuplicado(string codigo, string nombre);
 		Task<bool> Eliminar(int id);
 		Task<bool> Existe(int id);
 		Task<List<ProductoAD>> BuscarPorNombre(string nombre);
