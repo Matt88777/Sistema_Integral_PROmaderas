@@ -1,16 +1,198 @@
-﻿@{
+﻿@model PROmaderas.Abstracciones.Models.DashboardFinancieroDTO
+@using System.Globalization
+
+@{
     ViewData["Title"] = "Dashboard";
+
+    var cultura = CultureInfo.GetCultureInfo("es-CR");
+    var puedeVerFinanzas = ViewBag.PuedeVerFinanzas == true;
 }
 
 <div class="container mt-4">
-    <div class="dashboard-hero mb-2">
+
+    <div class="dashboard-hero mb-4">
         <h1>Panel principal</h1>
         <p>Sistema Integral de Gestión Administrativa e Inventario PROMADERAS</p>
     </div>
 
+    @if (puedeVerFinanzas)
+    {
+        <section class="mb-4">
+
+            <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-end gap-2 mb-3">
+                <div>
+                    <h2 class="h4 mb-1 text-white">Dashboard financiero</h2>
+                    <p class="text-white-50 mb-0">
+                        Ingresos, egresos e indicadores operativos para apoyar la toma de decisiones.
+                    </p>
+                </div>
+
+                <small class="text-white-50">
+                    Última actualización: @Model.FechaUltimaActualizacion.ToString("dd/MM/yyyy HH:mm")
+                </small>
+            </div>
+
+            @if (!Model.HayDatos)
+            {
+                <div class="alert alert-warning border-0 shadow-sm rounded-4">
+                    <i class="bi bi-info-circle me-2"></i>
+                    No hay datos financieros u operativos registrados para mostrar en este momento.
+                </div>
+            }
+            else
+            {
+                <div class="row g-3 mb-3">
+
+                    <div class="col-md-6 col-xl-3">
+                        <div class="dashboard-metric-card">
+                            <div class="metric-label">Ingresos facturados</div>
+                            <div class="metric-value valor-ingreso">
+                                @Model.TotalIngresos.ToString("C0", cultura)
+                            </div>
+                            <div class="metric-help">Facturas activas no anuladas</div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6 col-xl-3">
+                        <div class="dashboard-metric-card">
+                            <div class="metric-label">Egresos por planilla</div>
+                            <div class="metric-value valor-egreso">
+                                @Model.TotalEgresos.ToString("C0", cultura)
+                            </div>
+                            <div class="metric-help">Planillas pagadas</div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6 col-xl-3">
+                        <div class="dashboard-metric-card">
+                            <div class="metric-label">Balance estimado</div>
+                            <div class="metric-value @(Model.Balance >= 0 ? "valor-ingreso" : "valor-egreso")">
+                                @Model.Balance.ToString("C0", cultura)
+                            </div>
+                            <div class="metric-help">Ingresos menos egresos</div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6 col-xl-3">
+                        <div class="dashboard-metric-card">
+                            <div class="metric-label">Saldo pendiente</div>
+                            <div class="metric-value valor-pendiente">
+                                @Model.SaldoPendiente.ToString("C0", cultura)
+                            </div>
+                            <div class="metric-help">Pendiente de cobro</div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="row g-3 mb-4">
+
+                    <div class="col-lg-8">
+                        <div class="dashboard-panel h-100">
+                            <div class="dashboard-panel-body">
+                                <h5 class="dashboard-panel-title">
+                                    <i class="bi bi-bar-chart-line me-2"></i>
+                                    Resumen mensual
+                                </h5>
+
+                                @if (Model.ResumenMensual.Any())
+                                {
+                                    foreach (var mes in Model.ResumenMensual)
+                                    {
+                                        <div class="dashboard-month-row">
+                                            <div class="d-flex justify-content-between gap-3">
+                                                <strong>@mes.Mes</strong>
+                                                <span>
+                                                    Balance: @mes.Balance.ToString("C0", cultura)
+                                                </span>
+                                            </div>
+
+                                            <div class="row mt-2 small">
+                                                <div class="col-md-6 text-success fw-semibold">
+                                                    Ingresos: @mes.Ingresos.ToString("C0", cultura)
+                                                </div>
+
+                                                <div class="col-md-6 text-danger fw-semibold">
+                                                    Egresos: @mes.Egresos.ToString("C0", cultura)
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                }
+                                else
+                                {
+                                    <p class="text-white-50 mb-0">
+                                        No hay información mensual disponible.
+                                    </p>
+                                }
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-4">
+                        <div class="dashboard-panel h-100">
+                            <div class="dashboard-panel-body">
+                                <h5 class="dashboard-panel-title">
+                                    <i class="bi bi-speedometer2 me-2"></i>
+                                    Indicadores operativos
+                                </h5>
+
+                                <div class="row g-3">
+
+                                    <div class="col-sm-6">
+                                        <div class="indicador-operativo">
+                                            <div class="indicador-label">Facturas emitidas</div>
+                                            <div class="indicador-value">@Model.FacturasEmitidas</div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="indicador-operativo">
+                                            <div class="indicador-label">Facturas pagadas</div>
+                                            <div class="indicador-value">@Model.FacturasPagadas</div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="indicador-operativo">
+                                            <div class="indicador-label">Facturas pendientes</div>
+                                            <div class="indicador-value">@Model.FacturasPendientes</div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="indicador-operativo">
+                                            <div class="indicador-label">Órdenes activas</div>
+                                            <div class="indicador-value">@Model.OrdenesActivas</div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="indicador-operativo">
+                                            <div class="indicador-label">Clientes activos</div>
+                                            <div class="indicador-value">@Model.ClientesActivos</div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="indicador-operativo">
+                                            <div class="indicador-label">Productos activos</div>
+                                            <div class="indicador-value">@Model.ProductosActivos</div>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            }
+        </section>
+    }
+
     <div class="row g-3 dashboard-grid">
 
-        @* Inventario *@
         @if (User.IsInRole("Administrador") || User.IsInRole("Gerente") || User.IsInRole("Operador de Planta"))
         {
             <div class="col-sm-6 col-xl-3">
@@ -19,8 +201,13 @@
                         <div class="pm-dash-icon mb-3">
                             <i class="bi bi-boxes"></i>
                         </div>
+
                         <h5 class="pm-dash-title">Inventario</h5>
-                        <p class="pm-dash-text flex-grow-1">Control de productos, existencias y movimientos.</p>
+
+                        <p class="pm-dash-text flex-grow-1">
+                            Control de productos, existencias y movimientos.
+                        </p>
+
                         <a asp-controller="Productos" asp-action="Index" class="btn btn-warning mt-3 w-100">
                             Ir a Inventario
                         </a>
@@ -29,15 +216,19 @@
             </div>
         }
 
-        @* Clientes *@
         <div class="col-sm-6 col-xl-3">
             <div class="card pm-dash-card h-100">
                 <div class="card-body d-flex flex-column p-4">
                     <div class="pm-dash-icon mb-3">
                         <i class="bi bi-people"></i>
                     </div>
+
                     <h5 class="pm-dash-title">Clientes</h5>
-                    <p class="pm-dash-text flex-grow-1">Gestión del registro y seguimiento de clientes.</p>
+
+                    <p class="pm-dash-text flex-grow-1">
+                        Gestión del registro y seguimiento de clientes.
+                    </p>
+
                     <a asp-controller="Clientes" asp-action="Index" class="btn btn-warning mt-3 w-100">
                         Ir a Clientes
                     </a>
@@ -45,15 +236,19 @@
             </div>
         </div>
 
-        @* Órdenes de compra *@
         <div class="col-sm-6 col-xl-3">
             <div class="card pm-dash-card h-100">
                 <div class="card-body d-flex flex-column p-4">
                     <div class="pm-dash-icon mb-3">
                         <i class="bi bi-cart3"></i>
                     </div>
+
                     <h5 class="pm-dash-title">Órdenes de compra</h5>
-                    <p class="pm-dash-text flex-grow-1">Creación y seguimiento de órdenes.</p>
+
+                    <p class="pm-dash-text flex-grow-1">
+                        Creación y seguimiento de órdenes.
+                    </p>
+
                     <a asp-controller="Pedidos" asp-action="Index" class="btn btn-warning mt-3 w-100">
                         Ir a Órdenes
                     </a>
@@ -61,7 +256,6 @@
             </div>
         </div>
 
-        @* Usuarios *@
         @if (User.IsInRole("Administrador"))
         {
             <div class="col-sm-6 col-xl-3">
@@ -70,8 +264,13 @@
                         <div class="pm-dash-icon mb-3">
                             <i class="bi bi-shield-lock"></i>
                         </div>
+
                         <h5 class="pm-dash-title">Usuarios</h5>
-                        <p class="pm-dash-text flex-grow-1">Administración de accesos y roles.</p>
+
+                        <p class="pm-dash-text flex-grow-1">
+                            Administración de accesos y roles.
+                        </p>
+
                         <a asp-controller="AdminUsuarios" asp-action="Index" class="btn btn-warning mt-3 w-100">
                             Ir a Usuarios
                         </a>
@@ -80,7 +279,6 @@
             </div>
         }
 
-        @* Facturación *@
         @if (User.IsInRole("Administrador") || User.IsInRole("Gerente") || User.IsInRole("Contador"))
         {
             <div class="col-sm-6 col-xl-3">
@@ -89,8 +287,13 @@
                         <div class="pm-dash-icon mb-3">
                             <i class="bi bi-receipt"></i>
                         </div>
+
                         <h5 class="pm-dash-title">Facturación</h5>
-                        <p class="pm-dash-text flex-grow-1">Consulta de facturas emitidas, pendientes y vencidas.</p>
+
+                        <p class="pm-dash-text flex-grow-1">
+                            Consulta de facturas emitidas, pendientes y vencidas.
+                        </p>
+
                         <a asp-controller="Facturacion" asp-action="Index" class="btn btn-warning mt-3 w-100">
                             Ver módulo
                         </a>
@@ -99,7 +302,6 @@
             </div>
         }
 
-        @* Planilla *@
         @if (User.IsInRole("Administrador") || User.IsInRole("Gerente") || User.IsInRole("Contador"))
         {
             <div class="col-sm-6 col-xl-3">
@@ -108,8 +310,13 @@
                         <div class="pm-dash-icon mb-3">
                             <i class="bi bi-calendar2-week"></i>
                         </div>
+
                         <h5 class="pm-dash-title">Planilla</h5>
-                        <p class="pm-dash-text flex-grow-1">Gestión de salarios, deducciones y pago semanal.</p>
+
+                        <p class="pm-dash-text flex-grow-1">
+                            Gestión de salarios, deducciones y pago semanal.
+                        </p>
+
                         <a asp-controller="Planilla" asp-action="Index" class="btn btn-warning mt-3 w-100">
                             Ver módulo
                         </a>
@@ -118,7 +325,6 @@
             </div>
         }
 
-        @* Reportes *@
         @if (User.IsInRole("Administrador") || User.IsInRole("Gerente"))
         {
             <div class="col-sm-6 col-xl-3">
@@ -127,8 +333,13 @@
                         <div class="pm-dash-icon mb-3">
                             <i class="bi bi-bar-chart-line"></i>
                         </div>
+
                         <h5 class="pm-dash-title">Reportes</h5>
-                        <p class="pm-dash-text flex-grow-1">Indicadores generales y reportes administrativos.</p>
+
+                        <p class="pm-dash-text flex-grow-1">
+                            Indicadores generales y reportes administrativos.
+                        </p>
+
                         <a asp-controller="Reportes" asp-action="Index" class="btn btn-warning mt-3 w-100">
                             Ver módulo
                         </a>
@@ -139,3 +350,145 @@
 
     </div>
 </div>
+
+<style>
+    .dashboard-panel {
+        background: #292c45 !important;
+        border-radius: 16px !important;
+        border: 0 !important;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.18) !important;
+        overflow: hidden !important;
+    }
+
+    .dashboard-panel-body {
+        padding: 22px !important;
+    }
+
+    .dashboard-panel-title {
+        color: #ffffff !important;
+        font-weight: 700 !important;
+        margin-bottom: 18px !important;
+    }
+
+    .dashboard-month-row {
+        color: #ffffff !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.12) !important;
+        padding: 12px 0 !important;
+    }
+
+        .dashboard-month-row:last-child {
+            border-bottom: 0 !important;
+        }
+
+        .dashboard-month-row span,
+        .dashboard-month-row div,
+        .dashboard-month-row strong {
+            color: inherit !important;
+        }
+
+        .dashboard-month-row .text-success {
+            color: #5cb85c !important;
+        }
+
+        .dashboard-month-row .text-danger {
+            color: #d9534f !important;
+        }
+
+    .dashboard-metric-card {
+        background: #ffffff !important;
+        color: #111827 !important;
+        border-radius: 16px !important;
+        padding: 20px !important;
+        min-height: 145px !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: center !important;
+        box-shadow: 0 8px 22px rgba(0, 0, 0, 0.12) !important;
+    }
+
+        .dashboard-metric-card * {
+            color: inherit !important;
+        }
+
+    .metric-label {
+        color: #374151 !important;
+        font-size: 0.95rem !important;
+        font-weight: 700 !important;
+        margin-bottom: 10px !important;
+        line-height: 1.25 !important;
+    }
+
+    .metric-value {
+        color: #111827 !important;
+        font-size: 2rem !important;
+        font-weight: 800 !important;
+        line-height: 1.1 !important;
+        margin-bottom: 8px !important;
+    }
+
+    .metric-help {
+        color: #6b7280 !important;
+        font-size: 0.95rem !important;
+        font-weight: 500 !important;
+        line-height: 1.25 !important;
+    }
+
+    .valor-ingreso {
+        color: #198754 !important;
+    }
+
+    .valor-egreso {
+        color: #dc3545 !important;
+    }
+
+    .valor-pendiente {
+        color: #b45309 !important;
+    }
+
+    .indicador-operativo {
+        background: #ffffff !important;
+        color: #111827 !important;
+        border-radius: 14px !important;
+        padding: 16px !important;
+        min-height: 105px !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: center !important;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.10) !important;
+    }
+
+        .indicador-operativo * {
+            color: inherit !important;
+        }
+
+    .indicador-label {
+        color: #374151 !important;
+        font-size: 0.88rem !important;
+        font-weight: 700 !important;
+        line-height: 1.25 !important;
+        margin-bottom: 10px !important;
+        word-break: normal !important;
+        overflow-wrap: break-word !important;
+    }
+
+    .indicador-value {
+        color: #111827 !important;
+        font-size: 1.9rem !important;
+        font-weight: 800 !important;
+        line-height: 1 !important;
+    }
+
+    @@media (max-width: 575.98px) {
+        .dashboard-panel-body {
+            padding: 16px !important;
+        }
+
+        .indicador-operativo {
+            min-height: 90px !important;
+        }
+
+        .metric-value {
+            font-size: 1.5rem !important;
+        }
+    }
+</style>º

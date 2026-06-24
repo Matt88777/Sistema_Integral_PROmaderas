@@ -26,7 +26,10 @@ namespace PROmaderas.AccesoADatos
         // FAC-HU-004: tabla PagoFactura ya existe en el script; solo se mapea (sin migración).
         public DbSet<PagoFacturaAD> PagosFactura { get; set; }
 
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
+		public DbSet<PlanillaPeriodoAD> PlanillaPeriodos { get; set; }
+		public DbSet<PlanillaDetalleFinancieroAD> PlanillaDetallesFinancieros { get; set; }
+
+		protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
@@ -180,8 +183,39 @@ namespace PROmaderas.AccesoADatos
                 e.Property(x => x.IdUsuarioRegistro).HasColumnName("IdUsuarioRegistro");
             });
 
-            // PuestoAD -> Puesto (read-only; usado para poblar dropdowns)
-            modelBuilder.Entity<PuestoAD>(e =>
+			// PlanillaPeriodoAD -> PlanillaPeriodo
+			modelBuilder.Entity<PlanillaPeriodoAD>(e =>
+			{
+				e.ToTable("PlanillaPeriodo");
+				e.HasKey(x => x.IdPlanillaPeriodo);
+
+				e.Property(x => x.IdPlanillaPeriodo).HasColumnName("IdPlanillaPeriodo");
+				e.Property(x => x.FechaInicio).HasColumnName("FechaInicio");
+				e.Property(x => x.FechaFin).HasColumnName("FechaFin");
+				e.Property(x => x.TipoPeriodo).HasColumnName("TipoPeriodo");
+				e.Property(x => x.Estado).HasColumnName("Estado");
+				e.Property(x => x.FechaCreacion).HasColumnName("FechaCreacion");
+				e.Property(x => x.IdUsuarioCreacion).HasColumnName("IdUsuarioCreacion");
+			});
+
+			// PlanillaDetalleFinancieroAD -> PlanillaDetalle
+			modelBuilder.Entity<PlanillaDetalleFinancieroAD>(e =>
+			{
+				e.ToTable("PlanillaDetalle");
+				e.HasKey(x => x.IdPlanillaDetalle);
+
+				e.Property(x => x.IdPlanillaDetalle).HasColumnName("IdPlanillaDetalle");
+				e.Property(x => x.IdPlanillaPeriodo).HasColumnName("IdPlanillaPeriodo");
+				e.Property(x => x.IdEmpleado).HasColumnName("IdEmpleado");
+				e.Property(x => x.SalarioNeto).HasColumnName("SalarioNeto");
+
+				e.HasOne(x => x.Periodo)
+					.WithMany(x => x.Detalles)
+					.HasForeignKey(x => x.IdPlanillaPeriodo);
+			});
+
+			// PuestoAD -> Puesto (read-only; usado para poblar dropdowns)
+			modelBuilder.Entity<PuestoAD>(e =>
             {
                 e.ToTable("Puesto");
                 e.HasKey(x => x.IdPuesto);
