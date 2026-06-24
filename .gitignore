@@ -6,3 +6,4 @@ obj/
 *.user
 *.dll
 *.exe
+/PROmaderas/appsettings.json
