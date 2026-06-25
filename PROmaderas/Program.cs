@@ -20,6 +20,8 @@ using QuestPDF.Infrastructure;
 using PROmaderas.UI.Services;
 using PROmaderas.AccesoADatos.Dashboard;
 using PROmaderas.LogicaDeNegocio.Dashboard;
+using PROmaderas.AccesoADatos.Produccion;
+using PROmaderas.LogicaDeNegocio.Produccion;
 
 using PROmaderas.AccesoADatos.Empleados;
 
@@ -80,6 +82,9 @@ builder.Services.AddScoped<IFacturacionRepositorio, FacturacionRepositorio>();
 builder.Services.AddScoped<IFacturacionLogica, FacturacionLogica>();
 builder.Services.AddScoped<IDashboardRepositorio, DashboardRepositorio>();
 builder.Services.AddScoped<IDashboardLogica, DashboardLogica>();
+
+builder.Services.AddScoped<IProduccionRepositorio, ProduccionRepositorio>();
+builder.Services.AddScoped<IProduccionLogica, ProduccionLogica>();
 
 
 QuestPDF.Settings.License = LicenseType.Community;

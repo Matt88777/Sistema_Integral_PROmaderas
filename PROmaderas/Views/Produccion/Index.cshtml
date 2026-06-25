@@ -1,0 +1,116 @@
+﻿@model IEnumerable<PROmaderas.Abstracciones.Models.InventarioMovimientoAD>
+@{
+    ViewData["Title"] = "Producción Semanal";
+    int paginaActual   = ViewBag.PaginaActual   ?? 1;
+    int totalPaginas   = ViewBag.TotalPaginas   ?? 1;
+    int totalRegistros = ViewBag.TotalRegistros ?? 0;
+}
+
+<div class="container mt-4">
+
+    <div class="row mb-3 align-items-center">
+        <div class="col">
+            <h2>
+                <i class="bi bi-clipboard2-check me-2" style="color:#c9a03c"></i>
+                Producción Semanal de Tarimas
+            </h2>
+        </div>
+        <div class="col-auto">
+            <a asp-action="Registrar" class="btn btn-warning fw-bold px-4">
+                <i class="bi bi-plus-circle me-1"></i>Registrar Producción
+            </a>
+        </div>
+    </div>
+
+    @if (TempData["Mensaje"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            <i class="bi bi-check-circle me-1"></i>@TempData["Mensaje"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show">
+            <i class="bi bi-exclamation-triangle me-1"></i>@TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="table-responsive">
+        <table class="table table-striped table-hover align-middle">
+            <thead class="table-dark">
+                <tr>
+                    <th>#</th>
+                    <th><i class="bi bi-boxes me-1"></i>Tipo de Tarima</th>
+                    <th class="text-center"><i class="bi bi-123 me-1"></i>Cantidad</th>
+                    <th><i class="bi bi-calendar-event me-1"></i>Fecha de Producción</th>
+                    <th><i class="bi bi-chat-left-text me-1"></i>Observación</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.Any())
+                {
+                    <tr>
+                        <td colspan="5" class="text-center text-muted py-4">
+                            <i class="bi bi-inbox fs-4 d-block mb-1"></i>
+                            No hay registros de producción aún.
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    int numero = (paginaActual - 1) * 10 + 1;
+                    @foreach (var mov in Model)
+                    {
+                        <tr>
+                            <td class="text-muted small">@(numero++)</td>
+                            <td>
+                                <span class="fw-semibold">
+                                    @(mov.Producto?.Nombre ?? $"ID {mov.IdTipoTarima}")
+                                </span>
+                                @if (!string.IsNullOrEmpty(mov.Producto?.Medida))
+                                {
+                                    <br><small class="text-muted">@mov.Producto.Medida</small>
+                                }
+                            </td>
+                            <td class="text-center">
+                                <span class="badge bg-success fs-6">@mov.Cantidad</span>
+                            </td>
+                            <td>@mov.FechaMovimiento.ToString("dd/MM/yyyy")</td>
+                            <td class="text-muted small">@(mov.Motivo ?? "—")</td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+    @if (totalPaginas > 1)
+    {
+        <nav>
+            <ul class="pagination justify-content-center">
+                <li class="page-item @(paginaActual == 1 ? "disabled" : "")">
+                    <a class="page-link" asp-action="Index" asp-route-pagina="@(paginaActual - 1)">
+                        <i class="bi bi-chevron-left"></i>
+                    </a>
+                </li>
+                @for (int p = 1; p <= totalPaginas; p++)
+                {
+                    <li class="page-item @(p == paginaActual ? "active" : "")">
+                        <a class="page-link" asp-action="Index" asp-route-pagina="@p">@p</a>
+                    </li>
+                }
+                <li class="page-item @(paginaActual == totalPaginas ? "disabled" : "")">
+                    <a class="page-link" asp-action="Index" asp-route-pagina="@(paginaActual + 1)">
+                        <i class="bi bi-chevron-right"></i>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+        <p class="text-center text-muted small">
+            Total de registros: @totalRegistros
+        </p>
+    }
+
+</div>

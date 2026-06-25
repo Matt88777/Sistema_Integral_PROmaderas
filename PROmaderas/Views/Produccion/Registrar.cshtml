@@ -1,0 +1,112 @@
+﻿@model PROmaderas.Abstracciones.Models.ProduccionSemanalDTO
+@{
+    ViewData["Title"] = "Registrar Producción Semanal";
+}
+
+<div class="container mt-4">
+
+    <div class="row mb-3 align-items-center">
+        <div class="col">
+            <h2>
+                <i class="bi bi-clipboard2-plus me-2" style="color:#c9a03c"></i>
+                Registrar Producción Semanal
+            </h2>
+            <p class="text-muted mb-0">
+                Complete los datos para registrar las tarimas fabricadas y actualizar el inventario.
+            </p>
+        </div>
+    </div>
+
+    <div class="card shadow-sm" style="border-color:#c9a03c;">
+        <div class="card-header fw-bold" style="background-color:#c9a03c;color:#1a1a1a;">
+            <i class="bi bi-plus-circle me-1"></i>Nueva producción
+        </div>
+
+        <div class="card-body">
+            <form asp-action="Registrar" method="post" class="row g-3">
+                @Html.AntiForgeryToken()
+
+                @* Escenarios 2 y 3: validation summary *@
+                <div asp-validation-summary="ModelOnly" class="col-12 alert alert-danger d-none" id="resumenErrores"></div>
+
+                @* Campo 1: Tipo de tarima (obligatorio — Escenario 2) *@
+                <div class="col-md-6">
+                    <label asp-for="IdTipoTarima" class="form-label fw-semibold">
+                        <i class="bi bi-boxes me-1"></i>Tipo de Tarima <span class="text-danger">*</span>
+                    </label>
+                    <select asp-for="IdTipoTarima"
+                            asp-items="ViewBag.TiposTarima"
+                            class="form-select">
+                        <option value="">— Seleccione un tipo —</option>
+                    </select>
+                    <span asp-validation-for="IdTipoTarima" class="text-danger small"></span>
+                </div>
+
+                @* Campo 2: Cantidad (obligatorio, > 0 — Escenarios 2 y 3) *@
+                <div class="col-md-3">
+                    <label asp-for="Cantidad" class="form-label fw-semibold">
+                        <i class="bi bi-123 me-1"></i>Cantidad Producida <span class="text-danger">*</span>
+                    </label>
+                    <input asp-for="Cantidad"
+                           type="number"
+                           min="1"
+                           step="1"
+                           class="form-control"
+                           placeholder="Ej: 150" />
+                    <span asp-validation-for="Cantidad" class="text-danger small"></span>
+                </div>
+
+                @* Campo 3: Fecha de producción (obligatoria — Escenario 2) *@
+                <div class="col-md-3">
+                    <label asp-for="FechaProduccion" class="form-label fw-semibold">
+                        <i class="bi bi-calendar-event me-1"></i>Fecha de Producción <span class="text-danger">*</span>
+                    </label>
+                    <input asp-for="FechaProduccion"
+                           type="date"
+                           class="form-control"
+                           max="@DateTime.Today.ToString("yyyy-MM-dd")" />
+                    <span asp-validation-for="FechaProduccion" class="text-danger small"></span>
+                </div>
+
+                @* Campo 4: Observación (opcional) *@
+                <div class="col-12">
+                    <label asp-for="Motivo" class="form-label fw-semibold">
+                        <i class="bi bi-chat-left-text me-1"></i>Observación
+                        <span class="text-muted small fw-normal">(opcional)</span>
+                    </label>
+                    <textarea asp-for="Motivo"
+                              class="form-control"
+                              rows="2"
+                              maxlength="250"
+                              placeholder="Ej: Turno mañana — línea 3"></textarea>
+                    <span asp-validation-for="Motivo" class="text-danger small"></span>
+                </div>
+
+                <div class="col-12 d-flex justify-content-end gap-2">
+                    <a asp-action="Index" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left me-1"></i>Cancelar
+                    </a>
+                    <button type="submit" class="btn btn-warning fw-bold">
+                        <i class="bi bi-save me-1"></i>Guardar Producción
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        // Mostrar el div de errores solo cuando tenga contenido (Escenarios 2 y 3)
+        (function () {
+            var resumen = document.getElementById("resumenErrores");
+            if (resumen && resumen.querySelectorAll("li").length > 0) {
+                resumen.classList.remove("d-none");
+            }
+        })();
+    </script>
+}
