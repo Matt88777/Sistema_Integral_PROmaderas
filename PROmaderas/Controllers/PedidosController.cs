@@ -111,10 +111,20 @@ namespace PROmaderas.UI.Controllers
             var vendedor = await _contexto.Usuarios
                 .FirstOrDefaultAsync(u => u.IdUsuario == pedido.VendedorId);
 
-            ViewBag.NombreVendedor = vendedor?.Correo ?? $"Usuario #{pedido.VendedorId}";
-            ViewBag.EstadosValidos = EstadosValidos;
+			ViewBag.NombreVendedor = vendedor?.Correo ?? $"Usuario #{pedido.VendedorId}";
+			ViewBag.EstadosValidos = EstadosValidos;
+
+			ViewBag.PuedeCambiarEstado = User.IsInRole(Roles.Administrador) ||
+										 User.IsInRole(Roles.OperadorDePlanta);
+
 			ViewBag.PuedeCancelar = User.IsInRole(Roles.Administrador) ||
-						User.IsInRole(Roles.Gerente);
+									User.IsInRole(Roles.Gerente);
+
+			ViewBag.PuedeRegistrarSalida = User.IsInRole(Roles.Administrador) ||
+										   User.IsInRole(Roles.OperadorDePlanta);
+
+			ViewBag.SalidaRegistrada = await _contexto.InventarioMovimientos
+				.AnyAsync(m => m.IdOrdenCompra == pedido.Id && m.TipoMovimiento == "Salida");
 
 
 			// OC-HU-004: cargar historial de cambios de estado
@@ -374,6 +384,132 @@ namespace PROmaderas.UI.Controllers
 			return RedirectToAction(nameof(Details), new { id = pedido.Id });
 		}
 
+		// ── REGISTRAR SALIDA DE INVENTARIO (INV-HU-005) ─────────────────────
+		[HttpPost, ValidateAntiForgeryToken]
+		[Authorize(Roles = Roles.Administrador + "," + Roles.OperadorDePlanta)]
+		public async Task<IActionResult> RegistrarSalidaInventario(int id)
+		{
+			var pedido = await _contexto.Pedidos
+				.Include(p => p.Detalles!)
+					.ThenInclude(d => d.Producto)
+				.FirstOrDefaultAsync(p => p.Id == id);
+
+			if (pedido == null)
+			{
+				return NotFound();
+			}
+
+			if (!pedido.Activa || pedido.Estado == "Cancelada")
+			{
+				TempData["Error"] = "No se puede registrar salida de inventario para una orden cancelada o inactiva.";
+				return RedirectToAction(nameof(Details), new { id });
+			}
+
+			if (pedido.Estado == "Entregada")
+			{
+				TempData["Error"] = "La orden ya fue entregada.";
+				return RedirectToAction(nameof(Details), new { id });
+			}
+
+			if (pedido.Detalles == null || !pedido.Detalles.Any())
+			{
+				TempData["Error"] = "La orden no tiene productos asociados.";
+				return RedirectToAction(nameof(Details), new { id });
+			}
+
+			var salidaYaRegistrada = await _contexto.InventarioMovimientos
+				.AnyAsync(m => m.IdOrdenCompra == pedido.Id && m.TipoMovimiento == "Salida");
+
+			if (salidaYaRegistrada)
+			{
+				TempData["Error"] = "Esta orden ya tiene una salida de inventario registrada.";
+				return RedirectToAction(nameof(Details), new { id });
+			}
+
+			var idUsuarioRegistro = await ObtenerIdUsuarioActualAsync();
+
+			if (!idUsuarioRegistro.HasValue)
+			{
+				TempData["Error"] = "No se pudo identificar el usuario que registra la salida.";
+				return RedirectToAction(nameof(Details), new { id });
+			}
+
+			var productosSolicitados = pedido.Detalles
+				.GroupBy(d => d.ProductoId)
+				.Select(g => new
+				{
+					IdTipoTarima = g.Key,
+					Nombre = g.First().Producto?.Nombre ?? $"Producto #{g.Key}",
+					Cantidad = g.Sum(x => x.Cantidad)
+				})
+				.ToList();
+
+			var stockDisponible = await ObtenerStockDisponible();
+			var erroresInventario = new List<string>();
+
+			foreach (var item in productosSolicitados)
+			{
+				int disponible = stockDisponible.TryGetValue(item.IdTipoTarima, out var stock)
+					? stock
+					: 0;
+
+				if (disponible < item.Cantidad)
+				{
+					erroresInventario.Add(
+						$"{item.Nombre}: disponible {disponible}, requerido {item.Cantidad}");
+				}
+			}
+
+			if (erroresInventario.Any())
+			{
+				TempData["Error"] = "Inventario insuficiente. " + string.Join(" | ", erroresInventario);
+				return RedirectToAction(nameof(Details), new { id });
+			}
+
+			using var transaccion = await _contexto.Database.BeginTransactionAsync();
+
+			try
+			{
+				foreach (var item in productosSolicitados)
+				{
+					_contexto.InventarioMovimientos.Add(new InventarioMovimientoAD
+					{
+						IdTipoTarima = item.IdTipoTarima,
+						IdUsuarioRegistro = idUsuarioRegistro.Value,
+						TipoMovimiento = "Salida",
+						Cantidad = item.Cantidad,
+						FechaMovimiento = DateTime.Now,
+						Motivo = $"Salida por despacho de orden {pedido.NumeroOrden}",
+						IdOrdenCompra = pedido.Id
+					});
+				}
+
+				var estadoAnterior = pedido.Estado;
+
+				pedido.Estado = "Entregada";
+
+				await _contexto.SaveChangesAsync();
+
+				await RegistrarHistorialEstadoOrdenAsync(
+					pedido.Id,
+					estadoAnterior,
+					"Entregada",
+					"Salida de inventario registrada al despachar la orden."
+				);
+
+				await transaccion.CommitAsync();
+
+				TempData["Mensaje"] =
+					$"Salida de inventario registrada correctamente para la orden {pedido.NumeroOrden}.";
+			}
+			catch
+			{
+				await transaccion.RollbackAsync();
+				TempData["Error"] = "Ocurrió un error al registrar la salida de inventario.";
+			}
+
+			return RedirectToAction(nameof(Details), new { id });
+		}
 
 		// ── REGISTRAR HISTORIAL DE ESTADO ──────────────────────────────────
 		private async Task RegistrarHistorialEstadoOrdenAsync(
@@ -566,7 +702,27 @@ namespace PROmaderas.UI.Controllers
             ViewBag.StockDict = await ObtenerStockDisponible();
         }
 
-        private async Task<Dictionary<int, int>> ObtenerStockDisponible()
+		private async Task<int?> ObtenerIdUsuarioActualAsync()
+		{
+			var emailActual = User.Identity?.Name ?? string.Empty;
+
+			var idUsuario = await _contexto.Usuarios
+				.Where(u => u.Correo == emailActual)
+				.Select(u => (int?)u.IdUsuario)
+				.FirstOrDefaultAsync();
+
+			if (!idUsuario.HasValue)
+			{
+				idUsuario = await _contexto.Usuarios
+					.OrderBy(u => u.IdUsuario)
+					.Select(u => (int?)u.IdUsuario)
+					.FirstOrDefaultAsync();
+			}
+
+			return idUsuario;
+		}
+
+		private async Task<Dictionary<int, int>> ObtenerStockDisponible()
         {
             var stock = new Dictionary<int, int>();
             var conn = _contexto.Database.GetDbConnection();

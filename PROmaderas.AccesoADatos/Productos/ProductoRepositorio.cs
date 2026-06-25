@@ -21,15 +21,26 @@ namespace PROmaderas.AccesoADatos.Productos
 
 		public async Task<List<ProductoAD>> ObtenerTodos()
 		{
-			return await _contexto.Productos
+			var productos = await _contexto.Productos
 				.Where(p => p.Activo)
 				.ToListAsync();
+
+			await AplicarStockActualAsync(productos);
+
+			return productos;
 		}
 
 		public async Task<ProductoAD?> ObtenerPorId(int id)
 		{
-			return await _contexto.Productos
+			var producto = await _contexto.Productos
 				.FirstOrDefaultAsync(p => p.Id == id);
+
+			if (producto != null)
+			{
+				producto.Stock = await CalcularStockActualAsync(producto.Id);
+			}
+
+			return producto;
 		}
 
 		public Task<CategoriaAD?> ObtenerCategoriaPorId(int id)
@@ -87,19 +98,49 @@ namespace PROmaderas.AccesoADatos.Productos
 
 		public async Task<List<ProductoAD>> BuscarPorNombre(string nombre)
 		{
-			return await _contexto.Productos
+			var productos = await _contexto.Productos
 				.Where(p => p.Activo && p.Nombre.Contains(nombre))
 				.ToListAsync();
+
+			await AplicarStockActualAsync(productos);
+
+			return productos;
 		}
 
 		public async Task<List<ProductoAD>> FiltrarPorCategoria(int? categoriaId)
 		{
-			// Sprint 0: la BD no tiene Categoria; el filtro por categoría se
-			// ignora silenciosamente y se devuelven todos los productos activos.
 			_ = categoriaId;
-			return await _contexto.Productos
+
+			var productos = await _contexto.Productos
 				.Where(p => p.Activo)
 				.ToListAsync();
+
+			await AplicarStockActualAsync(productos);
+
+			return productos;
+		}
+
+		private async Task<int> CalcularStockActualAsync(int idTipoTarima)
+		{
+			var entradas = await _contexto.InventarioMovimientos
+				.Where(m => m.IdTipoTarima == idTipoTarima &&
+							(m.TipoMovimiento == "Entrada" || m.TipoMovimiento == "AjusteEntrada"))
+				.SumAsync(m => (int?)m.Cantidad) ?? 0;
+
+			var salidas = await _contexto.InventarioMovimientos
+				.Where(m => m.IdTipoTarima == idTipoTarima &&
+							(m.TipoMovimiento == "Salida" || m.TipoMovimiento == "AjusteSalida"))
+				.SumAsync(m => (int?)m.Cantidad) ?? 0;
+
+			return entradas - salidas;
+		}
+
+		private async Task AplicarStockActualAsync(List<ProductoAD> productos)
+		{
+			foreach (var producto in productos)
+			{
+				producto.Stock = await CalcularStockActualAsync(producto.Id);
+			}
 		}
 
 		public async Task<(List<ProductoAD> productos, int totalRegistros)> ObtenerPaginado(
@@ -126,8 +167,12 @@ namespace PROmaderas.AccesoADatos.Productos
 				.Skip((pagina - 1) * registrosPorPagina)
 				.Take(registrosPorPagina)
 				.ToListAsync();
+			await AplicarStockActualAsync(productos);
 
 			return (productos, totalRegistros);
 		}
+
+
+
 	}
 }

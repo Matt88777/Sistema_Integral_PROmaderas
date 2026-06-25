@@ -15,6 +15,7 @@ namespace PROmaderas.AccesoADatos
         public DbSet<PedidoDetalleAD> PedidoDetalles { get; set; }
         public DbSet<FacturacionAD> Facturaciones { get; set; }
         public DbSet<EmpleadoAD> Empleados { get; set; }
+		public DbSet<InventarioMovimientoAD> InventarioMovimientos { get; set; }
 
         // Sprint 2: tabla Usuario (IdVendedor en OrdenCompra)
         public DbSet<UsuarioAD> Usuarios { get; set; }
@@ -113,9 +114,35 @@ namespace PROmaderas.AccesoADatos
                 e.Ignore(x => x.ImpuestoPorc);
             });
 
-            
-            // FacturacionAD -> Factura  (FAC-HU-001)
-            modelBuilder.Entity<FacturacionAD>(e =>
+
+			// InventarioMovimientoAD -> InventarioMovimiento
+			modelBuilder.Entity<InventarioMovimientoAD>(e =>
+			{
+				e.ToTable("InventarioMovimiento");
+				e.HasKey(x => x.IdMovimiento);
+
+				e.Property(x => x.IdMovimiento).HasColumnName("IdMovimiento");
+				e.Property(x => x.IdTipoTarima).HasColumnName("IdTipoTarima");
+				e.Property(x => x.IdUsuarioRegistro).HasColumnName("IdUsuarioRegistro");
+				e.Property(x => x.TipoMovimiento).HasColumnName("TipoMovimiento");
+				e.Property(x => x.Cantidad).HasColumnName("Cantidad");
+				e.Property(x => x.FechaMovimiento).HasColumnName("FechaMovimiento");
+				e.Property(x => x.Motivo).HasColumnName("Motivo");
+				e.Property(x => x.IdProduccion).HasColumnName("IdProduccion");
+				e.Property(x => x.IdOrdenCompra).HasColumnName("IdOrdenCompra");
+
+				e.HasOne(x => x.Producto)
+					.WithMany()
+					.HasForeignKey(x => x.IdTipoTarima);
+
+				e.HasOne(x => x.OrdenCompra)
+					.WithMany()
+					.HasForeignKey(x => x.IdOrdenCompra);
+			});
+
+
+			// FacturacionAD -> Factura  (FAC-HU-001)
+			modelBuilder.Entity<FacturacionAD>(e =>
             {
                 e.ToTable("Factura");
                 e.HasKey(x => x.Id);

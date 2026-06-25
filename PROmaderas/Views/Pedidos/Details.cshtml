@@ -1,7 +1,10 @@
 ﻿@model PROmaderas.Abstracciones.Models.PedidoAD
+
 @{
     ViewData["Title"] = $"Pedido {Model.NumeroOrden}";
+
     var estados = new[] { "Pendiente", "En Produccion", "Lista para Entrega", "Entregada", "Cancelada" };
+
     bool usuarioPuedeCancelar = (bool)(ViewBag.PuedeCancelar ?? false);
 
     bool puedeCambiar = (bool)(ViewBag.PuedeCambiarEstado ?? false)
@@ -12,7 +15,16 @@
     bool puedeCancelar = usuarioPuedeCancelar
                          && Model.Activa
                          && Model.Estado != "Cancelada"
-                         && Model.Estado != "Entregada"; 
+                         && Model.Estado != "Entregada";
+
+    bool salidaRegistrada = (bool)(ViewBag.SalidaRegistrada ?? false);
+
+    bool puedeRegistrarSalida = (bool)(ViewBag.PuedeRegistrarSalida ?? false)
+                                && Model.Activa
+                                && Model.Estado != "Cancelada"
+                                && Model.Estado != "Entregada"
+                                && !salidaRegistrada;
+
     var badgeClass = Model.Estado switch
     {
         "Entregada" => "bg-success",
@@ -27,53 +39,80 @@
 
     @if (TempData["Mensaje"] != null)
     {
-        <div class="alert alert-success alert-dismissible fade show">@TempData["Mensaje"]<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+        <div class="alert alert-success alert-dismissible fade show">
+            <i class="bi bi-check-circle me-1"></i>
+            @TempData["Mensaje"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
     }
+
     @if (TempData["Error"] != null)
     {
-        <div class="alert alert-danger alert-dismissible fade show">@TempData["Error"]<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+        <div class="alert alert-danger alert-dismissible fade show">
+            <i class="bi bi-exclamation-triangle me-1"></i>
+            @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
     }
 
     <div class="row mb-3 align-items-center">
         <div class="col">
-            <h2>Orden <span class="text-warning">@Model.NumeroOrden</span></h2>
+            <h2>
+                Orden <span class="text-warning">@Model.NumeroOrden</span>
+            </h2>
         </div>
+
         <div class="col-auto">
             <span class="badge @badgeClass fs-6">@Model.Estado</span>
-            @if (!Model.Activa || Model.Estado == "Cancelada")
-            {
-                <div class="alert alert-secondary border-0 shadow-sm mt-3">
-                    <i class="bi bi-info-circle me-1"></i>
-                    Esta orden se encuentra cancelada/inactiva. El registro, los productos y el historial se conservan para trazabilidad.
-                </div>
-            }
         </div>
     </div>
 
+    @if (!Model.Activa || Model.Estado == "Cancelada")
+    {
+        <div class="alert alert-secondary border-0 shadow-sm mt-3">
+            <i class="bi bi-info-circle me-1"></i>
+            Esta orden se encuentra cancelada/inactiva. El registro, los productos y el historial se conservan para trazabilidad.
+        </div>
+    }
+
+    @if (Model.Estado == "Entregada" || salidaRegistrada)
+    {
+        <div class="alert alert-success border-0 shadow-sm mt-3">
+            <i class="bi bi-check-circle me-1"></i>
+            Esta orden ya fue despachada o tiene una salida de inventario registrada.
+        </div>
+    }
 
     <div class="card mb-4">
         <div class="card-body">
             <div class="row g-3">
+
                 <div class="col-md-4">
                     <div class="d-flex align-items-center gap-2">
                         <i class="bi bi-person-fill fs-4" style="color:#c9a03c"></i>
                         <div>
                             <div class="small text-muted">Cliente</div>
                             <strong>@Model.Cliente?.Nombre</strong>
-                            <div class="small text-muted">Cédula: @Model.Cliente?.Cedula</div>
+                            <div class="small text-muted">
+                                Cédula: @Model.Cliente?.Cedula
+                            </div>
                         </div>
                     </div>
                 </div>
+
                 <div class="col-md-4">
                     <div class="d-flex align-items-center gap-2">
                         <i class="bi bi-calendar-event fs-4" style="color:#c9a03c"></i>
                         <div>
                             <div class="small text-muted">Fecha de la orden</div>
                             <strong>@Model.Fecha.ToString("dd/MM/yyyy")</strong>
-                            <div class="small text-muted">@Model.Fecha.ToString("HH:mm") hrs</div>
+                            <div class="small text-muted">
+                                @Model.Fecha.ToString("HH:mm") hrs
+                            </div>
                         </div>
                     </div>
                 </div>
+
                 <div class="col-md-4">
                     <div class="d-flex align-items-center gap-2">
                         <i class="bi bi-briefcase-fill fs-4" style="color:#c9a03c"></i>
@@ -83,6 +122,7 @@
                         </div>
                     </div>
                 </div>
+
                 @if (!string.IsNullOrEmpty(Model.Observacion))
                 {
                     <div class="col-12">
@@ -95,65 +135,30 @@
                         </div>
                     </div>
                 }
+
             </div>
         </div>
     </div>
 
-
     @if (puedeCambiar)
     {
         <div class="card mb-4" style="border-color:#c9a03c;">
             <div class="card-header fw-bold" style="background-color:#c9a03c;color:#fff;">
-                <i class="bi bi-arrow-repeat me-1"></i>Actualizar estado del pedido
+                <i class="bi bi-arrow-repeat me-1"></i>
+                Actualizar estado del pedido
             </div>
-            <div class="card-body">
-                <form asp-action="CambiarEstado" method="post" class="row g-2 align-items-end">
-                    @Html.AntiForgeryToken()
-                    <input type="hidden" name="id" value="@Model.Id" />
-                    <div class="col-md-4">
-                        <label class="form-label fw-semibold">Nuevo estado</label>
-                        <select name="nuevoEstado" class="form-select" required>
-                            <option value="">— Seleccionar —</option>
-                            @foreach (var e in estados)
-                            {
-                                if (e != Model.Estado && e != "Cancelada")
-                                {
-                                    <option value="@e">@e</option>
-                                }
-                            }
-                        </select>
-                    </div>
-                    <div class="col-md-5">
-                        <label class="form-label fw-semibold">Observación (opcional)</label>
-                        <input type="text" name="observacion" class="form-control"
-                               placeholder="Motivo del cambio..." maxlength="250" />
-                    </div>
-                    <div class="col-md-3">
-                        <button type="submit" class="btn btn-warning w-100"
-                                onclick="return confirm('¿Confirma el cambio de estado?')">
-                            <i class="bi bi-check-circle me-1"></i>Confirmar cambio
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    }
 
-    @if (puedeCambiar)
-    {
-        <div class="card mb-4" style="border-color:#c9a03c;">
-            <div class="card-header fw-bold" style="background-color:#c9a03c;color:#fff;">
-                <i class="bi bi-arrow-repeat me-1"></i>Actualizar estado del pedido
-            </div>
             <div class="card-body">
                 <form asp-action="CambiarEstado" method="post" class="row g-2 align-items-end">
                     @Html.AntiForgeryToken()
+
                     <input type="hidden" name="id" value="@Model.Id" />
 
                     <div class="col-md-4">
                         <label class="form-label fw-semibold">Nuevo estado</label>
                         <select name="nuevoEstado" class="form-select" required>
                             <option value="">— Seleccionar —</option>
+
                             @foreach (var e in estados)
                             {
                                 if (e != Model.Estado && e != "Cancelada")
@@ -165,15 +170,20 @@
                     </div>
 
                     <div class="col-md-5">
-                        <label class="form-label fw-semibold">Observación (opcional)</label>
-                        <input type="text" name="observacion" class="form-control"
-                               placeholder="Motivo del cambio..." maxlength="250" />
+                        <label class="form-label fw-semibold">Observación opcional</label>
+                        <input type="text"
+                               name="observacion"
+                               class="form-control"
+                               placeholder="Motivo del cambio..."
+                               maxlength="250" />
                     </div>
 
                     <div class="col-md-3">
-                        <button type="submit" class="btn btn-warning w-100"
+                        <button type="submit"
+                                class="btn btn-warning w-100"
                                 onclick="return confirm('¿Confirma el cambio de estado?')">
-                            <i class="bi bi-check-circle me-1"></i>Confirmar cambio
+                            <i class="bi bi-check-circle me-1"></i>
+                            Confirmar cambio
                         </button>
                     </div>
                 </form>
@@ -185,7 +195,8 @@
     {
         <div class="card mb-4 border-danger">
             <div class="card-header fw-bold bg-danger text-white">
-                <i class="bi bi-x-circle me-1"></i>Cancelar orden de compra
+                <i class="bi bi-x-circle me-1"></i>
+                Cancelar orden de compra
             </div>
 
             <div class="card-body">
@@ -207,7 +218,8 @@
                         <button type="submit"
                                 class="btn btn-danger w-100"
                                 onclick="return confirm('¿Seguro que desea cancelar esta orden? Esta acción no eliminará el registro, pero marcará la orden como cancelada.')">
-                            <i class="bi bi-x-circle me-1"></i>Cancelar orden
+                            <i class="bi bi-x-circle me-1"></i>
+                            Cancelar orden
                         </button>
                     </div>
                 </form>
@@ -215,7 +227,45 @@
         </div>
     }
 
+    @if (salidaRegistrada)
+    {
+        <div class="alert alert-success border-0 shadow-sm">
+            <i class="bi bi-check-circle me-1"></i>
+            Esta orden ya tiene una salida de inventario registrada. La trazabilidad se mantiene en InventarioMovimiento.
+        </div>
+    }
+
+    @if (puedeRegistrarSalida)
+    {
+        <div class="card mb-4 border-success">
+            <div class="card-header fw-bold bg-success text-white">
+                <i class="bi bi-box-arrow-right me-1"></i>
+                Registrar salida de inventario
+            </div>
+
+            <div class="card-body">
+                <p class="text-muted">
+                    Esta acción descontará del inventario las cantidades de productos asociadas a esta orden y marcará el pedido como entregado.
+                </p>
+
+                <form asp-action="RegistrarSalidaInventario" method="post">
+                    @Html.AntiForgeryToken()
+
+                    <input type="hidden" name="id" value="@Model.Id" />
+
+                    <button type="submit"
+                            class="btn btn-success"
+                            onclick="return confirm('¿Desea registrar la salida de inventario para esta orden? Se descontarán las cantidades del inventario y la orden quedará como Entregada.')">
+                        <i class="bi bi-box-arrow-right me-1"></i>
+                        Registrar salida y despachar
+                    </button>
+                </form>
+            </div>
+        </div>
+    }
+
     <h4 class="mb-3">Productos del pedido</h4>
+
     <div class="table-responsive mb-4">
         <table class="table table-bordered table-striped">
             <thead class="table-dark">
@@ -226,6 +276,7 @@
                     <th class="text-end">Subtotal</th>
                 </tr>
             </thead>
+
             <tbody>
                 @if (Model.Detalles != null && Model.Detalles.Any())
                 {
@@ -233,61 +284,99 @@
                     {
                         <tr>
                             <td>@item.Producto?.Nombre</td>
-                            <td class="text-end">₡@item.PrecioUnit.ToString("N2")</td>
-                            <td class="text-center">@item.Cantidad</td>
-                            <td class="text-end">₡@item.TotalLinea.ToString("N2")</td>
+                            <td class="text-end">
+                                ₡@item.PrecioUnit.ToString("N2")
+                            </td>
+                            <td class="text-center">
+                                @item.Cantidad
+                            </td>
+                            <td class="text-end">
+                                ₡@item.TotalLinea.ToString("N2")
+                            </td>
                         </tr>
                     }
                 }
                 else
                 {
-                    <tr><td colspan="4" class="text-center text-muted">Sin detalles registrados.</td></tr>
+                    <tr>
+                        <td colspan="4" class="text-center text-muted">
+                            Sin detalles registrados.
+                        </td>
+                    </tr>
                 }
             </tbody>
         </table>
     </div>
 
-
     <div class="row justify-content-end mb-4">
         <div class="col-md-4">
             <table class="table table-bordered">
-                <tr><th>Subtotal</th><td class="text-end">₡@Model.Subtotal.ToString("N2")</td></tr>
-                <tr><th>Impuesto (13%)</th><td class="text-end">₡@Model.Impuestos.ToString("N2")</td></tr>
+                <tr>
+                    <th>Subtotal</th>
+                    <td class="text-end">
+                        ₡@Model.Subtotal.ToString("N2")
+                    </td>
+                </tr>
+
+                <tr>
+                    <th>Impuesto 13%</th>
+                    <td class="text-end">
+                        ₡@Model.Impuestos.ToString("N2")
+                    </td>
+                </tr>
+
                 <tr class="fw-bold" style="background-color:#c9a03c;color:#1a1a1a;">
                     <th>TOTAL</th>
-                    <td class="text-end">₡@Model.Total.ToString("N2")</td>
+                    <td class="text-end">
+                        ₡@Model.Total.ToString("N2")
+                    </td>
                 </tr>
             </table>
         </div>
     </div>
 
-
     <div class="d-flex gap-2 flex-wrap">
-        <a asp-action="ExportarPdf" asp-route-id="@Model.Id" class="btn btn-danger">
-            <i class="bi bi-file-pdf me-1"></i>PDF
+        <a asp-action="ExportarPdf"
+           asp-route-id="@Model.Id"
+           class="btn btn-danger">
+            <i class="bi bi-file-pdf me-1"></i>
+            PDF
         </a>
-        <a asp-action="ExportarExcel" asp-route-id="@Model.Id" class="btn btn-success">
-            <i class="bi bi-file-excel me-1"></i>Excel
+
+        <a asp-action="ExportarExcel"
+           asp-route-id="@Model.Id"
+           class="btn btn-success">
+            <i class="bi bi-file-excel me-1"></i>
+            Excel
         </a>
-        <a asp-action="Create" class="btn btn-warning">
-            <i class="bi bi-plus-circle me-1"></i>Nuevo Pedido
-        </a>
+
+        @if (User.IsInRole("Administrador") || User.IsInRole("Vendedor"))
+        {
+            <a asp-action="Create" class="btn btn-warning">
+                <i class="bi bi-plus-circle me-1"></i>
+                Nuevo Pedido
+            </a>
+        }
+
         <a asp-action="Index" class="btn btn-outline-secondary">
-            <i class="bi bi-arrow-left me-1"></i>Volver al listado
+            <i class="bi bi-arrow-left me-1"></i>
+            Volver al listado
         </a>
     </div>
 
-   
-    @* OC-HU-004: Historial de cambios de estado *@
     @{
         var histList = ViewBag.Historial as List<PROmaderas.UI.Controllers.HistorialItemDto>;
     }
+
     @if (histList != null && histList.Any())
     {
         <hr class="my-4" />
+
         <h5 class="mb-3">
-            <i class="bi bi-clock-history me-2 text-warning"></i>Historial de cambios de estado
+            <i class="bi bi-clock-history me-2 text-warning"></i>
+            Historial de cambios de estado
         </h5>
+
         <div class="table-responsive mb-4">
             <table class="table table-sm table-bordered">
                 <thead class="table-secondary">
@@ -296,18 +385,37 @@
                         <th>Estado anterior</th>
                         <th>Estado nuevo</th>
                         <th>Realizado por</th>
-                        <th>Observacion</th>
+                        <th>Observación</th>
                     </tr>
                 </thead>
+
                 <tbody>
                     @foreach (var h in histList)
                     {
                         <tr>
-                            <td class="text-nowrap">@h.FechaCambio.ToString("dd/MM/yyyy HH:mm")</td>
-                            <td><span class="badge bg-secondary">@h.EstadoAnterior</span></td>
-                            <td><span class="badge bg-warning text-dark">@h.EstadoNuevo</span></td>
-                            <td>@h.UsuarioCambio</td>
-                            <td class="text-muted">@h.Observacion</td>
+                            <td class="text-nowrap">
+                                @h.FechaCambio.ToString("dd/MM/yyyy HH:mm")
+                            </td>
+
+                            <td>
+                                <span class="badge bg-secondary">
+                                    @h.EstadoAnterior
+                                </span>
+                            </td>
+
+                            <td>
+                                <span class="badge bg-warning text-dark">
+                                    @h.EstadoNuevo
+                                </span>
+                            </td>
+
+                            <td>
+                                @h.UsuarioCambio
+                            </td>
+
+                            <td class="text-muted">
+                                @h.Observacion
+                            </td>
                         </tr>
                     }
                 </tbody>
