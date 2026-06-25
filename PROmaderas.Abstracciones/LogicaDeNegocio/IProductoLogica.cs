@@ -20,5 +20,9 @@ namespace PROmaderas.Abstracciones.LogicaDeNegocio
 			string? filtroNombre,
 			int? categoriaId);
 		Task<ProductoAD> AjustarStock(int id, int cantidad);
-	}
+        Task<List<InventarioExistenciaDTO>> ObtenerExistenciasActuales(int? idTipoTarima);
+        Task<List<InventarioMovimientoDTO>> ObtenerHistorialMovimientos(int? idTipoTarima);
+        Task RegistrarAjusteInventario(AjusteInventarioDTO ajuste);
+        Task<ProductoAD> CambiarEstadoTipoTarima(int id);
+    }
 }

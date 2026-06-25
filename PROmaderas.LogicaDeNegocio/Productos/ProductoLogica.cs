@@ -4,130 +4,200 @@ using PROmaderas.Abstracciones.Models;
 
 namespace PROmaderas.LogicaDeNegocio.Productos
 {
-	public class ProductoLogica : IProductoLogica
-	{
-		private readonly IProductoRepositorio _repositorio;
+    public class ProductoLogica : IProductoLogica
+    {
+        private readonly IProductoRepositorio _repositorio;
 
-		public ProductoLogica(IProductoRepositorio repositorio)
-		{
-			_repositorio = repositorio;
-		}
+        public ProductoLogica(IProductoRepositorio repositorio)
+        {
+            _repositorio = repositorio;
+        }
 
-		public async Task<List<ProductoAD>> ObtenerTodos()
-		{
-			return await _repositorio.ObtenerTodos();
-		}
+        public async Task<List<ProductoAD>> ObtenerTodos()
+        {
+            return await _repositorio.ObtenerTodos();
+        }
 
-		public async Task<ProductoAD?> ObtenerPorId(int id)
-		{
-			return await _repositorio.ObtenerPorId(id);
-		}
+        public async Task<ProductoAD?> ObtenerPorId(int id)
+        {
+            return await _repositorio.ObtenerPorId(id);
+        }
 
-		public async Task<CategoriaAD?> ObtenerCategoriaPorId(int id)
-		{
-			return await _repositorio.ObtenerCategoriaPorId(id);
-		}
+        public async Task<CategoriaAD?> ObtenerCategoriaPorId(int id)
+        {
+            return await _repositorio.ObtenerCategoriaPorId(id);
+        }
 
-		public async Task<List<CategoriaAD>> ObtenerCategorias()
-		{
-			return await _repositorio.ObtenerCategorias();
-		}
+        public async Task<List<CategoriaAD>> ObtenerCategorias()
+        {
+            return await _repositorio.ObtenerCategorias();
+        }
 
-		public async Task<ProductoAD> Crear(ProductoAD producto)
-		{
-			producto.Codigo = producto.Codigo.Trim();
-			producto.Nombre = producto.Nombre.Trim();
-			producto.Medida = producto.Medida.Trim();
-			producto.Descripcion = producto.Descripcion?.Trim();
+        public async Task<ProductoAD> Crear(ProductoAD producto)
+        {
+            producto.Codigo = producto.Codigo.Trim();
+            producto.Nombre = producto.Nombre.Trim();
+            producto.Medida = producto.Medida.Trim();
+            producto.Descripcion = producto.Descripcion?.Trim();
 
-			if (string.IsNullOrWhiteSpace(producto.Codigo))
-				throw new ArgumentException("El código del tipo de tarima es requerido.");
+            if (string.IsNullOrWhiteSpace(producto.Codigo))
+                throw new ArgumentException("El código del tipo de tarima es requerido.");
 
-			if (string.IsNullOrWhiteSpace(producto.Nombre))
-				throw new ArgumentException("El nombre del tipo de tarima es requerido.");
+            if (string.IsNullOrWhiteSpace(producto.Nombre))
+                throw new ArgumentException("El nombre del tipo de tarima es requerido.");
 
-			if (string.IsNullOrWhiteSpace(producto.Medida))
-				throw new ArgumentException("La medida del tipo de tarima es requerida.");
+            if (string.IsNullOrWhiteSpace(producto.Medida))
+                throw new ArgumentException("La medida del tipo de tarima es requerida.");
 
-			if (producto.Precio <= 0)
-				throw new ArgumentException("El precio unitario debe ser mayor a 0.");
+            if (producto.Precio <= 0)
+                throw new ArgumentException("El precio unitario debe ser mayor a 0.");
 
-			if (producto.StockMinimo < 0)
-				throw new ArgumentException("El stock mínimo no puede ser negativo.");
+            if (producto.StockMinimo < 0)
+                throw new ArgumentException("El stock mínimo no puede ser negativo.");
 
-			var existeDuplicado = await _repositorio.ExisteDuplicado(producto.Codigo, producto.Nombre);
+            var existeDuplicado = await _repositorio.ExisteDuplicado(producto.Codigo, producto.Nombre);
 
-			if (existeDuplicado)
-				throw new ArgumentException("Ya existe un tipo de tarima con el mismo código o nombre.");
+            if (existeDuplicado)
+                throw new ArgumentException("Ya existe un tipo de tarima con el mismo código o nombre.");
 
-			producto.FechaCreacion = DateTime.Now;
+            producto.FechaCreacion = DateTime.Now;
 
-			return await _repositorio.Crear(producto);
-		}
+            return await _repositorio.Crear(producto);
+        }
 
-		public async Task<ProductoAD> Actualizar(ProductoAD producto)
-		{
-			if (string.IsNullOrWhiteSpace(producto.Nombre))
-				throw new ArgumentException("El nombre del producto es requerido");
+        public async Task<ProductoAD> Actualizar(ProductoAD producto)
+        {
+            if (string.IsNullOrWhiteSpace(producto.Nombre))
+                throw new ArgumentException("El nombre del producto es requerido");
 
-			if (producto.Precio <= 0)
-				throw new ArgumentException("El precio debe ser mayor a 0");
+            if (producto.Precio <= 0)
+                throw new ArgumentException("El precio debe ser mayor a 0");
 
-			if (producto.Stock < 0)
-				throw new ArgumentException("El stock no puede ser negativo");
+            if (producto.Stock < 0)
+                throw new ArgumentException("El stock no puede ser negativo");
 
-			if (!await _repositorio.Existe(producto.Id))
-				throw new ArgumentException("El producto no existe");
+            if (!await _repositorio.Existe(producto.Id))
+                throw new ArgumentException("El producto no existe");
 
-			return await _repositorio.Actualizar(producto);
-		}
+            return await _repositorio.Actualizar(producto);
+        }
 
-		public async Task<bool> Eliminar(int id)
-		{
-			return await _repositorio.Eliminar(id);
-		}
+        public async Task<bool> Eliminar(int id)
+        {
+            return await _repositorio.Eliminar(id);
+        }
 
-		public async Task<bool> Existe(int id)
-		{
-			return await _repositorio.Existe(id);
-		}
+        public async Task<bool> Existe(int id)
+        {
+            return await _repositorio.Existe(id);
+        }
 
-		public async Task<List<ProductoAD>> BuscarPorNombre(string nombre)
-		{
-			return await _repositorio.BuscarPorNombre(nombre);
-		}
+        public async Task<List<ProductoAD>> BuscarPorNombre(string nombre)
+        {
+            return await _repositorio.BuscarPorNombre(nombre);
+        }
 
-		public async Task<List<ProductoAD>> FiltrarPorCategoria(int? categoriaId)
-		{
-			return await _repositorio.FiltrarPorCategoria(categoriaId);
-		}
+        public async Task<List<ProductoAD>> FiltrarPorCategoria(int? categoriaId)
+        {
+            return await _repositorio.FiltrarPorCategoria(categoriaId);
+        }
 
-		public async Task<(List<ProductoAD> productos, int totalRegistros)> ObtenerPaginado(
-			int pagina,
-			int registrosPorPagina,
-			string? filtroNombre,
-			int? categoriaId)
-		{
-			if (pagina < 1) pagina = 1;
-			if (registrosPorPagina < 1) registrosPorPagina = 10;
+        public async Task<(List<ProductoAD> productos, int totalRegistros)> ObtenerPaginado(
+            int pagina,
+            int registrosPorPagina,
+            string? filtroNombre,
+            int? categoriaId)
+        {
+            if (pagina < 1) pagina = 1;
+            if (registrosPorPagina < 1) registrosPorPagina = 10;
 
-			return await _repositorio.ObtenerPaginado(pagina, registrosPorPagina, filtroNombre, categoriaId);
-		}
-		public async Task<ProductoAD> AjustarStock(int id, int cantidad)
-		{
-			var producto = await _repositorio.ObtenerPorId(id);
+            return await _repositorio.ObtenerPaginado(pagina, registrosPorPagina, filtroNombre, categoriaId);
+        }
 
-			if (producto == null)
-				throw new ArgumentException("El producto no existe");
+        public async Task<ProductoAD> AjustarStock(int id, int cantidad)
+        {
+            var producto = await _repositorio.ObtenerPorId(id);
 
-			int nuevoStock = producto.Stock + cantidad;
+            if (producto == null)
+                throw new ArgumentException("El producto no existe");
 
-			if (nuevoStock < 0)
-				throw new ArgumentException("El stock no puede quedar negativo");
+            int nuevoStock = producto.Stock + cantidad;
 
-			producto.Stock = nuevoStock;
+            if (nuevoStock < 0)
+                throw new ArgumentException("El stock no puede quedar negativo");
 
-			return await _repositorio.Actualizar(producto);
-		}
-	}
+            producto.Stock = nuevoStock;
+
+            return await _repositorio.Actualizar(producto);
+        }
+
+        public async Task<List<InventarioExistenciaDTO>> ObtenerExistenciasActuales(int? idTipoTarima)
+        {
+            return await _repositorio.ObtenerExistenciasActuales(idTipoTarima);
+        }
+
+        public async Task<List<InventarioMovimientoDTO>> ObtenerHistorialMovimientos(int? idTipoTarima)
+        {
+            return await _repositorio.ObtenerHistorialMovimientos(idTipoTarima);
+        }
+
+
+        public async Task<ProductoAD> CambiarEstadoTipoTarima(int id)
+        {
+            if (id <= 0)
+                throw new ArgumentException("Debe seleccionar un tipo de tarima válido.");
+
+            var producto = await _repositorio.ObtenerPorId(id);
+            if (producto == null)
+                throw new ArgumentException("El tipo de tarima seleccionado no existe.");
+
+            return await _repositorio.CambiarEstadoTipoTarima(id);
+        }
+
+        public async Task RegistrarAjusteInventario(AjusteInventarioDTO ajuste)
+        {
+            if (ajuste.IdTipoTarima <= 0)
+                throw new ArgumentException("Debe seleccionar un tipo de tarima.");
+
+            if (ajuste.Cantidad <= 0)
+                throw new ArgumentException("La cantidad del ajuste debe ser mayor a 0.");
+
+            if (string.IsNullOrWhiteSpace(ajuste.TipoAjuste))
+                throw new ArgumentException("Debe seleccionar si el ajuste es de entrada o salida.");
+
+            if (ajuste.TipoAjuste != "AjusteEntrada" && ajuste.TipoAjuste != "AjusteSalida")
+                throw new ArgumentException("El tipo de ajuste seleccionado no es válido.");
+
+            if (string.IsNullOrWhiteSpace(ajuste.Autorizacion))
+                throw new ArgumentException("No existe autorización para registrar el ajuste. La acción fue bloqueada.");
+
+            if (string.IsNullOrWhiteSpace(ajuste.Motivo))
+                throw new ArgumentException("Debe registrar el motivo del ajuste.");
+
+            if (ajuste.Motivo.Trim().Length > 180)
+                throw new ArgumentException("El motivo no puede superar los 180 caracteres.");
+
+            if (ajuste.Autorizacion.Trim().Length > 60)
+                throw new ArgumentException("La autorización no puede superar los 60 caracteres.");
+
+            var producto = await _repositorio.ObtenerPorId(ajuste.IdTipoTarima);
+            if (producto == null)
+                throw new ArgumentException("El tipo de tarima seleccionado no existe.");
+
+            if (ajuste.TipoAjuste == "AjusteSalida")
+            {
+                var existencias = await _repositorio.ObtenerExistenciasActuales(ajuste.IdTipoTarima);
+                var stockActual = existencias.FirstOrDefault()?.StockActual ?? 0;
+
+                if (stockActual - ajuste.Cantidad < 0)
+                    throw new ArgumentException("El ajuste de salida no puede dejar el inventario en negativo.");
+            }
+
+            ajuste.Motivo = ajuste.Motivo.Trim();
+            ajuste.Autorizacion = ajuste.Autorizacion.Trim();
+
+            await _repositorio.RegistrarAjusteInventario(ajuste);
+        }
+
+    }
 }

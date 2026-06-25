@@ -8,13 +8,13 @@
 <div class="container mt-4">
     <div class="row mb-3 align-items-center">
         <div class="col">
-            <h2><i class="bi bi-box-seam me-2" style="color:#c9a03c"></i>Catálogo de Productos</h2>
+            <h2><i class="bi bi-box-seam me-2" style="color:#c9a03c"></i>Catálogo de Tipos de Tarima</h2>
         </div>
         @if (User.IsInRole("Administrador"))
         {
             <div class="col-auto">
                 <a asp-action="Create" class="btn btn-warning fw-bold px-4">
-                    <i class="bi bi-plus-circle me-1"></i>Nuevo Producto
+                    <i class="bi bi-plus-circle me-1"></i>Nuevo Tipo de Tarima
                 </a>
             </div>
         }
@@ -135,10 +135,15 @@
                                 }
                                 @if (User.IsInRole("Administrador"))
                                 {
-                                    <a asp-action="Delete" asp-route-id="@item.Id"
-                                       class="btn btn-sm btn-accion-eliminar" title="Eliminar">
-                                        <i class="bi bi-trash"></i>
-                                    </a>
+                                    <form asp-action="CambiarEstado" asp-route-id="@item.Id" method="post" class="d-inline"
+                                          onsubmit="return confirm('@(item.Activo ? "¿Desea inactivar este tipo de tarima? El historial de movimientos se conservará." : "¿Desea reactivar este tipo de tarima?")');">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit"
+                                                class="btn btn-sm @(item.Activo ? "btn-outline-secondary" : "btn-outline-success")"
+                                                title="@(item.Activo ? "Inactivar" : "Reactivar")">
+                                            <i class="bi @(item.Activo ? "bi-pause-circle" : "bi-play-circle")"></i>
+                                        </button>
+                                    </form>
                                 }
                             </div>
                         </td>
@@ -148,7 +153,7 @@
                 {
                     <tr>
                         <td colspan="8" class="text-center text-muted py-4">
-                            <i class="bi bi-inbox me-1"></i>No se encontraron productos.
+                            <i class="bi bi-inbox me-1"></i>No se encontraron tipos de tarima.
                         </td>
                     </tr>
                 }

@@ -22,5 +22,10 @@ namespace PROmaderas.Abstracciones.AccesoADatos
 			int registrosPorPagina,
 			string? filtroNombre,
 			int? categoriaId);
-	}
+
+        Task<List<InventarioExistenciaDTO>> ObtenerExistenciasActuales(int? idTipoTarima);
+        Task<List<InventarioMovimientoDTO>> ObtenerHistorialMovimientos(int? idTipoTarima);
+        Task RegistrarAjusteInventario(AjusteInventarioDTO ajuste);
+        Task<ProductoAD> CambiarEstadoTipoTarima(int id);
+    }
 }
