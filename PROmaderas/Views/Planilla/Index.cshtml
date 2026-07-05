@@ -1,4 +1,5 @@
-﻿@model IEnumerable<PROmaderas.Abstracciones.Models.PlanillaAD>
+﻿@using PROmaderas.Abstracciones.Models
+@model List<PlanillaPeriodoAD>
 @{
     ViewData["Title"] = "Planilla";
     int paginaActual = ViewBag.PaginaActual != null ? (int)ViewBag.PaginaActual : 1;
@@ -8,26 +9,39 @@
 <div class="container mt-4">
     <div class="row mb-3 align-items-center">
         <div class="col">
-            <h2><i class="bi bi-cash-stack me-2" style="color:#c9a03c"></i>Planilla</h2>
+            <h2><i class="bi bi-cash-coin me-2" style="color:#c9a03c"></i>Períodos de Planilla</h2>
         </div>
-        @if (User.IsInRole("Administrador") || User.IsInRole("Contador") || User.IsInRole("Gerente"))
-        {
-            <div class="col-auto">
-                <a asp-action="Create" class="btn btn-warning fw-bold px-4">
-                    <i class="bi bi-plus-circle me-1"></i>Nuevo Registro
-                </a>
-            </div>
-        }
+        <div class="col-auto">
+            <a asp-action="Create" class="btn btn-warning fw-bold px-4">
+                <i class="bi bi-plus-circle me-1"></i>Nuevo Período
+            </a>
+        </div>
     </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            <i class="bi bi-check-circle me-1"></i>@TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-warning alert-dismissible fade show">
+            <i class="bi bi-exclamation-triangle me-1"></i>@TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
 
     <div class="table-responsive">
         <table class="table table-striped table-hover align-middle">
             <thead class="table-dark">
                 <tr>
-                    <th>Nombre</th>
-                    <th>Cédula</th>
-                    <th>Puesto</th>
-                    <th class="text-end">Salario Neto</th>
+                    <th>Período</th>
+                    <th>Tipo</th>
+                    <th>Empleados</th>
+                    <th>Total bruto</th>
+                    <th>Estado</th>
                     <th class="text-center" style="min-width:130px">Acciones</th>
                 </tr>
             </thead>
@@ -35,23 +49,32 @@
                 @foreach (var item in Model)
                 {
                     <tr>
-                        <td class="fw-semibold">@item.NombreEmpleado</td>
-                        <td>@item.Cedula</td>
-                        <td>@item.Puesto</td>
-                        <td class="text-end">₡@item.SalarioNeto.ToString("N2")</td>
+                        <td class="fw-semibold">@item.FechaInicio.ToString("dd/MM/yyyy") - @item.FechaFin.ToString("dd/MM/yyyy")</td>
+                        <td>@item.TipoPeriodo</td>
+                        <td>@item.CantidadEmpleados</td>
+                        <td>@item.TotalSalarioBruto.ToString("C2")</td>
+                        <td>
+                            @{
+                                string claseEstado = item.Estado switch
+                                {
+                                    "Borrador" => "badge-estado-borrador",
+                                    "Revisada" => "badge-estado-revisada",
+                                    "Aprobada" => "badge-estado-aprobada",
+                                    "Pagada" => "badge-estado-pagada",
+                                    _ => "badge-estado-borrador"
+                                };
+                            }
+                            <span class="badge @claseEstado">@item.Estado</span>
+                        </td>
                         <td class="text-center">
                             <div class="d-flex gap-2 justify-content-center flex-nowrap">
-                                <a asp-action="Details" asp-route-id="@item.Id"
-                                   class="btn btn-sm btn-accion-ver" title="Ver detalles">
+                                <a asp-action="Details" asp-route-id="@item.IdPlanillaPeriodo"
+                                   class="btn btn-sm btn-accion-ver" title="Ver detalle">
                                     <i class="bi bi-eye"></i>
                                 </a>
-                                @if (User.IsInRole("Administrador") || User.IsInRole("Contador"))
+                                @if (item.Estado == "Borrador")
                                 {
-                                    <a asp-action="Edit" asp-route-id="@item.Id"
-                                       class="btn btn-sm btn-accion-editar" title="Editar">
-                                        <i class="bi bi-pencil"></i>
-                                    </a>
-                                    <a asp-action="Delete" asp-route-id="@item.Id"
+                                    <a asp-action="Delete" asp-route-id="@item.IdPlanillaPeriodo"
                                        class="btn btn-sm btn-accion-eliminar" title="Eliminar">
                                         <i class="bi bi-trash"></i>
                                     </a>
@@ -63,8 +86,8 @@
                 @if (!Model.Any())
                 {
                     <tr>
-                        <td colspan="5" class="text-center text-muted py-4">
-                            <i class="bi bi-inbox me-1"></i>No hay registros de planilla.
+                        <td colspan="6" class="text-center text-muted py-4">
+                            <i class="bi bi-inbox me-1"></i>No se encontraron períodos de planilla.
                         </td>
                     </tr>
                 }

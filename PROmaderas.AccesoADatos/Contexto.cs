@@ -15,7 +15,7 @@ namespace PROmaderas.AccesoADatos
         public DbSet<PedidoDetalleAD> PedidoDetalles { get; set; }
         public DbSet<FacturacionAD> Facturaciones { get; set; }
         public DbSet<EmpleadoAD> Empleados { get; set; }
-		public DbSet<InventarioMovimientoAD> InventarioMovimientos { get; set; }
+        public DbSet<InventarioMovimientoAD> InventarioMovimientos { get; set; }
 
         // Sprint 2: tabla Usuario (IdVendedor en OrdenCompra)
         public DbSet<UsuarioAD> Usuarios { get; set; }
@@ -27,10 +27,10 @@ namespace PROmaderas.AccesoADatos
         // FAC-HU-004: tabla PagoFactura ya existe en el script; solo se mapea (sin migración).
         public DbSet<PagoFacturaAD> PagosFactura { get; set; }
 
-		public DbSet<PlanillaPeriodoAD> PlanillaPeriodos { get; set; }
-		public DbSet<PlanillaDetalleFinancieroAD> PlanillaDetallesFinancieros { get; set; }
+        public DbSet<PlanillaPeriodoAD> PlanillaPeriodos { get; set; }
+        public DbSet<PlanillaDetalleFinancieroAD> PlanillaDetallesFinancieros { get; set; }
 
-		protected override void OnModelCreating(ModelBuilder modelBuilder)
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
@@ -38,31 +38,31 @@ namespace PROmaderas.AccesoADatos
             modelBuilder.Ignore<CategoriaAD>();
             modelBuilder.Ignore<PlanillaAD>();
 
-			// ProductoAD -> TipoTarima
-			modelBuilder.Entity<ProductoAD>(e =>
-			{
-				e.ToTable("TipoTarima");
-				e.HasKey(x => x.Id);
+            // ProductoAD  TipoTarima
+            modelBuilder.Entity<ProductoAD>(e =>
+            {
+                e.ToTable("TipoTarima");
+                e.HasKey(x => x.Id);
 
-				e.Property(x => x.Id).HasColumnName("IdTipoTarima");
-				e.Property(x => x.Codigo).HasColumnName("Codigo");
-				e.Property(x => x.Nombre).HasColumnName("Nombre");
-				e.Property(x => x.Medida).HasColumnName("Medida");
-				e.Property(x => x.Descripcion).HasColumnName("Descripcion");
-				e.Property(x => x.Precio).HasColumnName("PrecioUnitario");
-				e.Property(x => x.StockMinimo).HasColumnName("StockMinimo");
-				e.Property(x => x.Activo).HasColumnName("Estado");
-				e.Property(x => x.FechaCreacion).HasColumnName("FechaCreacion");
+                e.Property(x => x.Id).HasColumnName("IdTipoTarima");
+                e.Property(x => x.Codigo).HasColumnName("Codigo");
+                e.Property(x => x.Nombre).HasColumnName("Nombre");
+                e.Property(x => x.Medida).HasColumnName("Medida");
+                e.Property(x => x.Descripcion).HasColumnName("Descripcion");
+                e.Property(x => x.Precio).HasColumnName("PrecioUnitario");
+                e.Property(x => x.StockMinimo).HasColumnName("StockMinimo");
+                e.Property(x => x.Activo).HasColumnName("Estado");
+                e.Property(x => x.FechaCreacion).HasColumnName("FechaCreacion");
 
-				e.Ignore(x => x.CategoriaId);
-				e.Ignore(x => x.ImpuestoPorc);
-				e.Ignore(x => x.Stock);
-				e.Ignore(x => x.ImagenUrl);
-				e.Ignore(x => x.Categoria);
-			});
+                e.Ignore(x => x.CategoriaId);
+                e.Ignore(x => x.ImpuestoPorc);
+                e.Ignore(x => x.Stock);
+                e.Ignore(x => x.ImagenUrl);
+                e.Ignore(x => x.Categoria);
+            });
 
-			// ClienteAD -> Cliente
-			modelBuilder.Entity<ClienteAD>(e =>
+            // ClienteAD  Cliente
+            modelBuilder.Entity<ClienteAD>(e =>
             {
                 e.ToTable("Cliente");
                 e.HasKey(x => x.Id);
@@ -80,7 +80,7 @@ namespace PROmaderas.AccesoADatos
                 e.Ignore(x => x.UsuarioIdentityId);
             });
 
-            // PedidoAD -> OrdenCompra  (Sprint 2: agrega NumeroOrden, IdVendedor, Observacion, Activa)
+            // PedidoAD  OrdenCompra  (Sprint 2: agrega NumeroOrden, IdVendedor, Observacion, Activa)
             modelBuilder.Entity<PedidoAD>(e =>
             {
                 e.ToTable("OrdenCompra");
@@ -99,7 +99,7 @@ namespace PROmaderas.AccesoADatos
                 // UsuarioId es [NotMapped] — ignorado automáticamente
             });
 
-            // PedidoDetalleAD -> OrdenCompraDetalle
+            // PedidoDetalleAD  OrdenCompraDetalle
             modelBuilder.Entity<PedidoDetalleAD>(e =>
             {
                 e.ToTable("OrdenCompraDetalle");
@@ -114,35 +114,33 @@ namespace PROmaderas.AccesoADatos
                 e.Ignore(x => x.ImpuestoPorc);
             });
 
+            // InventarioMovimientoAD InventarioMovimiento
+            modelBuilder.Entity<InventarioMovimientoAD>(e =>
+            {
+                e.ToTable("InventarioMovimiento");
+                e.HasKey(x => x.IdMovimiento);
 
-			// InventarioMovimientoAD -> InventarioMovimiento
-			modelBuilder.Entity<InventarioMovimientoAD>(e =>
-			{
-				e.ToTable("InventarioMovimiento");
-				e.HasKey(x => x.IdMovimiento);
+                e.Property(x => x.IdMovimiento).HasColumnName("IdMovimiento");
+                e.Property(x => x.IdTipoTarima).HasColumnName("IdTipoTarima");
+                e.Property(x => x.IdUsuarioRegistro).HasColumnName("IdUsuarioRegistro");
+                e.Property(x => x.TipoMovimiento).HasColumnName("TipoMovimiento");
+                e.Property(x => x.Cantidad).HasColumnName("Cantidad");
+                e.Property(x => x.FechaMovimiento).HasColumnName("FechaMovimiento");
+                e.Property(x => x.Motivo).HasColumnName("Motivo");
+                e.Property(x => x.IdProduccion).HasColumnName("IdProduccion");
+                e.Property(x => x.IdOrdenCompra).HasColumnName("IdOrdenCompra");
 
-				e.Property(x => x.IdMovimiento).HasColumnName("IdMovimiento");
-				e.Property(x => x.IdTipoTarima).HasColumnName("IdTipoTarima");
-				e.Property(x => x.IdUsuarioRegistro).HasColumnName("IdUsuarioRegistro");
-				e.Property(x => x.TipoMovimiento).HasColumnName("TipoMovimiento");
-				e.Property(x => x.Cantidad).HasColumnName("Cantidad");
-				e.Property(x => x.FechaMovimiento).HasColumnName("FechaMovimiento");
-				e.Property(x => x.Motivo).HasColumnName("Motivo");
-				e.Property(x => x.IdProduccion).HasColumnName("IdProduccion");
-				e.Property(x => x.IdOrdenCompra).HasColumnName("IdOrdenCompra");
+                e.HasOne(x => x.Producto)
+                    .WithMany()
+                    .HasForeignKey(x => x.IdTipoTarima);
 
-				e.HasOne(x => x.Producto)
-					.WithMany()
-					.HasForeignKey(x => x.IdTipoTarima);
+                e.HasOne(x => x.OrdenCompra)
+                    .WithMany()
+                    .HasForeignKey(x => x.IdOrdenCompra);
+            });
 
-				e.HasOne(x => x.OrdenCompra)
-					.WithMany()
-					.HasForeignKey(x => x.IdOrdenCompra);
-			});
-
-
-			// FacturacionAD -> Factura  (FAC-HU-001)
-			modelBuilder.Entity<FacturacionAD>(e =>
+            // FacturacionAD  Factura  (FAC-HU-001)
+            modelBuilder.Entity<FacturacionAD>(e =>
             {
                 e.ToTable("Factura");
                 e.HasKey(x => x.Id);
@@ -162,7 +160,7 @@ namespace PROmaderas.AccesoADatos
                 e.Ignore(x => x.MetodoPago);
             });
 
-            // EmpleadoAD -> Empleado
+            // EmpleadoAD  Empleado
             modelBuilder.Entity<EmpleadoAD>(e =>
             {
                 e.ToTable("Empleado", "dbo");
@@ -170,7 +168,7 @@ namespace PROmaderas.AccesoADatos
                 e.Ignore(x => x.Puesto);
             });
 
-            // UsuarioAD -> Usuario  (Sprint 2: para resolver IdVendedor)
+            // UsuarioAD  Usuario  (Sprint 2: para resolver IdVendedor)
             modelBuilder.Entity<UsuarioAD>(e =>
             {
                 e.ToTable("Usuario");
@@ -183,7 +181,7 @@ namespace PROmaderas.AccesoADatos
                 e.Property(x => x.Estado).HasColumnName("Estado");
             });
 
-            // BitacoraAuditoriaAD -> BitacoraAuditoria
+            // BitacoraAuditoriaAD  BitacoraAuditoria
             // IdUsuario se mapea como int? escalar SIN navegacion a UsuarioAD:
             // el AspNetUsers.Id es GUID (nvarchar) y dbo.Usuario.IdUsuario es int,
             // tipos incompatibles. Siempre se escribe NULL desde el ConstructorBitacora;
@@ -203,7 +201,7 @@ namespace PROmaderas.AccesoADatos
                 e.Property(x => x.DireccionIP).HasColumnName("DireccionIP");
             });
 
-            // PagoFacturaAD -> PagoFactura  (FAC-HU-004: mapeo de tabla existente, sin migración)
+            // PagoFacturaAD  PagoFactura  (FAC-HU-004: mapeo de tabla existente, sin migración)
             modelBuilder.Entity<PagoFacturaAD>(e =>
             {
                 e.ToTable("PagoFactura");
@@ -217,39 +215,49 @@ namespace PROmaderas.AccesoADatos
                 e.Property(x => x.IdUsuarioRegistro).HasColumnName("IdUsuarioRegistro");
             });
 
-			// PlanillaPeriodoAD -> PlanillaPeriodo
-			modelBuilder.Entity<PlanillaPeriodoAD>(e =>
-			{
-				e.ToTable("PlanillaPeriodo");
-				e.HasKey(x => x.IdPlanillaPeriodo);
+            // PlanillaPeriodoAD PlanillaPeriodo
+            modelBuilder.Entity<PlanillaPeriodoAD>(e =>
+            {
+                e.ToTable("PlanillaPeriodo");
+                e.HasKey(x => x.IdPlanillaPeriodo);
 
-				e.Property(x => x.IdPlanillaPeriodo).HasColumnName("IdPlanillaPeriodo");
-				e.Property(x => x.FechaInicio).HasColumnName("FechaInicio");
-				e.Property(x => x.FechaFin).HasColumnName("FechaFin");
-				e.Property(x => x.TipoPeriodo).HasColumnName("TipoPeriodo");
-				e.Property(x => x.Estado).HasColumnName("Estado");
-				e.Property(x => x.FechaCreacion).HasColumnName("FechaCreacion");
-				e.Property(x => x.IdUsuarioCreacion).HasColumnName("IdUsuarioCreacion");
-			});
+                e.Property(x => x.IdPlanillaPeriodo).HasColumnName("IdPlanillaPeriodo");
+                e.Property(x => x.FechaInicio).HasColumnName("FechaInicio");
+                e.Property(x => x.FechaFin).HasColumnName("FechaFin");
+                e.Property(x => x.TipoPeriodo).HasColumnName("TipoPeriodo");
+                e.Property(x => x.Estado).HasColumnName("Estado");
+                e.Property(x => x.FechaCreacion).HasColumnName("FechaCreacion");
+                e.Property(x => x.IdUsuarioCreacion).HasColumnName("IdUsuarioCreacion");
+            });
 
-			// PlanillaDetalleFinancieroAD -> PlanillaDetalle
-			modelBuilder.Entity<PlanillaDetalleFinancieroAD>(e =>
-			{
-				e.ToTable("PlanillaDetalle");
-				e.HasKey(x => x.IdPlanillaDetalle);
+            // PlanillaDetalleFinancieroAD  PlanillaDetalle
+            modelBuilder.Entity<PlanillaDetalleFinancieroAD>(e =>
+            {
+                e.ToTable("PlanillaDetalle");
+                e.HasKey(x => x.IdPlanillaDetalle);
 
-				e.Property(x => x.IdPlanillaDetalle).HasColumnName("IdPlanillaDetalle");
-				e.Property(x => x.IdPlanillaPeriodo).HasColumnName("IdPlanillaPeriodo");
-				e.Property(x => x.IdEmpleado).HasColumnName("IdEmpleado");
-				e.Property(x => x.SalarioNeto).HasColumnName("SalarioNeto");
+                e.Property(x => x.IdPlanillaDetalle).HasColumnName("IdPlanillaDetalle");
+                e.Property(x => x.IdPlanillaPeriodo).HasColumnName("IdPlanillaPeriodo");
+                e.Property(x => x.IdEmpleado).HasColumnName("IdEmpleado");
+                e.Property(x => x.HorasOrdinarias).HasColumnName("HorasOrdinarias");
+                e.Property(x => x.HorasExtra).HasColumnName("HorasExtra");
+                e.Property(x => x.SalarioBase).HasColumnName("SalarioBase");
+                e.Property(x => x.MontoHorasExtra).HasColumnName("MontoHorasExtra");
+                e.Property(x => x.SalarioBruto).HasColumnName("SalarioBruto");
+                e.Property(x => x.TotalDeducciones).HasColumnName("TotalDeducciones");
+                e.Property(x => x.SalarioNeto).HasColumnName("SalarioNeto");
 
-				e.HasOne(x => x.Periodo)
-					.WithMany(x => x.Detalles)
-					.HasForeignKey(x => x.IdPlanillaPeriodo);
-			});
+                e.HasOne(x => x.Periodo)
+                    .WithMany(x => x.Detalles)
+                    .HasForeignKey(x => x.IdPlanillaPeriodo);
 
-			// PuestoAD -> Puesto (read-only; usado para poblar dropdowns)
-			modelBuilder.Entity<PuestoAD>(e =>
+                e.HasOne(x => x.Empleado)
+                    .WithMany()
+                    .HasForeignKey(x => x.IdEmpleado);
+            });
+
+            // PuestoAD  Puesto (read-only; usado para poblar dropdowns)
+            modelBuilder.Entity<PuestoAD>(e =>
             {
                 e.ToTable("Puesto");
                 e.HasKey(x => x.IdPuesto);

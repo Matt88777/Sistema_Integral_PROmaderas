@@ -1894,3 +1894,23 @@ td .btn-sm {
     color: #c9a03c;
     font-weight: 600;
 }
+
+.badge-estado-borrador {
+    background: #78716C;
+    color: #fff;
+}
+
+.badge-estado-revisada {
+    background: #9333EA;
+    color: #fff;
+}
+
+.badge-estado-aprobada {
+    background: #0D9488;
+    color: #fff;
+}
+
+.badge-estado-pagada {
+    background: #4D7C0F;
+    color: #fff;
+}

@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Identity;                        
-using PROmaderas.AccesoADatos;                             
+using Microsoft.AspNetCore.Identity;
+using PROmaderas.AccesoADatos;
 using PROmaderas.AccesoADatos.Seguridad;
 using PROmaderas.AccesoADatos.Categorias;
 using PROmaderas.AccesoADatos.Productos;
@@ -22,43 +22,33 @@ using PROmaderas.AccesoADatos.Dashboard;
 using PROmaderas.LogicaDeNegocio.Dashboard;
 using PROmaderas.AccesoADatos.Produccion;
 using PROmaderas.LogicaDeNegocio.Produccion;
-
 using PROmaderas.AccesoADatos.Empleados;
-
-
-
-{
-
-}
-
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllersWithViews(options =>
 {
-	options.Filters.Add<PROmaderas.UI.Filters.GlobalExceptionFilter>();
+    options.Filters.Add<PROmaderas.UI.Filters.GlobalExceptionFilter>();
 });
 
 // === CONFIGURA EL CONTEXTO DE IDENTITY ===
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-	options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // === CONFIGURA IDENTITY (LOGIN Y ROLES EN LA BD) ===
 builder.Services.AddIdentity<UsuarioIdentity, IdentityRole>(options =>
 {
-	options.SignIn.RequireConfirmedAccount = false;
+    options.SignIn.RequireConfirmedAccount = false;
 })
 .AddRoles<IdentityRole>()
 .AddDefaultTokenProviders()
 .AddEntityFrameworkStores<ApplicationDbContext>();
 
-//
-
 builder.Services.AddAuthorization();
 
 // Tu contexto original para tus repositorios personalizados (lo puedes dejar)
 builder.Services.AddDbContext<Contexto>(options =>
-	options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddScoped<ICategoriaRepositorio, CategoriaRepositorio>();
 builder.Services.AddScoped<IProductoRepositorio, ProductoRepositorio>();
@@ -78,6 +68,11 @@ builder.Services.AddScoped<IEmpleadoLogica, EmpleadoLogica>();
 builder.Services.AddScoped<IPuestoRepositorio, PuestoRepositorio>();
 builder.Services.AddScoped<IPuestoLogica, PuestoLogica>();
 
+builder.Services.AddScoped<PROmaderas.Abstracciones.AccesoADatos.IPlanillaRepositorio,
+    PROmaderas.AccesoADatos.Planilla.PlanillaRepositorio>();
+builder.Services.AddScoped<PROmaderas.Abstracciones.LogicaDeNegocio.IPlanillaLogica,
+    PROmaderas.LogicaDeNegocio.Planilla.PlanillaLogica>();
+
 builder.Services.AddScoped<IFacturacionRepositorio, FacturacionRepositorio>();
 builder.Services.AddScoped<IFacturacionLogica, FacturacionLogica>();
 builder.Services.AddScoped<IDashboardRepositorio, DashboardRepositorio>();
@@ -93,8 +88,8 @@ var app = builder.Build();
 // === ASEGURAR QUE LA BASE DE DATOS DE IDENTITY ESTÉ CREADA ===
 using (var scope = app.Services.CreateScope())
 {
-	var identityContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-	identityContext.Database.Migrate();
+    var identityContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    identityContext.Database.Migrate();
 }
 
 // Sprint 0 PROMADERAS: el seed antiguo (Pedidos360) creaba/poblaba tablas
@@ -112,14 +107,14 @@ using (var scope = app.Services.CreateScope())
 
 using (var scope = app.Services.CreateScope())
 {
-	var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-	var userManager = scope.ServiceProvider.GetRequiredService<UserManager<UsuarioIdentity>>();
+    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<UsuarioIdentity>>();
 
-	await IdentitySeeder.SeedRolesAsync(roleManager);
-	await IdentitySeeder.SeedUsuarioAdministradorAsync(userManager, builder.Configuration);
+    await IdentitySeeder.SeedRolesAsync(roleManager);
+    await IdentitySeeder.SeedUsuarioAdministradorAsync(userManager, builder.Configuration);
     await IdentitySeeder.SeedUsuarioVendedorAsync(userManager, builder.Configuration);
-    await IdentitySeeder.SeedUsuarioGerenteAsync(userManager);    
-    await IdentitySeeder.SeedUsuarioContadorAsync(userManager);   
+    await IdentitySeeder.SeedUsuarioGerenteAsync(userManager);
+    await IdentitySeeder.SeedUsuarioContadorAsync(userManager);
     await IdentitySeeder.SeedUsuarioOperadorAsync(userManager);
     await IdentitySeeder.SeedUsuarioGenericoAsync(userManager);
     await IdentitySeeder.SeedUsuarioAborbonAsync(userManager);
@@ -129,12 +124,12 @@ using (var scope = app.Services.CreateScope())
 
 if (!app.Environment.IsDevelopment())
 {
-	app.UseExceptionHandler("/Error");
-	app.UseHsts();
+    app.UseExceptionHandler("/Error");
+    app.UseHsts();
 }
 else
 {
-	app.UseDeveloperExceptionPage();
+    app.UseDeveloperExceptionPage();
 }
 
 app.UseStatusCodePagesWithReExecute("/Error/{0}");
@@ -148,14 +143,12 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllerRoute(
-	name: "login",
-	pattern: "",
-	defaults: new { controller = "Account", action = "Login" });
+    name: "login",
+    pattern: "",
+    defaults: new { controller = "Account", action = "Login" });
 
 app.MapControllerRoute(
-	name: "default",
-	pattern: "{controller}/{action=Index}/{id?}");
+    name: "default",
+    pattern: "{controller}/{action=Index}/{id?}");
 
 app.Run();
-
-

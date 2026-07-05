@@ -1,66 +1,187 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using PROmaderas.Abstracciones.LogicaDeNegocio;
 using PROmaderas.Abstracciones.Models;
-using PROmaderas.AccesoADatos;
 using PROmaderas.UI.Seguridad;
 
 namespace PROmaderas.UI.Controllers
 {
-	// Sprint 0 PROMADERAS: la BD nueva usa un modelo relacional
-	// (PlanillaPeriodo + PlanillaDetalle + ...) que el modelo plano PlanillaAD
-	// no soporta. Todo el módulo queda en construcción hasta que se mapee
-	// correctamente en un sprint posterior. El controller original se conserva
-	// abajo, comentado, para retomarlo más adelante.
-	[Authorize(Roles = Roles.Administrador + "," + Roles.Contador)]
-	public class PlanillaController : Controller
-	{
-		private readonly Contexto _contexto;
+    [Authorize(Roles = Roles.Administrador + "," + Roles.Contador)]
+    public class PlanillaController : Controller
+    {
+        private readonly IPlanillaLogica _planillaLogica;
+        private const int TamanioPagina = 8;
 
-		public PlanillaController(Contexto contexto)
-		{
-			_contexto = contexto;
-			_ = _contexto; // mantener la inyección por consistencia
-		}
+        public PlanillaController(IPlanillaLogica planillaLogica)
+        {
+            _planillaLogica = planillaLogica;
+        }
 
-		private IActionResult EnConstruccion()
-		{
-			ViewBag.Modulo = "El módulo de Planilla";
-			ViewBag.Detalle = "PROMADERAS gestiona la planilla con un modelo relacional (períodos + detalle por empleado) que aún no está conectado al frontend. Estará disponible en el próximo sprint.";
-			return View("EnConstruccion");
-		}
+        public async Task<IActionResult> Index(int pagina = 1)
+        {
+            var periodos = await _planillaLogica.ObtenerPeriodos();
 
-		public IActionResult Index() => EnConstruccion();
-		public IActionResult Details(int? id) => EnConstruccion();
-		public IActionResult Create() => EnConstruccion();
-		[HttpPost, ValidateAntiForgeryToken]
-		public IActionResult Create(PlanillaAD planilla) => EnConstruccion();
-		public IActionResult Edit(int? id) => EnConstruccion();
-		[HttpPost, ValidateAntiForgeryToken]
-		public IActionResult Edit(int id, PlanillaAD planilla) => EnConstruccion();
-		public IActionResult Delete(int? id) => EnConstruccion();
-		[HttpPost, ActionName("Delete"), ValidateAntiForgeryToken]
-		public IActionResult DeleteConfirmed(int id) => EnConstruccion();
+            int totalPaginas = (int)Math.Ceiling(periodos.Count / (double)TamanioPagina);
+            if (totalPaginas < 1) totalPaginas = 1;
+            if (pagina < 1) pagina = 1;
+            if (pagina > totalPaginas) pagina = totalPaginas;
 
-		/* IMPLEMENTACION ORIGINAL (Pedidos360) — comentada hasta que se mapee a
-		   PlanillaPeriodo + PlanillaDetalle de la BD nueva.
+            var periodosPagina = periodos
+                .Skip((pagina - 1) * TamanioPagina)
+                .Take(TamanioPagina)
+                .ToList();
 
-		public async Task<IActionResult> Index()
-		{
-			var lista = await _contexto.Planillas.ToListAsync();
-			return View(lista);
-		}
+            ViewBag.PaginaActual = pagina;
+            ViewBag.TotalPaginas = totalPaginas;
 
-		public async Task<IActionResult> Details(int? id)
-		{
-			if (id == null) return NotFound();
+            return View(periodosPagina);
+        }
 
-			var planilla = await _contexto.Planillas.FirstOrDefaultAsync(p => p.Id == id);
-			if (planilla == null) return NotFound();
+        public async Task<IActionResult> Details(int? id)
+        {
+            if (id == null) return NotFound();
 
-			return View(planilla);
-		}
+            var periodo = await _planillaLogica.ObtenerPeriodoPorId(id.Value);
+            if (periodo == null) return NotFound();
 
-		// ... el resto del CRUD original.
-		*/
-	}
+            ViewBag.EmpleadosDisponibles = await _planillaLogica.ObtenerEmpleadosActivos();
+            return View(periodo);
+        }
+
+        public IActionResult Create()
+        {
+            return View(new PlanillaPeriodoAD
+            {
+                FechaInicio = DateTime.Today,
+                FechaFin = DateTime.Today.AddDays(14)
+            });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create(PlanillaPeriodoAD periodo)
+        {
+            if (periodo.FechaFin < periodo.FechaInicio)
+                ModelState.AddModelError(nameof(periodo.FechaFin), "La fecha de fin no puede ser anterior a la fecha de inicio.");
+
+            if (!ModelState.IsValid)
+                return View(periodo);
+
+            try
+            {
+                periodo.IdUsuarioCreacion = ObtenerIdUsuarioActual();
+                await _planillaLogica.CrearPeriodo(periodo);
+                TempData["SuccessMessage"] = "Período de planilla creado correctamente.";
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError(string.Empty, $"Error al crear el período: {ex.Message}");
+                return View(periodo);
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RegistrarHoras(PlanillaDetalleFormVM vm)
+        {
+            if (!ModelState.IsValid)
+            {
+                TempData["ErrorMessage"] = "Revisa los datos ingresados: " +
+                    string.Join(" ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage));
+                return RedirectToAction(nameof(Details), new { id = vm.IdPlanillaPeriodo });
+            }
+
+            try
+            {
+                await _planillaLogica.RegistrarHoras(vm, ObtenerContextoAuditoria("Create"));
+                TempData["SuccessMessage"] = "Horas registradas y salario bruto calculado correctamente.";
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = ex.Message;
+            }
+
+            return RedirectToAction(nameof(Details), new { id = vm.IdPlanillaPeriodo });
+        }
+        [HttpPost]
+[ValidateAntiForgeryToken]
+public async Task<IActionResult> EditarHoras(int idPlanillaDetalle, int idPeriodo, decimal salarioMensual, decimal horasOrdinarias, decimal horasExtra)
+{
+    try
+    {
+        await _planillaLogica.ActualizarHoras(idPlanillaDetalle, salarioMensual, horasOrdinarias, horasExtra, ObtenerContextoAuditoria("Update"));
+        TempData["SuccessMessage"] = "Horas actualizadas y salario recalculado correctamente.";
+    }
+    catch (Exception ex)
+    {
+        TempData["ErrorMessage"] = ex.Message;
+    }
+
+    return RedirectToAction(nameof(Details), new { id = idPeriodo });
+}
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EliminarDetalle(int idDetalle, int idPeriodo)
+        {
+            await _planillaLogica.EliminarDetalle(idDetalle);
+            TempData["SuccessMessage"] = "Registro de horas eliminado.";
+            return RedirectToAction(nameof(Details), new { id = idPeriodo });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CambiarEstado(int id, string nuevoEstado)
+        {
+            try
+            {
+                await _planillaLogica.CambiarEstadoPeriodo(id, nuevoEstado, ObtenerContextoAuditoria("Update"));
+                TempData["SuccessMessage"] = $"El período ahora está en estado '{nuevoEstado}'.";
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = ex.Message;
+            }
+
+            return RedirectToAction(nameof(Details), new { id });
+        }
+
+        public async Task<IActionResult> Delete(int? id)
+        {
+            if (id == null) return NotFound();
+
+            var periodo = await _planillaLogica.ObtenerPeriodoPorId(id.Value);
+            if (periodo == null) return NotFound();
+
+            return View(periodo);
+        }
+
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteConfirmed(int id)
+        {
+            await _planillaLogica.EliminarPeriodo(id);
+            TempData["SuccessMessage"] = "Período de planilla eliminado.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        private int ObtenerIdUsuarioActual()
+        {
+            var claim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            return int.TryParse(claim, out var id) ? id : 1;
+        }
+
+        private ContextoAuditoria ObtenerContextoAuditoria(string accion)
+        {
+            return new ContextoAuditoria
+            {
+                UsuarioIdentityId = User.FindFirstValue(ClaimTypes.NameIdentifier),
+                Email = User.Identity?.Name,
+                Ip = HttpContext.Connection.RemoteIpAddress?.ToString(),
+                Accion = accion
+            };
+        }
+    }
 }
