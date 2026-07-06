@@ -1,0 +1,47 @@
+﻿@model List<PROmaderas.Abstracciones.Models.AguinaldoResultadoAD>
+
+@{
+	ViewData["Title"] = "Cálculo de Aguinaldo";
+	int anio = ViewBag.Anio;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+	<h2 class="text-white">Cálculo de Aguinaldo @anio</h2>
+	<form method="get" class="d-flex gap-2">
+		<select name="anio" class="form-select bg-dark text-white border-secondary" onchange="this.form.submit()">
+			@for (int a = DateTime.Now.Year; a >= DateTime.Now.Year - 5; a--)
+			{
+				if (a == anio)
+				{
+					<option value="@a" selected>@a</option>
+				}
+				else
+				{
+					<option value="@a">@a</option>
+				}
+			}
+		</select>
+	</form>
+</div>
+
+<div class="table-responsive">
+	<table class="table table-dark table-hover align-middle">
+		<thead>
+			<tr>
+				<th>Empleado</th>
+				<th>Total Salario Bruto (dic-nov)</th>
+				<th>Monto Aguinaldo</th>
+			</tr>
+		</thead>
+		<tbody>
+			@foreach (var r in Model)
+			{
+				<tr>
+					<td>@r.NombreEmpleado</td>
+					<td>@r.TotalSalarioBruto.ToString("C2")</td>
+					<td style="color:#c9a03c;font-weight:600;">@r.MontoAguinaldo.ToString("C2")</td>
+				</tr>
+			}
+		</tbody>
+	</table>
+</div>

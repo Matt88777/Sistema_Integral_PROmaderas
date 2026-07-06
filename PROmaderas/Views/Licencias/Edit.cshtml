@@ -1,0 +1,65 @@
+﻿@model PROmaderas.Abstracciones.Models.LicenciaAD
+
+@{
+	ViewData["Title"] = "Editar Licencia";
+}
+
+<h2 class="text-white mb-4">Editar Licencia Especial</h2>
+
+<div class="card bg-dark border-secondary" style="max-width:600px;">
+	<div class="card-body">
+		<form asp-action="Edit" method="post">
+			<input type="hidden" asp-for="IdLicencia" />
+			<div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+			<div class="mb-3">
+				<label class="form-label text-white">Empleado</label>
+				<select asp-for="IdEmpleado" asp-items="ViewBag.EmpleadoSelectList" class="form-select bg-dark text-white border-secondary">
+					<option value="">-- Seleccione --</option>
+				</select>
+				<span asp-validation-for="IdEmpleado" class="text-danger"></span>
+			</div>
+
+			<div class="mb-3">
+				<label class="form-label text-white">Tipo de Licencia</label>
+				<select asp-for="TipoLicencia" class="form-select bg-dark text-white border-secondary">
+					<option value="">-- Seleccione --</option>
+					<option value="Maternidad">Maternidad</option>
+					<option value="Paternidad">Paternidad</option>
+					<option value="Duelo">Duelo</option>
+					<option value="Matrimonio">Matrimonio</option>
+					<option value="Otra">Otra</option>
+				</select>
+				<span asp-validation-for="TipoLicencia" class="text-danger"></span>
+			</div>
+
+			<div class="row">
+				<div class="col-md-6 mb-3">
+					<label class="form-label text-white">Fecha Inicio</label>
+					<input asp-for="FechaInicio" type="date" class="form-control bg-dark text-white border-secondary" />
+					<span asp-validation-for="FechaInicio" class="text-danger"></span>
+				</div>
+				<div class="col-md-6 mb-3">
+					<label class="form-label text-white">Fecha Fin</label>
+					<input asp-for="FechaFin" type="date" class="form-control bg-dark text-white border-secondary" />
+					<span asp-validation-for="FechaFin" class="text-danger"></span>
+				</div>
+			</div>
+
+			<div class="mb-3 form-check">
+				<input asp-for="ConGoceSalarial" class="form-check-input" />
+				<label asp-for="ConGoceSalarial" class="form-check-label text-white">Con goce salarial</label>
+			</div>
+
+			<div class="mb-3">
+				<label class="form-label text-white">Observación</label>
+				<textarea asp-for="Observacion" class="form-control bg-dark text-white border-secondary" rows="3"></textarea>
+			</div>
+
+			<div class="d-flex justify-content-end gap-2">
+				<a asp-action="Index" class="btn btn-outline-light">Cancelar</a>
+				<button type="submit" class="btn" style="background-color:#c9a03c;color:#1a1a1a;">Guardar</button>
+			</div>
+		</form>
+	</div>
+</div>

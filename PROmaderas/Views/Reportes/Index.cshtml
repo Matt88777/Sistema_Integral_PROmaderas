@@ -3,36 +3,39 @@
 }
 
 <div class="container mt-4">
-    <h1 class="fw-bold mb-3">Reportes</h1>
-    <p class="text-muted">Vista demostrativa del módulo de reportes administrativos.</p>
+    <h1 class="text-white fw-bold mb-3">Reportes</h1>
+    <p class="text-muted">Exporte los reportes generados en Excel o PDF.</p>
 
     <div class="row g-4">
         <div class="col-md-4">
-            <div class="card report-card border-0">
+            <div class="card report-card border-0 bg-dark text-white">
                 <div class="card-body">
-                    <h5>Inventario total</h5>
-                    <h2 class="fw-bold">1,245</h2>
-                    <p class="text-muted mb-0">Unidades registradas</p>
+                    <h5>Facturación</h5>
+                    <p class="text-muted">Listado de facturas emitidas.</p>
+                    <a class="btn btn-sm" style="background-color:#c9a03c;color:#1a1a2e;" asp-action="ExportarFacturasExcel">Excel</a>
+                    <a class="btn btn-sm btn-outline-light" asp-action="ExportarFacturasPdf">PDF</a>
                 </div>
             </div>
         </div>
 
         <div class="col-md-4">
-            <div class="card report-card border-0">
+            <div class="card report-card border-0 bg-dark text-white">
                 <div class="card-body">
-                    <h5>Facturas del mes</h5>
-                    <h2 class="fw-bold">86</h2>
-                    <p class="text-muted mb-0">Procesadas</p>
+                    <h5>Inventario</h5>
+                    <p class="text-muted">Stock y productos activos.</p>
+                    <a class="btn btn-sm" style="background-color:#c9a03c;color:#1a1a2e;" asp-action="ExportarInventarioExcel">Excel</a>
+                    <a class="btn btn-sm btn-outline-light" asp-action="ExportarInventarioPdf">PDF</a>
                 </div>
             </div>
         </div>
 
         <div class="col-md-4">
-            <div class="card report-card border-0">
+            <div class="card report-card border-0 bg-dark text-white">
                 <div class="card-body">
-                    <h5>Clientes activos</h5>
-                    <h2 class="fw-bold">34</h2>
-                    <p class="text-muted mb-0">Con actividad reciente</p>
+                    <h5>Planilla</h5>
+                    <p class="text-muted">Detalle financiero por período.</p>
+                    <a class="btn btn-sm" style="background-color:#c9a03c;color:#1a1a2e;" asp-action="ExportarPlanillaExcel">Excel</a>
+                    <a class="btn btn-sm btn-outline-light" asp-action="ExportarPlanillaPdf">PDF</a>
                 </div>
             </div>
         </div>

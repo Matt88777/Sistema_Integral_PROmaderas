@@ -23,6 +23,14 @@ using PROmaderas.LogicaDeNegocio.Dashboard;
 using PROmaderas.AccesoADatos.Produccion;
 using PROmaderas.LogicaDeNegocio.Produccion;
 using PROmaderas.AccesoADatos.Empleados;
+using PROmaderas.AccesoADatos.Licencias;
+using PROmaderas.LogicaDeNegocio.Licencias;
+using PROmaderas.AccesoADatos.Aguinaldo;
+using PROmaderas.LogicaDeNegocio.Aguinaldo;
+using PROmaderas.AccesoADatos.HistorialPagos;
+using PROmaderas.LogicaDeNegocio.HistorialPagos;
+using PROmaderas.AccesoADatos.Reportes;
+using PROmaderas.LogicaDeNegocio.Reportes;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -65,18 +73,35 @@ builder.Services.AddScoped<PROmaderas.AccesoADatos.Empleados.EmpleadoRepositorio
 
 builder.Services.AddScoped<IEmpleadoRepositorio, PROmaderas.AccesoADatos.Empleados.EmpleadoRepositorio>();
 builder.Services.AddScoped<IEmpleadoLogica, EmpleadoLogica>();
-builder.Services.AddScoped<IPuestoRepositorio, PuestoRepositorio>();
+builder.Services.AddScoped<IPuestoRepositorio, PROmaderas.AccesoADatos.Puestos.PuestoRepositorio>();
 builder.Services.AddScoped<IPuestoLogica, PuestoLogica>();
+
 
 builder.Services.AddScoped<PROmaderas.Abstracciones.AccesoADatos.IPlanillaRepositorio,
     PROmaderas.AccesoADatos.Planilla.PlanillaRepositorio>();
 builder.Services.AddScoped<PROmaderas.Abstracciones.LogicaDeNegocio.IPlanillaLogica,
     PROmaderas.LogicaDeNegocio.Planilla.PlanillaLogica>();
 
-builder.Services.AddScoped<IFacturacionRepositorio, FacturacionRepositorio>();
+builder.Services.AddScoped<IAguinaldoRepositorio, AguinaldoRepositorio>();
+builder.Services.AddScoped<IAguinaldoLogica, AguinaldoLogica>();
+
+builder.Services.AddScoped<ILicenciaRepositorio, PROmaderas.AccesoADatos.Licencias.LicenciaRepositorio>();
+
+builder.Services.AddScoped<IFacturacionRepositorio, 
+    PROmaderas.AccesoADatos.Facturacion.FacturacionRepositorio>();
 builder.Services.AddScoped<IFacturacionLogica, FacturacionLogica>();
 builder.Services.AddScoped<IDashboardRepositorio, DashboardRepositorio>();
 builder.Services.AddScoped<IDashboardLogica, DashboardLogica>();
+
+builder.Services.AddScoped<IHistorialPagosRepositorio, HistorialPagosRepositorio>();
+builder.Services.AddScoped<IHistorialPagosLogica, HistorialPagosLogica>();
+
+builder.Services.AddScoped<IReportesRepositorio, ReportesRepositorio>();
+builder.Services.AddScoped<IReportesExportLogica, ReportesExportLogica>();
+
+
+
+
 
 builder.Services.AddScoped<IProduccionRepositorio, ProduccionRepositorio>();
 builder.Services.AddScoped<IProduccionLogica, ProduccionLogica>();

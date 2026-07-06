@@ -1,0 +1,38 @@
+﻿@model PROmaderas.Abstracciones.Models.LicenciaAD
+
+@{
+	ViewData["Title"] = "Eliminar Licencia";
+}
+
+<h2 class="text-white mb-4">Eliminar Licencia Especial</h2>
+
+<div class="card bg-dark border-secondary" style="max-width:600px;">
+	<div class="card-body">
+		<p class="text-white">¿Está seguro que desea eliminar esta licencia?</p>
+
+		<dl class="row text-white">
+			<dt class="col-sm-4">Empleado</dt>
+			<dd class="col-sm-8">@Model.Empleado?.Nombre</dd>
+
+			<dt class="col-sm-4">Tipo</dt>
+			<dd class="col-sm-8">@Model.TipoLicencia</dd>
+
+			<dt class="col-sm-4">Fecha Inicio</dt>
+			<dd class="col-sm-8">@Model.FechaInicio.ToString("dd/MM/yyyy")</dd>
+
+			<dt class="col-sm-4">Fecha Fin</dt>
+			<dd class="col-sm-8">@Model.FechaFin.ToString("dd/MM/yyyy")</dd>
+
+			<dt class="col-sm-4">Días</dt>
+			<dd class="col-sm-8">@Model.Dias</dd>
+		</dl>
+
+		<form asp-action="Delete" method="post">
+			<input type="hidden" asp-for="IdLicencia" />
+			<div class="d-flex justify-content-end gap-2">
+				<a asp-action="Index" class="btn btn-outline-light">Cancelar</a>
+				<button type="submit" class="btn btn-danger">Eliminar</button>
+			</div>
+		</form>
+	</div>
+</div>

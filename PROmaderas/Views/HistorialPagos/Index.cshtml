@@ -1,0 +1,57 @@
+﻿@model List<PROmaderas.Abstracciones.Models.PlanillaDetalleFinancieroAD>
+
+@{
+	ViewData["Title"] = "Historial de Pagos";
+}
+
+<h2 class="text-white mb-4">Historial de Pagos por Empleado</h2>
+
+<form method="get" class="row g-2 mb-4">
+	<div class="col-md-4">
+		<select name="idEmpleado" class="form-select bg-dark text-white border-secondary" onchange="this.form.submit()" asp-items="ViewBag.EmpleadoSelectList">
+			<option value="">-- Seleccione un empleado --</option>
+		</select>
+	</div>
+</form>
+
+@if (ViewBag.IdEmpleadoSeleccionado != null)
+{
+	<div class="table-responsive">
+		<table class="table table-dark table-hover align-middle">
+			<thead>
+				<tr>
+					<th>Período</th>
+					<th>Tipo</th>
+					<th>Horas Ordinarias</th>
+					<th>Horas Extra</th>
+					<th>Salario Base</th>
+					<th>Monto Horas Extra</th>
+					<th>Salario Bruto</th>
+					<th>Deducciones</th>
+					<th>Salario Neto</th>
+				</tr>
+			</thead>
+			<tbody>
+				@foreach (var d in Model)
+				{
+					<tr>
+						<td>@d.Periodo?.FechaInicio.ToString("dd/MM/yyyy") - @d.Periodo?.FechaFin.ToString("dd/MM/yyyy")</td>
+						<td>@d.Periodo?.TipoPeriodo</td>
+						<td>@d.HorasOrdinarias</td>
+						<td>@d.HorasExtra</td>
+						<td>@d.SalarioBase.ToString("C2")</td>
+						<td>@d.MontoHorasExtra.ToString("C2")</td>
+						<td>@d.SalarioBruto.ToString("C2")</td>
+						<td>@d.TotalDeducciones.ToString("C2")</td>
+						<td style="color:#c9a03c;font-weight:600;">@d.SalarioNeto.ToString("C2")</td>
+					</tr>
+				}
+			</tbody>
+		</table>
+	</div>
+
+	@if (!Model.Any())
+	{
+		<div class="alert alert-info">Este empleado no tiene pagos registrados.</div>
+	}
+}

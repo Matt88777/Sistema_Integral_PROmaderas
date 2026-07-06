@@ -9,5 +9,9 @@
   <ItemGroup>
     <ProjectReference Include="..\PROmaderas.Abstracciones\PROmaderas.Abstracciones.csproj" />
   </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="ClosedXML" Version="0.105.0" />
+		<PackageReference Include="QuestPDF" Version="2026.2.3" />
+	</ItemGroup>
 
 </Project>

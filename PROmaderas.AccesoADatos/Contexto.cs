@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using PROmaderas.Abstracciones.Models;
+using System.Reflection.Emit;
 
 namespace PROmaderas.AccesoADatos
 {
@@ -29,6 +30,8 @@ namespace PROmaderas.AccesoADatos
 
         public DbSet<PlanillaPeriodoAD> PlanillaPeriodos { get; set; }
         public DbSet<PlanillaDetalleFinancieroAD> PlanillaDetallesFinancieros { get; set; }
+
+        public DbSet<LicenciaAD> Licencias { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -265,6 +268,26 @@ namespace PROmaderas.AccesoADatos
                 e.Property(x => x.NombrePuesto).HasColumnName("NombrePuesto");
                 e.Property(x => x.IdDepartamento).HasColumnName("IdDepartamento");
                 e.Property(x => x.Estado).HasColumnName("Estado");
+            });
+
+            // LicenciaAD -> Licencia
+            modelBuilder.Entity<LicenciaAD>(e =>
+            {
+                e.ToTable("Licencia");
+                e.HasKey(x => x.IdLicencia);
+
+                e.Property(x => x.IdLicencia).HasColumnName("IdLicencia");
+                e.Property(x => x.IdEmpleado).HasColumnName("IdEmpleado");
+                e.Property(x => x.TipoLicencia).HasColumnName("TipoLicencia");
+                e.Property(x => x.FechaInicio).HasColumnName("FechaInicio");
+                e.Property(x => x.FechaFin).HasColumnName("FechaFin");
+                e.Property(x => x.Dias).HasColumnName("Dias");
+                e.Property(x => x.ConGoceSalarial).HasColumnName("ConGoceSalarial");
+                e.Property(x => x.Observacion).HasColumnName("Observacion");
+
+                e.HasOne(x => x.Empleado)
+                    .WithMany()
+                    .HasForeignKey(x => x.IdEmpleado);
             });
         }
     }

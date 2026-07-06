@@ -119,6 +119,32 @@
                                                 <a class="dropdown-item" asp-controller="Empleados" asp-action="Create"><i class="bi bi-person-plus me-2"></i>Nuevo empleado</a>
                                             </li>
                                         }
+                                        @* LICENCIAS *@
+                                        @if (User.IsInRole("Administrador"))
+                                        {
+                                            <li class="mega-menu-col">
+                                                <span class="mega-menu-header"><i class="bi bi-calendar2-week me-1"></i>Licencias</span>
+                                                <a class="dropdown-item" asp-controller="Licencias" asp-action="Index"><i class="bi bi-calendar2-check me-2"></i>Ver licencias</a>
+                                                <a class="dropdown-item" asp-controller="Licencias" asp-action="Create"><i class="bi bi-calendar2-plus me-2"></i>Nueva licencia</a>
+                                            </li>
+                                        }
+                                        @* AGUINALDO *@
+                                        @if (User.IsInRole("Administrador") || User.IsInRole("Contador"))
+                                        {
+                                            <li class="mega-menu-col">
+                                                <span class="mega-menu-header"><i class="bi bi-gift me-1"></i>Aguinaldo</span>
+                                                <a class="dropdown-item" asp-controller="Aguinaldo" asp-action="Index"><i class="bi bi-calculator me-2"></i>Calcular aguinaldo</a>
+                                            </li>
+                                        }
+
+                                        @* HISTORIAL DE PAGOS *@
+                                        @if (User.IsInRole("Administrador") || User.IsInRole("Contador"))
+                                        {
+                                            <li class="mega-menu-col">
+                                                <span class="mega-menu-header"><i class="bi bi-clock-history me-1"></i>Historial de Pagos</span>
+                                                <a class="dropdown-item" asp-controller="HistorialPagos" asp-action="Index"><i class="bi bi-file-earmark-text me-2"></i>Ver historial</a>
+                                            </li>
+                                        }
 
                                         @* REPORTES *@
                                         @if (User.IsInRole("Administrador") || User.IsInRole("Gerente") || User.IsInRole("Contador"))
