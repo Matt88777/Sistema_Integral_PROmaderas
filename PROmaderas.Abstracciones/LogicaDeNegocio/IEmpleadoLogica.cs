@@ -8,6 +8,7 @@ namespace PROmaderas.Abstracciones.LogicaDeNegocio
         Task<EmpleadoAD> Crear(EmpleadoAD empleado);
         Task Actualizar(EmpleadoAD empleado, ContextoAuditoria auditoria);
         Task Eliminar(int id);
-		Task CambiarEstado(int id, ContextoAuditoria auditoria);
-	}
+        Task CambiarEstado(int id, ContextoAuditoria auditoria);
+        Task<List<SalarioHistorialAD>> ObtenerHistorialSalario(int idEmpleado);
+    }
 }

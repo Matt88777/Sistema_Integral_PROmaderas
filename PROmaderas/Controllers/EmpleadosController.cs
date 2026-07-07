@@ -28,8 +28,7 @@ namespace PROmaderas.UI.Controllers
             {
                 filtro = filtro.Trim().ToLower();
                 empleados = empleados.Where(e =>
-                    (!string.IsNullOrEmpty(e.Nombre) && e.Nombre.Trim().ToLower().Contains(filtro))
-                    ||
+                    (!string.IsNullOrEmpty(e.Nombre) && e.Nombre.Trim().ToLower().Contains(filtro)) ||
                     (!string.IsNullOrEmpty(e.Cedula) && e.Cedula.Trim().ToLower().Contains(filtro))
                 ).ToList();
             }
@@ -46,10 +45,7 @@ namespace PROmaderas.UI.Controllers
             return View(empleados);
         }
 
-        public IActionResult Create()
-        {
-            return View();
-        }
+        public IActionResult Create() => View();
 
         [HttpPost]
         public async Task<IActionResult> Create(EmpleadoAD empleado)
@@ -61,7 +57,6 @@ namespace PROmaderas.UI.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // GET: Empleados/Edit/5
         public async Task<IActionResult> Edit(int id)
         {
             var empleado = (await _empleadoLogica.ObtenerTodos())
@@ -74,13 +69,10 @@ namespace PROmaderas.UI.Controllers
             return View(empleado);
         }
 
-        // POST: Empleados/Edit/5
-        // EMP-HU-003 - Actualizar informacion laboral del empleado (puesto, departamento) con auditoria.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(EmpleadoAD empleado)
         {
-            // Ignorar campos que no se editan en este formulario
             ModelState.Remove(nameof(EmpleadoAD.FechaIngreso));
             ModelState.Remove(nameof(EmpleadoAD.FechaCreacion));
             ModelState.Remove(nameof(EmpleadoAD.Estado));
@@ -117,33 +109,47 @@ namespace PROmaderas.UI.Controllers
             }
         }
 
-		[HttpPost]
-		[ValidateAntiForgeryToken]
-		public async Task<IActionResult> CambiarEstado(int id)
-		{
-			try
-			{
-				var contextoAuditoria = new ContextoAuditoria
-				{
-					UsuarioIdentityId = User.FindFirstValue(ClaimTypes.NameIdentifier),
-					Email = User.Identity?.Name,
-					Ip = HttpContext.Connection.RemoteIpAddress?.ToString(),
-					Accion = "Cambio de estado"
-				};
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CambiarEstado(int id)
+        {
+            try
+            {
+                var contextoAuditoria = new ContextoAuditoria
+                {
+                    UsuarioIdentityId = User.FindFirstValue(ClaimTypes.NameIdentifier),
+                    Email = User.Identity?.Name,
+                    Ip = HttpContext.Connection.RemoteIpAddress?.ToString(),
+                    Accion = "Cambio de estado"
+                };
 
-				await _empleadoLogica.CambiarEstado(id, contextoAuditoria);
+                await _empleadoLogica.CambiarEstado(id, contextoAuditoria);
+                TempData["SuccessMessage"] = "El estado del empleado fue actualizado correctamente.";
+            }
+            catch (Exception)
+            {
+                TempData["ErrorMessage"] = "Ocurrió un error al cambiar el estado del empleado.";
+            }
 
-				TempData["SuccessMessage"] = "El estado del empleado fue actualizado correctamente.";
-			}
-			catch (Exception)
-			{
-				TempData["ErrorMessage"] = "Ocurrió un error al cambiar el estado del empleado.";
-			}
+            return RedirectToAction(nameof(Index));
+        }
 
-			return RedirectToAction(nameof(Index));
-		}
+        [HttpGet]
+        public async Task<IActionResult> HistorialSalario(int id)
+        {
+            var empleado = (await _empleadoLogica.ObtenerTodos())
+                .FirstOrDefault(e => e.IdEmpleado == id);
 
-		[HttpGet]
+            if (empleado == null)
+                return NotFound();
+
+            var historial = await _empleadoLogica.ObtenerHistorialSalario(id);
+
+            ViewBag.Empleado = empleado;
+            return View(historial);
+        }
+
+        [HttpGet]
         public async Task<IActionResult> Delete(int id)
         {
             var empleado = (await _empleadoLogica.ObtenerTodos())

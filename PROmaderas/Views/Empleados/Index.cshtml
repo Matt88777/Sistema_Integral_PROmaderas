@@ -82,11 +82,17 @@
                                 @(item.Estado == true ? "Activo" : "Inactivo")
                             </span>
                         </td>
+
+
                         <td class="text-center">
                             <div class="d-flex gap-2 justify-content-center flex-nowrap">
                                 <a asp-action="Edit" asp-route-id="@item.IdEmpleado"
                                    class="btn btn-sm btn-accion-editar" title="Editar">
                                     <i class="bi bi-pencil"></i>
+                                </a>
+                                <a asp-action="HistorialSalario" asp-route-id="@item.IdEmpleado"
+                                   class="btn btn-sm btn-accion-ver" title="Historial salarial">
+                                    <i class="bi bi-clock-history"></i>
                                 </a>
                                 <form asp-action="CambiarEstado" asp-route-id="@item.IdEmpleado"
                                       method="post" class="d-inline m-0">
@@ -108,6 +114,8 @@
                                 </form>
                             </div>
                         </td>
+
+
                     </tr>
                 }
                 @if (!Model.Any())

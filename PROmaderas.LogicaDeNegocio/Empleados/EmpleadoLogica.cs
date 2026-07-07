@@ -20,9 +20,12 @@ namespace PROmaderas.LogicaDeNegocio.Empleados
         public Task Actualizar(EmpleadoAD empleado, ContextoAuditoria auditoria)
             => _repositorio.Actualizar(empleado, auditoria);
 
-		public Task CambiarEstado(int id, ContextoAuditoria auditoria)
+        public Task CambiarEstado(int id, ContextoAuditoria auditoria)
             => _repositorio.CambiarEstado(id, auditoria);
 
-		public Task Eliminar(int id) => _repositorio.Eliminar(id);
+        public Task Eliminar(int id) => _repositorio.Eliminar(id);
+
+        public Task<List<SalarioHistorialAD>> ObtenerHistorialSalario(int idEmpleado)
+            => _repositorio.ObtenerHistorialSalario(idEmpleado);
     }
 }
