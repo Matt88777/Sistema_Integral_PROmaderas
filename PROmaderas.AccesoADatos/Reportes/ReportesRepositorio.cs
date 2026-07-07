@@ -12,7 +12,7 @@ namespace PROmaderas.AccesoADatos.Reportes
         {
             _contexto = contexto;
         }
-
+        
         public async Task<List<FacturacionAD>> ObtenerFacturas()
         {
             return await _contexto.Facturaciones

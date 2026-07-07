@@ -206,26 +206,26 @@ namespace PROmaderas.AccesoADatos.Productos
                 .ToListAsync();
 
             var resultado = productos
-                .Select(p =>
-                {
-                    var resumen = movimientosResumen.FirstOrDefault(m => m.IdTipoTarima == p.Id);
-                    var entradas = resumen?.Entradas ?? 0;
-                    var salidas = resumen?.Salidas ?? 0;
+     .Select(p =>
+     {
+         var resumen = movimientosResumen.FirstOrDefault(m => m.IdTipoTarima == p.Id);
+         var entradas = resumen?.Entradas ?? 0;
+         var salidas = resumen?.Salidas ?? 0;
 
-                    return new InventarioExistenciaDTO
-                    {
-                        IdTipoTarima = p.Id,
-                        Codigo = p.Codigo,
-                        TipoTarima = p.Nombre,
-                        Medida = p.Medida,
-                        Entradas = entradas,
-                        Salidas = salidas,
-                        StockActual = entradas - salidas,
-                        StockMinimo = p.StockMinimo
-                    };
-                })
-                .Where(x => x.Entradas > 0 || x.Salidas > 0 || x.StockActual != 0)
-                .ToList();
+         return new InventarioExistenciaDTO
+         {
+             IdTipoTarima = p.Id,
+             Codigo = p.Codigo,
+             TipoTarima = p.Nombre,
+             Medida = p.Medida,
+             Entradas = entradas,
+             Salidas = salidas,
+             StockActual = entradas - salidas,
+             StockMinimo = p.StockMinimo
+         };
+     })
+     .ToList();
+
 
             return resultado;
         }
