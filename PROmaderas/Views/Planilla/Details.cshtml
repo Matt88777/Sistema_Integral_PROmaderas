@@ -6,6 +6,12 @@
     var idsConHoras = Model.Detalles?.Select(d => d.IdEmpleado).ToHashSet() ?? new HashSet<int>();
     var empleadosSinRegistrar = empleados.Where(e => !idsConHoras.Contains(e.IdEmpleado ?? 0)).ToList();
     var estadoActual = Model.Estado;
+    var salariosJson = System.Text.Json.JsonSerializer.Serialize(
+        empleadosSinRegistrar.ToDictionary(
+            e => e.IdEmpleado?.ToString() ?? "",
+            e => e.SalarioBase.HasValue ? (double)e.SalarioBase.Value : 0
+        )
+    );
 }
 
 <div class="container mt-4">
@@ -57,7 +63,6 @@
                 <div class="fs-5 fw-semibold text-white">@Model.TotalSalarioBruto.ToString("C2")</div>
             </div>
         </div>
-
         <div class="col-md-3">
             <div class="card text-center p-3">
                 <small class="text-muted">Estado</small>
@@ -186,7 +191,6 @@
                                                     @Html.AntiForgeryToken()
                                                     <input type="hidden" name="idPlanillaDetalle" value="@d.IdPlanillaDetalle" />
                                                     <input type="hidden" name="idPeriodo" value="@Model.IdPlanillaPeriodo" />
-
                                                     <div class="modal-header border-secondary">
                                                         <h5 class="modal-title">
                                                             Editar horas — @(d.Empleado != null ? $"{d.Empleado.Nombre} {d.Empleado.PrimerApellido}" : "N/D")
@@ -233,7 +237,7 @@
                 @if (Model.Detalles == null || !Model.Detalles.Any())
                 {
                     <tr>
-                        <td colspan="7" class="text-center text-muted py-4">
+                        <td colspan="11" class="text-center text-muted py-4">
                             <i class="bi bi-inbox me-1"></i>Aún no hay horas registradas en este período.
                         </td>
                     </tr>
@@ -242,8 +246,6 @@
         </table>
     </div>
 
-
- @* — bloque cambiar estado *@
     @if (estadoActual != "Pagada")
     {
         <div class="card mt-4">
@@ -265,5 +267,20 @@
             </div>
         </div>
     }
+
+    <script>
+            var salarios = @Html.Raw(salariosJson);
+            document.addEventListener('DOMContentLoaded', function () {
+                var sel = document.querySelector('select[name="IdEmpleado"]');
+                var campo = document.querySelector('input[name="SalarioMensual"]');
+                if (!sel || !campo) return;
+                function autoFill() {
+                    var id = sel.value;
+                    if (id && salarios[id]) campo.value = salarios[id];
+                }
+                sel.addEventListener('change', autoFill);
+                autoFill();
+            });
+    </script>
 
 </div>
