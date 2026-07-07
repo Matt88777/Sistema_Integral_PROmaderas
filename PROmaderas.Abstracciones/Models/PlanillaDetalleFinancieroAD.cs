@@ -10,35 +10,27 @@ namespace PROmaderas.Abstracciones.Models
         public int IdPlanillaDetalle { get; set; }
 
         public int IdPlanillaPeriodo { get; set; }
-
         public int IdEmpleado { get; set; }
 
-        [Column(TypeName = "decimal(10,2)")]
-        [Display(Name = "Horas ordinarias")]
+        [Column(TypeName = "decimal(18,2)")]
         public decimal HorasOrdinarias { get; set; }
 
-        [Column(TypeName = "decimal(10,2)")]
-        [Display(Name = "Horas extra")]
+        [Column(TypeName = "decimal(18,2)")]
         public decimal HorasExtra { get; set; }
 
         [Column(TypeName = "decimal(18,2)")]
-        [Display(Name = "Salario base devengado")]
         public decimal SalarioBase { get; set; }
 
         [Column(TypeName = "decimal(18,2)")]
-        [Display(Name = "Monto horas extra")]
         public decimal MontoHorasExtra { get; set; }
 
         [Column(TypeName = "decimal(18,2)")]
-        [Display(Name = "Salario bruto")]
         public decimal SalarioBruto { get; set; }
 
         [Column(TypeName = "decimal(18,2)")]
-        [Display(Name = "Deducciones")]
         public decimal TotalDeducciones { get; set; }
 
         [Column(TypeName = "decimal(18,2)")]
-        [Display(Name = "Salario neto")]
         public decimal SalarioNeto { get; set; }
 
         [ForeignKey("IdPlanillaPeriodo")]

@@ -233,7 +233,7 @@ namespace PROmaderas.AccesoADatos
                 e.Property(x => x.IdUsuarioCreacion).HasColumnName("IdUsuarioCreacion");
             });
 
-            // PlanillaDetalleFinancieroAD  PlanillaDetalle
+            // PlanillaDetalleFinancieroAD -> PlanillaDetalle
             modelBuilder.Entity<PlanillaDetalleFinancieroAD>(e =>
             {
                 e.ToTable("PlanillaDetalle");

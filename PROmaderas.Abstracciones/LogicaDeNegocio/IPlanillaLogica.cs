@@ -10,9 +10,9 @@ namespace PROmaderas.Abstracciones.LogicaDeNegocio
         Task CambiarEstadoPeriodo(int id, string nuevoEstado, ContextoAuditoria auditoria);
         Task EliminarPeriodo(int id);
 
-        Task<PlanillaDetalleFinancieroAD> RegistrarHoras(PlanillaDetalleFormVM vm, ContextoAuditoria auditoria);
-        Task<PlanillaDetalleFinancieroAD> ActualizarHoras(int idPlanillaDetalle, decimal salarioMensual, 
-            decimal horasOrdinarias, decimal horasExtra, ContextoAuditoria auditoria);
+        Task<List<PlanillaDetalleFinancieroAD>> ObtenerDetallesPorPeriodo(int idPeriodo);
+        Task RegistrarHoras(PlanillaDetalleFormVM vm, ContextoAuditoria auditoria);
+        Task ActualizarHoras(int idDetalle, decimal salarioMensual, decimal horasOrdinarias, decimal horasExtra, ContextoAuditoria auditoria);
         Task EliminarDetalle(int idDetalle);
 
         Task<List<EmpleadoAD>> ObtenerEmpleadosActivos();

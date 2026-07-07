@@ -10,9 +10,10 @@ namespace PROmaderas.Abstracciones.AccesoADatos
         Task CambiarEstadoPeriodo(int id, string nuevoEstado, ContextoAuditoria auditoria);
         Task EliminarPeriodo(int id);
 
-        Task<PlanillaDetalleFinancieroAD> AgregarDetalle(PlanillaDetalleFinancieroAD detalle, ContextoAuditoria auditoria);
-        Task<PlanillaDetalleFinancieroAD> ActualizarDetalle(int idDetalle, decimal horasOrdinarias, decimal horasExtra,
-            decimal salarioBase, decimal montoHorasExtra, decimal salarioBruto, ContextoAuditoria auditoria);
+        Task<List<PlanillaDetalleFinancieroAD>> ObtenerDetallesPorPeriodo(int idPeriodo);
+        Task<PlanillaDetalleFinancieroAD> AgregarDetalle(PlanillaDetalleFinancieroAD detalle);
+        Task<PlanillaDetalleFinancieroAD?> ObtenerDetallePorId(int idDetalle);
+        Task ActualizarDetalle(PlanillaDetalleFinancieroAD detalle);
         Task EliminarDetalle(int idDetalle);
 
         Task<List<EmpleadoAD>> ObtenerEmpleadosActivos();

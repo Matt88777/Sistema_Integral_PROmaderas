@@ -5,6 +5,7 @@
     var empleados = ViewBag.EmpleadosDisponibles as List<EmpleadoAD> ?? new List<EmpleadoAD>();
     var idsConHoras = Model.Detalles?.Select(d => d.IdEmpleado).ToHashSet() ?? new HashSet<int>();
     var empleadosSinRegistrar = empleados.Where(e => !idsConHoras.Contains(e.IdEmpleado ?? 0)).ToList();
+    var estadoActual = Model.Estado;
 }
 
 <div class="container mt-4">
@@ -136,6 +137,8 @@
                     <th>Salario base</th>
                     <th>Monto horas extra</th>
                     <th>Salario bruto</th>
+                    <th>Deducciones</th>
+                    <th>Salario neto</th>
                     <th class="text-center">Acciones</th>
                 </tr>
             </thead>
@@ -151,6 +154,8 @@
                             <td>@d.SalarioBase.ToString("C2")</td>
                             <td>@d.MontoHorasExtra.ToString("C2")</td>
                             <td class="fw-bold">@d.SalarioBruto.ToString("C2")</td>
+                            <td>@d.TotalDeducciones.ToString("C2")</td>
+                            <td class="fw-bold" style="color:#c9a03c">@d.SalarioNeto.ToString("C2")</td>
                             <td class="text-center">
                                 @if (Model.Estado == "Borrador")
                                 {
@@ -233,39 +238,28 @@
         </table>
     </div>
 
-    @if (Model.Estado != "Pagada")
+
+ @* — bloque cambiar estado *@
+    @if (estadoActual != "Pagada")
     {
-        <div class="card mt-3">
-            <div class="card-body d-flex gap-2 align-items-center flex-wrap">
-                <span class="me-2">Cambiar estado del período:</span>
-                @if (Model.Estado == "Borrador")
-                {
-                    <form asp-action="CambiarEstado" method="post" class="d-inline m-0">
-                        @Html.AntiForgeryToken()
-                        <input type="hidden" name="id" value="@Model.IdPlanillaPeriodo" />
-                        <input type="hidden" name="nuevoEstado" value="Revisada" />
-                        <button type="submit" class="btn btn-accion-ajustar">Marcar como Revisada</button>
-                    </form>
-                }
-                @if (Model.Estado == "Revisada")
-                {
-                    <form asp-action="CambiarEstado" method="post" class="d-inline m-0">
-                        @Html.AntiForgeryToken()
-                        <input type="hidden" name="id" value="@Model.IdPlanillaPeriodo" />
-                        <input type="hidden" name="nuevoEstado" value="Aprobada" />
-                        <button type="submit" class="btn btn-accion-activar">Marcar como Aprobada</button>
-                    </form>
-                }
-                @if (Model.Estado == "Aprobada")
-                {
-                    <form asp-action="CambiarEstado" method="post" class="d-inline m-0">
-                        @Html.AntiForgeryToken()
-                        <input type="hidden" name="id" value="@Model.IdPlanillaPeriodo" />
-                        <input type="hidden" name="nuevoEstado" value="Pagada" />
-                        <button type="submit" class="btn btn-accion-historial">Marcar como Pagada</button>
-                    </form>
-                }
+        <div class="card mt-4">
+            <div class="card-body d-flex align-items-center gap-3">
+                <span class="fw-semibold">Cambiar estado del período:</span>
+                <form asp-action="CambiarEstado" method="post" class="d-flex gap-2 align-items-center">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" value="@Model.IdPlanillaPeriodo" />
+                    <select name="nuevoEstado" class="form-select form-select-sm" style="width:auto">
+                        @foreach (var est in new[] { "Borrador", "Revisada", "Aprobada", "Pagada" })
+                        {
+                            <option value="@est" selected="@(est == estadoActual)">@est</option>
+                        }
+                    </select>
+                    <button type="submit" class="btn btn-sm btn-warning fw-bold">
+                        <i class="bi bi-arrow-repeat me-1"></i>Aplicar
+                    </button>
+                </form>
             </div>
         </div>
     }
+
 </div>

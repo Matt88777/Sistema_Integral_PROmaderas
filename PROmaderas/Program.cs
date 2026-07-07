@@ -31,6 +31,13 @@ using PROmaderas.AccesoADatos.HistorialPagos;
 using PROmaderas.LogicaDeNegocio.HistorialPagos;
 using PROmaderas.AccesoADatos.Reportes;
 using PROmaderas.LogicaDeNegocio.Reportes;
+using PROmaderas.AccesoADatos.Planilla;
+using PROmaderas.LogicaDeNegocio.Planilla;
+
+
+
+
+
 
 var builder = WebApplication.CreateBuilder(args);
 
