@@ -22,4 +22,13 @@ public class EmpleadoAD
     public DateTime? FechaIngreso { get; set; }
     public bool? Estado { get; set; }
     public DateTime? FechaCreacion { get; set; }
+
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal? SalarioBase { get; set; }
+
+    [MaxLength(50)]
+    public string? TipoPago { get; set; }
+
+    [MaxLength(50)]
+    public string? JornadaLaboral { get; set; }
 }
