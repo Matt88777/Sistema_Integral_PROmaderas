@@ -28,15 +28,21 @@ namespace PROmaderas.Abstracciones.Models
         public decimal SalarioBruto { get; set; }
 
         [Column(TypeName = "decimal(18,2)")]
+        public decimal DeduccionCCSS { get; set; }
+
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal DeduccionRenta { get; set; }
+
+        [Column(TypeName = "decimal(18,2)")]
         public decimal TotalDeducciones { get; set; }
 
         [Column(TypeName = "decimal(18,2)")]
         public decimal SalarioNeto { get; set; }
 
-        [ForeignKey("IdPlanillaPeriodo")]
-        public virtual PlanillaPeriodoAD? Periodo { get; set; }
-
         [ForeignKey("IdEmpleado")]
         public virtual EmpleadoAD? Empleado { get; set; }
+
+        [ForeignKey("IdPlanillaPeriodo")]
+        public virtual PlanillaPeriodoAD? Periodo { get; set; }
     }
 }

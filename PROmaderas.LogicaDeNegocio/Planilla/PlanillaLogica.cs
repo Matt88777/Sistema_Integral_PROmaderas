@@ -59,6 +59,7 @@ namespace PROmaderas.LogicaDeNegocio.Planilla
         public async Task RegistrarHoras(PlanillaDetalleFormVM vm, ContextoAuditoria auditoria)
         {
             var (salarioBase, montoExtra, bruto) = Calcular(vm.SalarioMensual, vm.HorasExtra);
+            var (ccss, renta, totalDed) = CalcularDeducciones(bruto);
 
             var detalle = new PlanillaDetalleFinancieroAD
             {
@@ -69,8 +70,10 @@ namespace PROmaderas.LogicaDeNegocio.Planilla
                 HorasExtra = vm.HorasExtra,
                 MontoHorasExtra = montoExtra,
                 SalarioBruto = bruto,
-                TotalDeducciones = 0,
-                SalarioNeto = bruto
+                DeduccionCCSS = ccss,
+                DeduccionRenta = renta,
+                TotalDeducciones = totalDed,
+                SalarioNeto = bruto - totalDed
             };
 
             await _repo.AgregarDetalle(detalle);
@@ -83,13 +86,17 @@ namespace PROmaderas.LogicaDeNegocio.Planilla
                 ?? throw new ArgumentException("Detalle no encontrado.");
 
             var (salarioBase, montoExtra, bruto) = Calcular(salarioMensual, horasExtra);
+            var (ccss, renta, totalDed) = CalcularDeducciones(bruto);
 
             detalle.SalarioBase = salarioBase;
             detalle.HorasOrdinarias = horasOrdinarias;
             detalle.HorasExtra = horasExtra;
             detalle.MontoHorasExtra = montoExtra;
             detalle.SalarioBruto = bruto;
-            detalle.SalarioNeto = bruto - detalle.TotalDeducciones;
+            detalle.DeduccionCCSS = ccss;
+            detalle.DeduccionRenta = renta;
+            detalle.TotalDeducciones = totalDed;
+            detalle.SalarioNeto = bruto - totalDed;
 
             await _repo.ActualizarDetalle(detalle);
         }
@@ -100,6 +107,8 @@ namespace PROmaderas.LogicaDeNegocio.Planilla
         public async Task<List<EmpleadoAD>> ObtenerEmpleadosActivos()
             => await _repo.ObtenerEmpleadosActivos();
 
+        // ── cálculos ──────────────────────────────────────────────────────────
+
         private static (decimal salarioBase, decimal montoExtra, decimal bruto) Calcular(
             decimal salarioMensual, decimal horasExtra)
         {
@@ -108,6 +117,40 @@ namespace PROmaderas.LogicaDeNegocio.Planilla
             var montoExtra = Math.Round(valorHora * 1.5m * horasExtra, 2);
             var bruto = Math.Round(salarioMensual + montoExtra, 2);
             return (salarioMensual, montoExtra, bruto);
+        }
+
+        /// <summary>
+        /// PLA-HU-006: CCSS obrero 9.17 % + impuesto de renta por tramos (CR mensual).
+        /// </summary>
+        private static (decimal ccss, decimal renta, decimal total) CalcularDeducciones(decimal bruto)
+        {
+            // CCSS — aporte obrero
+            var ccss = Math.Round(bruto * 0.0917m, 2);
+
+            // Impuesto de renta — tramos mensuales Costa Rica
+            decimal renta = 0m;
+            if (bruto > 4_783_000m)
+            {
+                renta += (bruto - 4_783_000m) * 0.25m;
+                bruto = 4_783_000m;
+            }
+            if (bruto > 2_392_000m)
+            {
+                renta += (bruto - 2_392_000m) * 0.20m;
+                bruto = 2_392_000m;
+            }
+            if (bruto > 1_360_000m)
+            {
+                renta += (bruto - 1_360_000m) * 0.15m;
+                bruto = 1_360_000m;
+            }
+            if (bruto > 929_000m)
+            {
+                renta += (bruto - 929_000m) * 0.10m;
+            }
+            renta = Math.Round(renta, 2);
+
+            return (ccss, renta, ccss + renta);
         }
     }
 }

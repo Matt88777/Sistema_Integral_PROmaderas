@@ -137,7 +137,9 @@
                     <th>Salario base</th>
                     <th>Monto horas extra</th>
                     <th>Salario bruto</th>
-                    <th>Deducciones</th>
+                    <th>CCSS (9.17%)</th>
+                    <th>Renta</th>
+                    <th>Total ded.</th>
                     <th>Salario neto</th>
                     <th class="text-center">Acciones</th>
                 </tr>
@@ -154,7 +156,9 @@
                             <td>@d.SalarioBase.ToString("C2")</td>
                             <td>@d.MontoHorasExtra.ToString("C2")</td>
                             <td class="fw-bold">@d.SalarioBruto.ToString("C2")</td>
-                            <td>@d.TotalDeducciones.ToString("C2")</td>
+                            <td class="text-danger">@d.DeduccionCCSS.ToString("C2")</td>
+                            <td class="text-danger">@d.DeduccionRenta.ToString("C2")</td>
+                            <td class="text-danger fw-semibold">@d.TotalDeducciones.ToString("C2")</td>
                             <td class="fw-bold" style="color:#c9a03c">@d.SalarioNeto.ToString("C2")</td>
                             <td class="text-center">
                                 @if (Model.Estado == "Borrador")
