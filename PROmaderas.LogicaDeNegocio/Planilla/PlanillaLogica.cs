@@ -61,6 +61,11 @@ namespace PROmaderas.LogicaDeNegocio.Planilla
             var (salarioBase, montoExtra, bruto) = Calcular(vm.SalarioMensual, vm.HorasExtra);
             var (ccss, renta, totalDed) = CalcularDeducciones(bruto);
 
+            // PLA-HU-007: deducciones internas configurables
+            var internas = await _repo.ObtenerDeduccionesActivasDeEmpleado(vm.IdEmpleado);
+            var totalInternas = CalcularDeduccionesInternas(internas, bruto);
+            totalDed += totalInternas;
+
             var detalle = new PlanillaDetalleFinancieroAD
             {
                 IdPlanillaPeriodo = vm.IdPlanillaPeriodo,
@@ -72,6 +77,7 @@ namespace PROmaderas.LogicaDeNegocio.Planilla
                 SalarioBruto = bruto,
                 DeduccionCCSS = ccss,
                 DeduccionRenta = renta,
+                DeduccionesInternas = totalInternas,
                 TotalDeducciones = totalDed,
                 SalarioNeto = bruto - totalDed
             };
@@ -88,6 +94,10 @@ namespace PROmaderas.LogicaDeNegocio.Planilla
             var (salarioBase, montoExtra, bruto) = Calcular(salarioMensual, horasExtra);
             var (ccss, renta, totalDed) = CalcularDeducciones(bruto);
 
+            var internas = await _repo.ObtenerDeduccionesActivasDeEmpleado(detalle.IdEmpleado);
+            var totalInternas = CalcularDeduccionesInternas(internas, bruto);
+            totalDed += totalInternas;
+
             detalle.SalarioBase = salarioBase;
             detalle.HorasOrdinarias = horasOrdinarias;
             detalle.HorasExtra = horasExtra;
@@ -95,6 +105,7 @@ namespace PROmaderas.LogicaDeNegocio.Planilla
             detalle.SalarioBruto = bruto;
             detalle.DeduccionCCSS = ccss;
             detalle.DeduccionRenta = renta;
+            detalle.DeduccionesInternas = totalInternas;
             detalle.TotalDeducciones = totalDed;
             detalle.SalarioNeto = bruto - totalDed;
 
@@ -119,38 +130,33 @@ namespace PROmaderas.LogicaDeNegocio.Planilla
             return (salarioMensual, montoExtra, bruto);
         }
 
-        /// <summary>
-        /// PLA-HU-006: CCSS obrero 9.17 % + impuesto de renta por tramos (CR mensual).
-        /// </summary>
         private static (decimal ccss, decimal renta, decimal total) CalcularDeducciones(decimal bruto)
         {
-            // CCSS — aporte obrero
             var ccss = Math.Round(bruto * 0.0917m, 2);
 
-            // Impuesto de renta — tramos mensuales Costa Rica
             decimal renta = 0m;
-            if (bruto > 4_783_000m)
-            {
-                renta += (bruto - 4_783_000m) * 0.25m;
-                bruto = 4_783_000m;
-            }
-            if (bruto > 2_392_000m)
-            {
-                renta += (bruto - 2_392_000m) * 0.20m;
-                bruto = 2_392_000m;
-            }
-            if (bruto > 1_360_000m)
-            {
-                renta += (bruto - 1_360_000m) * 0.15m;
-                bruto = 1_360_000m;
-            }
-            if (bruto > 929_000m)
-            {
-                renta += (bruto - 929_000m) * 0.10m;
-            }
+            if (bruto > 4_783_000m) { renta += (bruto - 4_783_000m) * 0.25m; bruto = 4_783_000m; }
+            if (bruto > 2_392_000m) { renta += (bruto - 2_392_000m) * 0.20m; bruto = 2_392_000m; }
+            if (bruto > 1_360_000m) { renta += (bruto - 1_360_000m) * 0.15m; bruto = 1_360_000m; }
+            if (bruto > 929_000m) { renta += (bruto - 929_000m) * 0.10m; }
             renta = Math.Round(renta, 2);
 
             return (ccss, renta, ccss + renta);
+        }
+
+        private static decimal CalcularDeduccionesInternas(
+            List<EmpleadoDeduccionAD> deducciones, decimal bruto)
+        {
+            decimal total = 0m;
+            foreach (var ed in deducciones)
+            {
+                if (ed.Deduccion == null) continue;
+                if (ed.Deduccion.EsPorcentaje && ed.Deduccion.Porcentaje.HasValue)
+                    total += Math.Round(bruto * (ed.Deduccion.Porcentaje.Value / 100m), 2);
+                else if (!ed.Deduccion.EsPorcentaje && ed.Deduccion.Monto.HasValue)
+                    total += ed.Deduccion.Monto.Value;
+            }
+            return total;
         }
     }
 }

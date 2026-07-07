@@ -33,6 +33,9 @@ using PROmaderas.AccesoADatos.Reportes;
 using PROmaderas.LogicaDeNegocio.Reportes;
 using PROmaderas.AccesoADatos.Planilla;
 using PROmaderas.LogicaDeNegocio.Planilla;
+using PROmaderas.AccesoADatos.Deducciones;
+using PROmaderas.LogicaDeNegocio.Deducciones;
+
 
 
 
@@ -107,11 +110,18 @@ builder.Services.AddScoped<IReportesRepositorio, ReportesRepositorio>();
 builder.Services.AddScoped<IReportesExportLogica, ReportesExportLogica>();
 
 
-
-
-
 builder.Services.AddScoped<IProduccionRepositorio, ProduccionRepositorio>();
 builder.Services.AddScoped<IProduccionLogica, ProduccionLogica>();
+
+
+builder.Services.AddScoped<IDeduccionInternaRepositorio, DeduccionInternaRepositorio>();
+builder.Services.AddScoped<IDeduccionInternaLogica, DeduccionInternaLogica>();
+builder.Services.AddScoped<IPlanillaRepositorio, PlanillaRepositorio>();
+builder.Services.AddScoped<IPlanillaLogica, PlanillaLogica>();
+
+
+
+
 
 
 QuestPDF.Settings.License = LicenseType.Community;

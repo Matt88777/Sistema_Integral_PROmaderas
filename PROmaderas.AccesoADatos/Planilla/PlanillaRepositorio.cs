@@ -14,19 +14,15 @@ namespace PROmaderas.AccesoADatos.Planilla
         }
 
         public async Task<List<PlanillaPeriodoAD>> ObtenerPeriodos()
-        {
-            return await _contexto.PlanillaPeriodos
+            => await _contexto.PlanillaPeriodos
                 .Include(p => p.Detalles)
                 .OrderByDescending(p => p.FechaInicio)
                 .ToListAsync();
-        }
 
         public async Task<PlanillaPeriodoAD?> ObtenerPeriodoPorId(int id)
-        {
-            return await _contexto.PlanillaPeriodos
+            => await _contexto.PlanillaPeriodos
                 .Include(p => p.Detalles)
                 .FirstOrDefaultAsync(p => p.IdPlanillaPeriodo == id);
-        }
 
         public async Task<PlanillaPeriodoAD> CrearPeriodo(PlanillaPeriodoAD periodo)
         {
@@ -57,13 +53,11 @@ namespace PROmaderas.AccesoADatos.Planilla
         }
 
         public async Task<List<PlanillaDetalleFinancieroAD>> ObtenerDetallesPorPeriodo(int idPeriodo)
-        {
-            return await _contexto.PlanillaDetallesFinancieros
+            => await _contexto.PlanillaDetallesFinancieros
                 .Include(d => d.Empleado)
                 .Where(d => d.IdPlanillaPeriodo == idPeriodo)
                 .OrderBy(d => d.Empleado!.Nombre)
                 .ToListAsync();
-        }
 
         public async Task<PlanillaDetalleFinancieroAD> AgregarDetalle(PlanillaDetalleFinancieroAD detalle)
         {
@@ -73,10 +67,8 @@ namespace PROmaderas.AccesoADatos.Planilla
         }
 
         public async Task<PlanillaDetalleFinancieroAD?> ObtenerDetallePorId(int idDetalle)
-        {
-            return await _contexto.PlanillaDetallesFinancieros
+            => await _contexto.PlanillaDetallesFinancieros
                 .FirstOrDefaultAsync(d => d.IdPlanillaDetalle == idDetalle);
-        }
 
         public async Task ActualizarDetalle(PlanillaDetalleFinancieroAD detalle)
         {
@@ -95,11 +87,15 @@ namespace PROmaderas.AccesoADatos.Planilla
         }
 
         public async Task<List<EmpleadoAD>> ObtenerEmpleadosActivos()
-        {
-            return await _contexto.Empleados
+            => await _contexto.Empleados
                 .Where(e => e.Estado == true)
                 .OrderBy(e => e.Nombre)
                 .ToListAsync();
-        }
+
+        public async Task<List<EmpleadoDeduccionAD>> ObtenerDeduccionesActivasDeEmpleado(int idEmpleado)
+            => await _contexto.EmpleadoDeducciones
+                .Include(e => e.Deduccion)
+                .Where(e => e.IdEmpleado == idEmpleado && e.Deduccion!.Activa)
+                .ToListAsync();
     }
 }

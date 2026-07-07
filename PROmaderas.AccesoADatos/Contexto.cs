@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using PROmaderas.Abstracciones.Models;
+using System.Reflection.Emit;
 
 namespace PROmaderas.AccesoADatos
 {
@@ -24,7 +25,8 @@ namespace PROmaderas.AccesoADatos
         public DbSet<PlanillaDetalleFinancieroAD> PlanillaDetallesFinancieros { get; set; }
         public DbSet<SalarioHistorialAD> SalarioHistoriales { get; set; }
         public DbSet<LicenciaAD> Licencias { get; set; }
-
+        public DbSet<DeduccionInternaAD> DeduccionesInternas { get; set; }
+        public DbSet<EmpleadoDeduccionAD> EmpleadoDeducciones { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -207,6 +209,7 @@ namespace PROmaderas.AccesoADatos
                 e.Property(x => x.IdEmpleado).HasColumnName("IdEmpleado");
                 e.Property(x => x.SalarioNeto).HasColumnName("SalarioNeto");
                 e.HasOne(x => x.Periodo).WithMany(x => x.Detalles).HasForeignKey(x => x.IdPlanillaPeriodo);
+                e.HasOne(x => x.Empleado).WithMany().HasForeignKey(x => x.IdEmpleado);
             });
 
             modelBuilder.Entity<PuestoAD>(e =>
@@ -226,13 +229,28 @@ namespace PROmaderas.AccesoADatos
                 e.HasOne(x => x.Empleado).WithMany().HasForeignKey(x => x.IdEmpleado);
             });
 
-            
+
             modelBuilder.Entity<LicenciaAD>(e =>
             {
                 e.ToTable("Licencia");
                 e.HasKey(x => x.IdLicencia);
                 e.HasOne(x => x.Empleado).WithMany().HasForeignKey(x => x.IdEmpleado);
             });
-        }  
-    }      
-}
+
+            modelBuilder.Entity<DeduccionInternaAD>(e =>
+            {
+                e.ToTable("DeduccionInterna");
+                e.HasKey(x => x.IdDeduccion);
+            });
+
+            modelBuilder.Entity<EmpleadoDeduccionAD>(e =>
+            {
+                e.ToTable("EmpleadoDeduccion");
+                e.HasKey(x => x.IdEmpleadoDeduccion);
+                e.HasOne(x => x.Empleado).WithMany().HasForeignKey(x => x.IdEmpleado);
+                e.HasOne(x => x.Deduccion).WithMany().HasForeignKey(x => x.IdDeduccion);
+            });
+
+        }   
+    }       
+}           

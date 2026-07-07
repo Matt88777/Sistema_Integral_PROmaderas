@@ -12,7 +12,8 @@ namespace PROmaderas.Abstracciones.LogicaDeNegocio
 
         Task<List<PlanillaDetalleFinancieroAD>> ObtenerDetallesPorPeriodo(int idPeriodo);
         Task RegistrarHoras(PlanillaDetalleFormVM vm, ContextoAuditoria auditoria);
-        Task ActualizarHoras(int idDetalle, decimal salarioMensual, decimal horasOrdinarias, decimal horasExtra, ContextoAuditoria auditoria);
+        Task ActualizarHoras(int idDetalle, decimal salarioMensual,
+            decimal horasOrdinarias, decimal horasExtra, ContextoAuditoria auditoria);
         Task EliminarDetalle(int idDetalle);
 
         Task<List<EmpleadoAD>> ObtenerEmpleadosActivos();

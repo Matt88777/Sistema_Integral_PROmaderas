@@ -90,9 +90,9 @@
                                    class="btn btn-sm btn-accion-editar" title="Editar">
                                     <i class="bi bi-pencil"></i>
                                 </a>
-                                <a asp-action="HistorialSalario" asp-route-id="@item.IdEmpleado"
-                                   class="btn btn-sm btn-accion-ver" title="Historial salarial">
-                                    <i class="bi bi-clock-history"></i>
+                                <a asp-controller="Deducciones" asp-action="Asignar" asp-route-idEmpleado="@item.IdEmpleado"
+                                   class="btn btn-sm btn-accion-ajustar" title="Deducciones">
+                                    <i class="bi bi-scissors"></i>
                                 </a>
                                 <form asp-action="CambiarEstado" asp-route-id="@item.IdEmpleado"
                                       method="post" class="d-inline m-0">

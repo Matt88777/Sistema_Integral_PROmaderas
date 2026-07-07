@@ -1,8 +1,8 @@
 ﻿using PROmaderas.Abstracciones.Models;
 
-namespace PROmaderas.Abstracciones.AccesoADatos
+namespace PROmaderas.Abstracciones.LogicaDeNegocio
 {
-    public interface IDeduccionInternaRepositorio
+    public interface IDeduccionInternaLogica
     {
         Task<List<DeduccionInternaAD>> ObtenerTodas();
         Task<DeduccionInternaAD?> ObtenerPorId(int id);
@@ -13,6 +13,5 @@ namespace PROmaderas.Abstracciones.AccesoADatos
         Task<List<EmpleadoDeduccionAD>> ObtenerAsignacionesPorEmpleado(int idEmpleado);
         Task AsignarAEmpleado(int idEmpleado, int idDeduccion);
         Task DesasignarDeEmpleado(int idEmpleadoDeduccion);
-        Task<List<EmpleadoDeduccionAD>> ObtenerDeduccionesActivasDeEmpleado(int idEmpleado);
     }
 }

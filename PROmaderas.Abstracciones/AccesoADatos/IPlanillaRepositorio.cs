@@ -17,5 +17,6 @@ namespace PROmaderas.Abstracciones.AccesoADatos
         Task EliminarDetalle(int idDetalle);
 
         Task<List<EmpleadoAD>> ObtenerEmpleadosActivos();
+        Task<List<EmpleadoDeduccionAD>> ObtenerDeduccionesActivasDeEmpleado(int idEmpleado);
     }
 }

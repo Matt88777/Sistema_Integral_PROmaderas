@@ -13,13 +13,13 @@ namespace PROmaderas.Abstracciones.Models
         public int IdEmpleado { get; set; }
 
         [Column(TypeName = "decimal(18,2)")]
+        public decimal SalarioBase { get; set; }
+
+        [Column(TypeName = "decimal(18,2)")]
         public decimal HorasOrdinarias { get; set; }
 
         [Column(TypeName = "decimal(18,2)")]
         public decimal HorasExtra { get; set; }
-
-        [Column(TypeName = "decimal(18,2)")]
-        public decimal SalarioBase { get; set; }
 
         [Column(TypeName = "decimal(18,2)")]
         public decimal MontoHorasExtra { get; set; }
@@ -34,15 +34,17 @@ namespace PROmaderas.Abstracciones.Models
         public decimal DeduccionRenta { get; set; }
 
         [Column(TypeName = "decimal(18,2)")]
+        public decimal DeduccionesInternas { get; set; }
+
+        [Column(TypeName = "decimal(18,2)")]
         public decimal TotalDeducciones { get; set; }
 
         [Column(TypeName = "decimal(18,2)")]
         public decimal SalarioNeto { get; set; }
 
-        [ForeignKey("IdEmpleado")]
-        public virtual EmpleadoAD? Empleado { get; set; }
-
         [ForeignKey("IdPlanillaPeriodo")]
         public virtual PlanillaPeriodoAD? Periodo { get; set; }
+
+        public virtual EmpleadoAD? Empleado { get; set; }
     }
 }
