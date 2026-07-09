@@ -12,10 +12,11 @@ namespace PROmaderas.Abstracciones.AccesoADatos
 		Task<bool> Eliminar(int id);
 		Task<bool> Existe(int id);
 		Task<List<ClienteAD>> BuscarPorNombre(string nombre);
-		Task<(List<ClienteAD> clientes, int totalRegistros)> ObtenerPaginado(
-			int pagina,
-			int registrosPorPagina,
-			string? filtroNombre);
+        Task<(List<ClienteAD> clientes, int totalRegistros)> ObtenerPaginado(
+    int pagina,
+    int registrosPorPagina,
+    string? filtroNombre,
+    bool? filtroEstado);
 
         //Busqueda historial del cliente
         Task<(ClienteAD? cliente, List<PedidoAD> pedidos)> ObtenerHistorialPorCliente(int clienteId);

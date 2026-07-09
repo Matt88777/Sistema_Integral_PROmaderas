@@ -84,18 +84,19 @@ namespace PROmaderas.LogicaDeNegocio.Clientes
 			return await _repositorio.BuscarPorNombre(nombre);
 		}
 
-		public async Task<(List<ClienteAD> clientes, int totalRegistros)> ObtenerPaginado(
-			int pagina,
-			int registrosPorPagina,
-			string? filtroNombre)
-		{
-			if (pagina < 1) pagina = 1;
-			if (registrosPorPagina < 1) registrosPorPagina = 10;
+        public async Task<(List<ClienteAD> clientes, int totalRegistros)> ObtenerPaginado(
+    int pagina,
+    int registrosPorPagina,
+    string? filtroNombre,
+    bool? filtroEstado)
+        {
+            if (pagina < 1) pagina = 1;
+            if (registrosPorPagina < 1) registrosPorPagina = 10;
 
-			return await _repositorio.ObtenerPaginado(pagina, registrosPorPagina, filtroNombre);
-		}
+            return await _repositorio.ObtenerPaginado(pagina, registrosPorPagina, filtroNombre, filtroEstado);
+        }
 
-		//Obtener historial por cliente
+        //Obtener historial por cliente
         public async Task<(ClienteAD? cliente, List<PedidoAD> pedidos)> ObtenerHistorialPorCliente(int clienteId)
         {
             return await _repositorio.ObtenerHistorialPorCliente(clienteId);

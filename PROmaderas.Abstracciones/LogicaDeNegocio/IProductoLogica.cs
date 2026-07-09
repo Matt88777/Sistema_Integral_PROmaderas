@@ -14,12 +14,13 @@ namespace PROmaderas.Abstracciones.LogicaDeNegocio
 		Task<bool> Existe(int id);
 		Task<List<ProductoAD>> BuscarPorNombre(string nombre);
 		Task<List<ProductoAD>> FiltrarPorCategoria(int? categoriaId);
-		Task<(List<ProductoAD> productos, int totalRegistros)> ObtenerPaginado(
-			int pagina,
-			int registrosPorPagina,
-			string? filtroNombre,
-			int? categoriaId);
-		Task<ProductoAD> AjustarStock(int id, int cantidad);
+        Task<(List<ProductoAD> productos, int totalRegistros)> ObtenerPaginado(
+    int pagina,
+    int registrosPorPagina,
+    string? filtroNombre,
+    int? categoriaId,
+    bool? filtroEstado);
+        Task<ProductoAD> AjustarStock(int id, int cantidad);
         Task<List<InventarioExistenciaDTO>> ObtenerExistenciasActuales(int? idTipoTarima);
         Task<List<InventarioMovimientoDTO>> ObtenerHistorialMovimientos(int? idTipoTarima);
         Task RegistrarAjusteInventario(AjusteInventarioDTO ajuste);

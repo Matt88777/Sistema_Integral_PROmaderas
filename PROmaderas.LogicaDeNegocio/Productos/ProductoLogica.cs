@@ -103,15 +103,16 @@ namespace PROmaderas.LogicaDeNegocio.Productos
         }
 
         public async Task<(List<ProductoAD> productos, int totalRegistros)> ObtenerPaginado(
-            int pagina,
-            int registrosPorPagina,
-            string? filtroNombre,
-            int? categoriaId)
+           int pagina,
+           int registrosPorPagina,
+           string? filtroNombre,
+           int? categoriaId,
+           bool? filtroEstado)
         {
             if (pagina < 1) pagina = 1;
             if (registrosPorPagina < 1) registrosPorPagina = 10;
 
-            return await _repositorio.ObtenerPaginado(pagina, registrosPorPagina, filtroNombre, categoriaId);
+            return await _repositorio.ObtenerPaginado(pagina, registrosPorPagina, filtroNombre, categoriaId, filtroEstado);
         }
 
         public async Task<ProductoAD> AjustarStock(int id, int cantidad)

@@ -38,27 +38,25 @@ namespace PROmaderas.UI.Controllers
             return categorias;
         }
 
-        public async Task<IActionResult> Index(string? filtroNombre, int? categoriaId, int pagina = 1)
+        public async Task<IActionResult> Index(string? filtroNombre, int? categoriaId, bool? filtroEstado, int pagina = 1)
         {
             int registrosPorPagina = 10;
 
             var (productos, totalRegistros) = await _productoLogica.ObtenerPaginado(
-                pagina,
-                registrosPorPagina,
-                filtroNombre,
-                categoriaId);
+                pagina, registrosPorPagina, filtroNombre, categoriaId, filtroEstado);
 
             var categorias = await _productoLogica.ObtenerCategorias();
 
             ViewBag.Categorias = categorias;
             ViewBag.FiltroNombre = filtroNombre;
             ViewBag.CategoriaId = categoriaId;
+            ViewBag.FiltroEstado = filtroEstado;
             ViewBag.PaginaActual = pagina;
             ViewBag.TotalPaginas = (int)Math.Ceiling(totalRegistros / (double)registrosPorPagina);
 
             return View(productos);
         }
-
+       
         public async Task<IActionResult> Inventario(int? idTipoTarima)
         {
             var modelo = new InventarioConsultaViewModel

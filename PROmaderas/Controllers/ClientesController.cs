@@ -18,23 +18,21 @@ namespace PROmaderas.UI.Controllers
 			_clienteLogica = clienteLogica;
 		}
 
-		public async Task<IActionResult> Index(string? filtroNombre, int pagina = 1)
-		{
-			int registrosPorPagina = 10;
+        public async Task<IActionResult> Index(string? filtroNombre, bool? filtroEstado, int pagina = 1)
+        {
+            int registrosPorPagina = 10;
 
-			var (clientes, totalRegistros) = await _clienteLogica.ObtenerPaginado(
-				pagina,
-				registrosPorPagina,
-				filtroNombre);
+            var (clientes, totalRegistros) = await _clienteLogica.ObtenerPaginado(
+                pagina, registrosPorPagina, filtroNombre, filtroEstado);
 
-			ViewBag.FiltroNombre = filtroNombre;
-			ViewBag.PaginaActual = pagina;
-			ViewBag.TotalPaginas = (int)Math.Ceiling(totalRegistros / (double)registrosPorPagina);
+            ViewBag.FiltroNombre = filtroNombre;
+            ViewBag.FiltroEstado = filtroEstado;
+            ViewBag.PaginaActual = pagina;
+            ViewBag.TotalPaginas = (int)Math.Ceiling(totalRegistros / (double)registrosPorPagina);
 
-			return View(clientes);
-		}
-
-		public async Task<IActionResult> Details(int? id)
+            return View(clientes);
+        }
+        public async Task<IActionResult> Details(int? id)
 		{
 			if (id == null)
 				return NotFound();

@@ -143,22 +143,21 @@ namespace PROmaderas.AccesoADatos.Productos
         }
 
         public async Task<(List<ProductoAD> productos, int totalRegistros)> ObtenerPaginado(
-            int pagina,
-            int registrosPorPagina,
-            string? filtroNombre,
-            int? categoriaId)
+    int pagina,
+    int registrosPorPagina,
+    string? filtroNombre,
+    int? categoriaId,
+    bool? filtroEstado)
         {
-            // Sprint 0: categoriaId se ignora porque la BD no tiene Categoria.
             _ = categoriaId;
 
-            // INV-HU-004: se muestran activos e inactivos para que el Administrador
-            // pueda reactivar tipos de tarima sin eliminar su historial.
             var query = _contexto.Productos.AsQueryable();
 
             if (!string.IsNullOrEmpty(filtroNombre))
-            {
                 query = query.Where(p => p.Nombre.Contains(filtroNombre));
-            }
+
+            if (filtroEstado.HasValue)
+                query = query.Where(p => p.Activo == filtroEstado.Value);
 
             var totalRegistros = await query.CountAsync();
 
@@ -172,7 +171,6 @@ namespace PROmaderas.AccesoADatos.Productos
 
             return (productos, totalRegistros);
         }
-
         public async Task<List<InventarioExistenciaDTO>> ObtenerExistenciasActuales(int? idTipoTarima)
         {
             var tiposEntrada = TiposMovimientoInventario.TiposEntrada.ToList();

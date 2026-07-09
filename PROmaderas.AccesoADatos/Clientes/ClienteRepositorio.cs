@@ -136,27 +136,34 @@ namespace PROmaderas.AccesoADatos.Clientes
 				.ToListAsync();
 		}
 
-		public async Task<(List<ClienteAD> clientes, int totalRegistros)> ObtenerPaginado(
-			int pagina,
-			int registrosPorPagina,
-			string? filtroNombre)
-		{
-			var query = _contexto.Clientes.AsQueryable();
 
-			if (!string.IsNullOrWhiteSpace(filtroNombre))
-			{
-				query = query.Where(c => c.Nombre.Contains(filtroNombre));
-			}
+        public async Task<(List<ClienteAD> clientes, int totalRegistros)> ObtenerPaginado(
+    int pagina,
+    int registrosPorPagina,
+    string? filtroNombre,
+    bool? filtroEstado)
+        {
+            var query = _contexto.Clientes.AsQueryable();
 
-			var totalRegistros = await query.CountAsync();
+            if (!string.IsNullOrWhiteSpace(filtroNombre))
+                query = query.Where(c => c.Nombre.Contains(filtroNombre));
 
-			var clientes = await query
-				.Skip((pagina - 1) * registrosPorPagina)
-				.Take(registrosPorPagina)
-				.ToListAsync();
+            if (filtroEstado.HasValue)
+                query = query.Where(c => c.Estado == filtroEstado.Value);
 
-			return (clientes, totalRegistros);
-		}
+            var totalRegistros = await query.CountAsync();
+
+            var clientes = await query
+                .Skip((pagina - 1) * registrosPorPagina)
+                .Take(registrosPorPagina)
+                .ToListAsync();
+
+            return (clientes, totalRegistros);
+        }
+
+
+
+
         //Obtener historial del cliente
         public async Task<(ClienteAD? cliente, List<PedidoAD> pedidos)> ObtenerHistorialPorCliente(int clienteId)
         {

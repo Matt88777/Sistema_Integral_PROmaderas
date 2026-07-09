@@ -17,11 +17,12 @@ namespace PROmaderas.Abstracciones.AccesoADatos
 		Task<bool> Existe(int id);
 		Task<List<ProductoAD>> BuscarPorNombre(string nombre);
 		Task<List<ProductoAD>> FiltrarPorCategoria(int? categoriaId);
-		Task<(List<ProductoAD> productos, int totalRegistros)> ObtenerPaginado(
-			int pagina,
-			int registrosPorPagina,
-			string? filtroNombre,
-			int? categoriaId);
+        Task<(List<ProductoAD> productos, int totalRegistros)> ObtenerPaginado(
+    int pagina,
+    int registrosPorPagina,
+    string? filtroNombre,
+    int? categoriaId,
+    bool? filtroEstado);
 
         Task<List<InventarioExistenciaDTO>> ObtenerExistenciasActuales(int? idTipoTarima);
         Task<List<InventarioMovimientoDTO>> ObtenerHistorialMovimientos(int? idTipoTarima);
