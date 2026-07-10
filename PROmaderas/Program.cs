@@ -118,7 +118,8 @@ builder.Services.AddScoped<IDeduccionInternaRepositorio, DeduccionInternaReposit
 builder.Services.AddScoped<IDeduccionInternaLogica, DeduccionInternaLogica>();
 builder.Services.AddScoped<IPlanillaRepositorio, PlanillaRepositorio>();
 builder.Services.AddScoped<IPlanillaLogica, PlanillaLogica>();
-
+builder.Services.AddScoped<ILicenciaRepositorio, LicenciaRepositorio>();
+builder.Services.AddScoped<ILicenciaLogica, LicenciaLogica>();
 
 
 
