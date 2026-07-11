@@ -110,7 +110,27 @@ namespace PROmaderas.LogicaDeNegocio.Parametros
             if (!version.Estado)
                 throw new ArgumentException("Esta versión ya está anulada.");
 
-            await _repositorio.AnularVersion(idVersion, motivoLimpio, auditoria);
+            // Al crearse, esta versión le puso FechaFin a la anterior. Si se anula sin devolverle
+            // esa cobertura, queda un rango de fechas sin ninguna versión vigente y las planillas
+            // de ese rango revientan con "No hay una versión vigente del parámetro X".
+            var anterior = await _repositorio.ObtenerVersionAnteriorActiva(
+                version.NombreParametro, version.FechaInicio);
+
+            DateTime? fechaFinAnterior = null;
+
+            if (anterior != null)
+            {
+                // La anterior NO siempre vuelve a quedar abierta: se cierra contra la siguiente
+                // versión que siga siendo válida. Con v1/v2/v3, anular v2 cierra v1 contra v3.
+                // Solo si no queda ninguna versión válida posterior, FechaFin vuelve a null.
+                var siguiente = await _repositorio.ObtenerVersionSiguienteActiva(
+                    version.NombreParametro, version.FechaInicio);
+
+                fechaFinAnterior = siguiente?.FechaInicio.AddDays(-1);
+            }
+
+            await _repositorio.AnularVersion(
+                idVersion, anterior?.IdParametroPlanilla, fechaFinAnterior, motivoLimpio, auditoria);
         }
 
         // ── Validaciones ──────────────────────────────────────────────────────

@@ -142,7 +142,12 @@
                     <th>Salario base</th>
                     <th>Monto horas extra</th>
                     <th>Salario bruto</th>
-                    <th>CCSS (9.17%)</th>
+                    @* PLA-HU-019: el % sale del parámetro vigente para este período. Antes estaba
+                       hardcodeado en 9.17% y desde que el cálculo lee de ParametroPlanilla, mentía. *@
+                    @{
+                        var porcCCSS = ViewBag.PorcentajeCCSS as decimal?;
+                    }
+                    <th>CCSS @(porcCCSS.HasValue ? $"({porcCCSS.Value.ToString("0.##")}%)" : "")</th>
                     <th>Renta</th>
                     <th>Ded. internas</th>
                     <th>Total ded.</th>

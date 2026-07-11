@@ -1,4 +1,5 @@
 using PROmaderas.Abstracciones.AccesoADatos;
+using PROmaderas.Abstracciones.Catalogos;
 using PROmaderas.Abstracciones.LogicaDeNegocio;
 using PROmaderas.Abstracciones.Models;
 
@@ -7,13 +8,15 @@ namespace PROmaderas.LogicaDeNegocio.Planilla
     public class PlanillaLogica : IPlanillaLogica
     {
         private readonly IPlanillaRepositorio _repo;
+        private readonly IParametroPlanillaRepositorio _parametros;
 
         private static readonly string[] EstadosValidos =
             { "Borrador", "Revisada", "Aprobada", "Pagada" };
 
-        public PlanillaLogica(IPlanillaRepositorio repo)
+        public PlanillaLogica(IPlanillaRepositorio repo, IParametroPlanillaRepositorio parametros)
         {
             _repo = repo;
+            _parametros = parametros;
         }
 
         public async Task<List<PlanillaPeriodoAD>> ObtenerPeriodos()
@@ -58,8 +61,16 @@ namespace PROmaderas.LogicaDeNegocio.Planilla
 
         public async Task RegistrarHoras(PlanillaDetalleFormVM vm, ContextoAuditoria auditoria)
         {
-            var (salarioBase, montoExtra, bruto) = Calcular(vm.SalarioMensual, vm.HorasExtra);
-            var (ccss, renta, totalDed) = CalcularDeducciones(bruto);
+            // PLA-HU-019: los parámetros se resuelven a la FECHA DEL PERÍODO, no a la de hoy.
+            // Recalcular un período viejo tiene que dar el mismo número que dio en su momento.
+            var periodo = await _repo.ObtenerPeriodoPorId(vm.IdPlanillaPeriodo)
+                ?? throw new ArgumentException("Período no encontrado.");
+
+            var fecha = periodo.FechaInicio;
+            var p = await _parametros.ObtenerVigentes(fecha);   // UN query para los 12 parámetros
+
+            var (salarioBase, montoExtra, bruto) = Calcular(vm.SalarioMensual, vm.HorasExtra, p, fecha);
+            var (ccss, renta, totalDed) = CalcularDeducciones(bruto, p, fecha);
 
             // PLA-HU-007: deducciones internas configurables
             var internas = await _repo.ObtenerDeduccionesActivasDeEmpleado(vm.IdEmpleado);
@@ -91,8 +102,15 @@ namespace PROmaderas.LogicaDeNegocio.Planilla
             var detalle = await _repo.ObtenerDetallePorId(idDetalle)
                 ?? throw new ArgumentException("Detalle no encontrado.");
 
-            var (salarioBase, montoExtra, bruto) = Calcular(salarioMensual, horasExtra);
-            var (ccss, renta, totalDed) = CalcularDeducciones(bruto);
+            // Misma regla que en RegistrarHoras: la fecha sale del período del detalle.
+            var periodo = await _repo.ObtenerPeriodoPorId(detalle.IdPlanillaPeriodo)
+                ?? throw new ArgumentException("Período no encontrado.");
+
+            var fecha = periodo.FechaInicio;
+            var p = await _parametros.ObtenerVigentes(fecha);
+
+            var (salarioBase, montoExtra, bruto) = Calcular(salarioMensual, horasExtra, p, fecha);
+            var (ccss, renta, totalDed) = CalcularDeducciones(bruto, p, fecha);
 
             var internas = await _repo.ObtenerDeduccionesActivasDeEmpleado(detalle.IdEmpleado);
             var totalInternas = CalcularDeduccionesInternas(internas, bruto);
@@ -119,29 +137,67 @@ namespace PROmaderas.LogicaDeNegocio.Planilla
             => await _repo.ObtenerEmpleadosActivos();
 
         // ── cálculos ──────────────────────────────────────────────────────────
+        // Siguen siendo funciones PURAS: no tocan la BD. Reciben ya resueltos los parámetros
+        // vigentes a la fecha del período (y esa fecha, solo para el mensaje de error).
 
         private static (decimal salarioBase, decimal montoExtra, decimal bruto) Calcular(
-            decimal salarioMensual, decimal horasExtra)
+            decimal salarioMensual, decimal horasExtra,
+            IReadOnlyDictionary<string, decimal> parametros, DateTime fecha)
         {
-            const decimal horasMes = 240m;
+            // Cantidad: se usa tal cual, como divisor.
+            var horasMes = Obtener(parametros, ParametrosPlanilla.HorasMes, fecha);
+            if (horasMes <= 0)
+                throw new InvalidOperationException(
+                    $"El parámetro '{ParametrosPlanilla.HorasMes}' debe ser mayor a cero (valor actual: {horasMes}).");
+
+            // FACTOR, no porcentaje: NO se divide entre 100 (vale 1.5, no 150).
+            var factorHoraExtra = Obtener(parametros, ParametrosPlanilla.FactorHoraExtra, fecha);
+
             var valorHora = salarioMensual / horasMes;
-            var montoExtra = Math.Round(valorHora * 1.5m * horasExtra, 2);
+            var montoExtra = Math.Round(valorHora * factorHoraExtra * horasExtra, 2);
             var bruto = Math.Round(salarioMensual + montoExtra, 2);
             return (salarioMensual, montoExtra, bruto);
         }
 
-        private static (decimal ccss, decimal renta, decimal total) CalcularDeducciones(decimal bruto)
+        private static (decimal ccss, decimal renta, decimal total) CalcularDeducciones(
+            decimal bruto, IReadOnlyDictionary<string, decimal> parametros, DateTime fecha)
         {
-            var ccss = Math.Round(bruto * 0.0917m, 2);
+            // PORCENTAJE: la tabla guarda 10.67 (= 10.67%), así que se divide entre 100.
+            var porcCCSS = Obtener(parametros, ParametrosPlanilla.PorcentajeCCSS, fecha);
+            var ccss = Math.Round(bruto * (porcCCSS / 100m), 2);
+
+            // Tramos de mayor a menor: se le cobra a cada tramo solo su excedente y se baja el
+            // techo. Los *Piso son colones (tal cual); los *Porc son porcentajes (entre 100).
+            var t4Piso = Obtener(parametros, ParametrosPlanilla.RentaTramo4Piso, fecha);
+            var t4Porc = Obtener(parametros, ParametrosPlanilla.RentaTramo4Porc, fecha);
+            var t3Piso = Obtener(parametros, ParametrosPlanilla.RentaTramo3Piso, fecha);
+            var t3Porc = Obtener(parametros, ParametrosPlanilla.RentaTramo3Porc, fecha);
+            var t2Piso = Obtener(parametros, ParametrosPlanilla.RentaTramo2Piso, fecha);
+            var t2Porc = Obtener(parametros, ParametrosPlanilla.RentaTramo2Porc, fecha);
+            var t1Piso = Obtener(parametros, ParametrosPlanilla.RentaTramo1Piso, fecha);
+            var t1Porc = Obtener(parametros, ParametrosPlanilla.RentaTramo1Porc, fecha);
 
             decimal renta = 0m;
-            if (bruto > 4_783_000m) { renta += (bruto - 4_783_000m) * 0.25m; bruto = 4_783_000m; }
-            if (bruto > 2_392_000m) { renta += (bruto - 2_392_000m) * 0.20m; bruto = 2_392_000m; }
-            if (bruto > 1_360_000m) { renta += (bruto - 1_360_000m) * 0.15m; bruto = 1_360_000m; }
-            if (bruto > 929_000m) { renta += (bruto - 929_000m) * 0.10m; }
+            if (bruto > t4Piso) { renta += (bruto - t4Piso) * (t4Porc / 100m); bruto = t4Piso; }
+            if (bruto > t3Piso) { renta += (bruto - t3Piso) * (t3Porc / 100m); bruto = t3Piso; }
+            if (bruto > t2Piso) { renta += (bruto - t2Piso) * (t2Porc / 100m); bruto = t2Piso; }
+            if (bruto > t1Piso) { renta += (bruto - t1Piso) * (t1Porc / 100m); }
             renta = Math.Round(renta, 2);
 
             return (ccss, renta, ccss + renta);
+        }
+
+        // Un parámetro que falta NO se reemplaza por un default silencioso: una planilla con un
+        // parámetro faltante debe fallar ruidosamente, no devolver un número mal.
+        private static decimal Obtener(
+            IReadOnlyDictionary<string, decimal> parametros, string nombre, DateTime fecha)
+        {
+            if (!parametros.TryGetValue(nombre, out var valor))
+                throw new InvalidOperationException(
+                    $"No hay una versión vigente del parámetro '{nombre}' para la fecha " +
+                    $"{fecha:dd/MM/yyyy}. Configúrelo en Administración > Parámetros de planilla.");
+
+            return valor;
         }
 
         private static decimal CalcularDeduccionesInternas(

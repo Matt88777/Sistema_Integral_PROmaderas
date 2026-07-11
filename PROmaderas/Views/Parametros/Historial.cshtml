@@ -115,6 +115,14 @@
        textarea y los botones Confirmar/Cancelar quedan siempre dentro del cuadro. *@
     @foreach (var v in Model.Where(x => x.Estado))
     {
+        @* Pista para el aviso: la versión válida inmediatamente anterior a esta. Se calcula sobre
+           el Model (ya trae todas las versiones), así que no hay query extra. Es solo para el
+           texto: quien decide de verdad es ParametroPlanillaLogica.AnularVersion. *@
+        var anterior = Model
+            .Where(x => x.Estado && x.FechaInicio < v.FechaInicio)
+            .OrderByDescending(x => x.FechaInicio)
+            .FirstOrDefault();
+
         <div class="modal fade modal-pm" id="modalAnular-@v.IdParametroPlanilla" tabindex="-1">
             <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
                 <form asp-action="AnularVersion" method="post" class="modal-content">
@@ -130,12 +138,27 @@
                     </div>
 
                     <div class="modal-body">
-                        <div class="alert alert-danger">
-                            <strong>Solo para corregir un error de digitación.</strong>
-                            La versión anulada deja de resolverse como vigente en cualquier fecha, así que
-                            las planillas de su período se quedan sin este parámetro hasta que otra versión
-                            cubra ese rango.
-                        </div>
+                        @if (anterior != null)
+                        {
+                            <div class="alert alert-warning">
+                                <strong>Solo para corregir un error de digitación.</strong>
+                                Esta versión deja de resolverse como vigente, y la cobertura que le había
+                                quitado a la versión anterior <strong>se restaura</strong>: el rango vuelve a
+                                quedar cubierto por la versión de
+                                <strong>@anterior.Valor.ToString("N4")</strong>
+                                (vigente desde el @anterior.FechaInicio.ToString("dd/MM/yyyy")).
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="alert alert-danger">
+                                <strong>Solo para corregir un error de digitación.</strong>
+                                No hay ninguna versión válida anterior que pueda recuperar este rango, así que
+                                <strong>el parámetro quedará sin versión vigente</strong> desde el
+                                @v.FechaInicio.ToString("dd/MM/yyyy"). Las planillas de ese rango van a fallar
+                                hasta que se configure otra versión.
+                            </div>
+                        }
 
                         <div class="row g-3 mb-3">
                             <div class="col-6">

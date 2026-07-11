@@ -104,6 +104,30 @@ namespace PROmaderas.AccesoADatos.Parametros
                 .OrderByDescending(p => p.FechaInicio)
                 .FirstOrDefaultAsync();
 
+        public async Task<ParametroPlanillaAD?> ObtenerVersionAnteriorActiva(string nombre, DateTime fechaInicio)
+        {
+            var f = fechaInicio.Date;
+
+            // Estrictamente MENOR: excluye a la propia versión (el UNIQUE garantiza que no hay
+            // dos versiones del mismo parámetro con la misma FechaInicio).
+            return await _contexto.ParametrosPlanilla
+                .Where(p => p.NombreParametro == nombre && p.Estado && p.FechaInicio < f)
+                .OrderByDescending(p => p.FechaInicio)
+                .FirstOrDefaultAsync();
+        }
+
+        public async Task<ParametroPlanillaAD?> ObtenerVersionSiguienteActiva(string nombre, DateTime fechaInicio)
+        {
+            var f = fechaInicio.Date;
+
+            // Estrictamente MAYOR: excluye a la propia versión, que al momento de la consulta
+            // todavía está en Estado = 1.
+            return await _contexto.ParametrosPlanilla
+                .Where(p => p.NombreParametro == nombre && p.Estado && p.FechaInicio > f)
+                .OrderBy(p => p.FechaInicio)
+                .FirstOrDefaultAsync();
+        }
+
         public async Task<bool> ExisteParametro(string nombre)
             => await _contexto.ParametrosPlanilla
                 .AnyAsync(p => p.NombreParametro == nombre);
@@ -197,7 +221,8 @@ namespace PROmaderas.AccesoADatos.Parametros
             await _contexto.SaveChangesAsync();
         }
 
-        public async Task AnularVersion(int idVersion, string motivo, ContextoAuditoria auditoria)
+        public async Task AnularVersion(int idVersion, int? idVersionAnterior, DateTime? fechaFinAnterior,
+                                        string motivo, ContextoAuditoria auditoria)
         {
             var version = await _contexto.ParametrosPlanilla
                 .FirstOrDefaultAsync(p => p.IdParametroPlanilla == idVersion);
@@ -219,6 +244,32 @@ namespace PROmaderas.AccesoADatos.Parametros
 
             _contexto.ParametrosPlanilla.Update(version);
 
+            // La versión anulada le había recortado la cobertura a la anterior. Se le devuelve:
+            // sin esto quedaba un rango de fechas sin ninguna versión vigente.
+            object? reapertura = null;
+
+            if (idVersionAnterior.HasValue)
+            {
+                var anterior = await _contexto.ParametrosPlanilla
+                    .FirstOrDefaultAsync(p => p.IdParametroPlanilla == idVersionAnterior.Value);
+
+                if (anterior == null)
+                    throw new Exception($"No se encontró la versión anterior con ID {idVersionAnterior.Value}.");
+
+                var fechaFinPrevia = anterior.FechaFin;
+                anterior.FechaFin = fechaFinAnterior;   // null = vuelve a ser la vigente indefinida
+
+                _contexto.ParametrosPlanilla.Update(anterior);
+
+                reapertura = new
+                {
+                    anterior.IdParametroPlanilla,
+                    anterior.Valor,
+                    FechaFinPrevia = fechaFinPrevia,
+                    FechaFinRestaurada = fechaFinAnterior
+                };
+            }
+
             _contexto.Bitacoras.Add(ConstructorBitacora.Construir(
                 Tabla,
                 version.IdParametroPlanilla,
@@ -231,9 +282,11 @@ namespace PROmaderas.AccesoADatos.Parametros
                     version.FechaInicio,
                     version.FechaFin,
                     Estado = false,
-                    Motivo = motivo
+                    Motivo = motivo,
+                    VersionAnteriorReabierta = reapertura   // null si no había nada que reabrir
                 }));
 
+            // Anulación + reapertura + bitácora: una sola transacción.
             await _contexto.SaveChangesAsync();
         }
     }

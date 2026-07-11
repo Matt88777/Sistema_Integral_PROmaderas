@@ -35,6 +35,14 @@ namespace PROmaderas.Abstracciones.AccesoADatos
         // al crear una versión nueva. Null si el parámetro no tiene versiones válidas.
         Task<ParametroPlanillaAD?> ObtenerUltimaVersionActiva(string nombre);
 
+        // Versión válida INMEDIATAMENTE ANTERIOR a una fecha (la de FechaInicio más alta
+        // entre las menores). Es la que hay que reabrir cuando se anula la que la cerró.
+        Task<ParametroPlanillaAD?> ObtenerVersionAnteriorActiva(string nombre, DateTime fechaInicio);
+
+        // Versión válida INMEDIATAMENTE POSTERIOR a una fecha (la de FechaInicio más baja
+        // entre las mayores). Contra ella se vuelve a cerrar la anterior al anular.
+        Task<ParametroPlanillaAD?> ObtenerVersionSiguienteActiva(string nombre, DateTime fechaInicio);
+
         // ¿Existe el parámetro con ese nombre, en cualquier versión (anuladas incluidas)?
         Task<bool> ExisteParametro(string nombre);
 
@@ -53,6 +61,10 @@ namespace PROmaderas.Abstracciones.AccesoADatos
                                DateTime? fechaFinAnterior, string motivo, ContextoAuditoria auditoria);
 
         // Soft-delete de una versión (Estado = 0) + bitácora, atómico.
-        Task AnularVersion(int idVersion, string motivo, ContextoAuditoria auditoria);
+        // idVersionAnterior/fechaFinAnterior: la versión que esta cerró recupera su cobertura.
+        // fechaFinAnterior en null = la anterior vuelve a quedar abierta (vigente indefinida).
+        // idVersionAnterior en null = no había ninguna anterior válida que reabrir.
+        Task AnularVersion(int idVersion, int? idVersionAnterior, DateTime? fechaFinAnterior,
+                           string motivo, ContextoAuditoria auditoria);
     }
 }

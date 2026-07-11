@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using PROmaderas.Abstracciones.Catalogos;
 using PROmaderas.Abstracciones.LogicaDeNegocio;
 using PROmaderas.Abstracciones.Models;
 using PROmaderas.UI.Seguridad;
@@ -11,11 +12,14 @@ namespace PROmaderas.UI.Controllers
     public class PlanillaController : Controller
     {
         private readonly IPlanillaLogica _planillaLogica;
+        private readonly IParametroPlanillaLogica _parametroLogica;
         private const int TamanioPagina = 8;
 
-        public PlanillaController(IPlanillaLogica planillaLogica)
+        public PlanillaController(IPlanillaLogica planillaLogica,
+                                  IParametroPlanillaLogica parametroLogica)
         {
             _planillaLogica = planillaLogica;
+            _parametroLogica = parametroLogica;
         }
 
         public async Task<IActionResult> Index(int pagina = 1)
@@ -46,6 +50,12 @@ namespace PROmaderas.UI.Controllers
             if (periodo == null) return NotFound();
 
             ViewBag.EmpleadosDisponibles = await _planillaLogica.ObtenerEmpleadosActivos();
+
+            // PLA-HU-019: el % de CCSS que la cabecera muestra es el que RIGE PARA ESTE PERÍODO
+            // (misma fecha de resolución que usa el cálculo), no un literal en la vista.
+            ViewBag.PorcentajeCCSS = await _parametroLogica.ObtenerValorVigente(
+                ParametrosPlanilla.PorcentajeCCSS, periodo.FechaInicio);
+
             return View(periodo);
         }
 
