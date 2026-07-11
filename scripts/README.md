@@ -1,7 +1,7 @@
 # Base de datos — Cómo montar el entorno local
 
 > **Léeme antes de correr cualquier script.**
-> Esta carpeta tiene varios `.sql`. Solo dos son los que hay que correr, y en este orden.
+> Esta carpeta tiene varios `.sql`. Solo tres son los que hay que correr, y en este orden.
 
 ---
 
@@ -11,6 +11,7 @@
 |---|---|---|
 | `PROmaderasDB_NEW2.0.sql` | ✅ **SÍ — paso 1** | Esquema completo y actualizado. Crea la base y las 35 tablas. |
 | `PROmaderasDB_SEED.sql` | ✅ **SÍ — paso 2** | Datos base sin los cuales el sistema NO funciona. Ver "Por qué el seed es obligatorio". |
+| `PROmaderasDB_SPRINT4.sql` | ✅ **SÍ — paso 3** | Esquema del Sprint 4: columnas nuevas en `Empleado` y `PlanillaDetalle` + tablas `Liquidacion` / `PolizaINS` / `EmpleadoPoliza` + versionado de `ParametroPlanilla`. Aditivo e idempotente. |
 | `PROmaderasDB_NEW.sql` (raíz del repo) | ❌ **NO** | Script aprobado en SC-603. Quedó desactualizado respecto al código del Sprint 3: le faltan columnas y tablas que la app necesita. Se conserva como referencia del diseño original. |
 | Otros `.sql` de esta carpeta | ❌ **NO** | Scripts de sprints anteriores. Obsoletos. |
 
@@ -50,7 +51,16 @@ El seed es **idempotente**: si lo corrés dos veces, no duplica nada.
 
 ---
 
-## Paso 3 — Configurar `appsettings.json`
+## Paso 3 — Aplicar el esquema del Sprint 4
+
+1. Abrí `scripts/PROmaderasDB_SPRINT4.sql` y ejecutalo (**F5**).
+2. **Resultado esperado:** los 11 chequeos de la sección de Verificación (al final del script) deben devolver OK.
+
+Este script agrega columnas nuevas en `Empleado` (saldo inicial de vacaciones, datos de salida) y en `PlanillaDetalle` (vacaciones e incapacidades), crea las tablas `Liquidacion`, `PolizaINS` y `EmpleadoPoliza`, y cambia el `UNIQUE` de `ParametroPlanilla` a `(NombreParametro, FechaInicio)` para poder versionar parámetros. Es **aditivo e idempotente**: corre sobre una base ya creada sin romper ni duplicar nada.
+
+---
+
+## Paso 4 — Configurar `appsettings.json`
 
 **Este archivo NO está en el repo** (está en `.gitignore`), porque cada uno tiene su propia instancia de SQL Server. **Tenés que crearlo vos.**
 
@@ -75,7 +85,7 @@ Creá `PROmaderas/appsettings.json` con este contenido, cambiando `TU_INSTANCIA`
 
 ---
 
-## Paso 4 — Correr la app
+## Paso 5 — Correr la app
 
 ```bash
 dotnet build
@@ -134,7 +144,7 @@ Si agregan un usuario nuevo, hay que crearlo **en los dos lados** o el sistema n
 | `Invalid column name 'SalarioBase'` (o `JornadaLaboral`, `DeduccionCCSS`...) | Estás usando el `PROmaderasDB_NEW.sql` viejo. | Borrá la base y corré `PROmaderasDB_NEW2.0.sql`. |
 | `El usuario '...' no existe en la tabla Usuario` | No corriste el seed. | Corré `PROmaderasDB_SEED.sql`. |
 | `Database 'PROmaderasDB_NEW' already exists` | La base ya existía. | Borrala primero (ver Paso 1). |
-| La app no conecta a la base | Falta el `appsettings.json` o la instancia está mal. | Ver Paso 3. |
+| La app no conecta a la base | Falta el `appsettings.json` o la instancia está mal. | Ver Paso 4. |
 
 ---
 
