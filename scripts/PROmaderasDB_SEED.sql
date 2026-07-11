@@ -276,19 +276,28 @@ GO
      - PorcentajeCCSS       = 10.67  (deduccion obrera CCSS)
      - PorcentajeHoraExtra  = 1.5    (recargo hora extra)
      - DiasVacacionesPorMes = 1.0    (dias de vacaciones acumulados por mes)
-   FechaInicio = hoy (CAST GETDATE), FechaFin = NULL (vigente).
+
+   FechaInicio = '2026-01-01' FIJA, FechaFin = NULL (vigente).
+
+   POR QUE FECHA FIJA Y NO GETDATE():
+   FechaInicio es la VIGENCIA del parametro (dato de negocio: desde cuando rige ese
+   valor), NO la fecha en que se instalo la base. Con GETDATE() cada maquina queda con
+   una vigencia distinta -segun el dia en que corrio el SEED- y al resolver el parametro
+   vigente para una planilla ANTERIOR a esa fecha no se encuentra ninguna version.
+   El resto de los parametros (Seccion 7 de PROmaderasDB_SPRINT4.sql) ya arranca el
+   2026-01-01: estos tres tienen que coincidir.
    ---------------------------------------------------------------------------- */
 IF NOT EXISTS (SELECT 1 FROM dbo.ParametroPlanilla WHERE NombreParametro = N'PorcentajeCCSS')
     INSERT INTO dbo.ParametroPlanilla (NombreParametro, Valor, FechaInicio, FechaFin, Estado)
-    VALUES (N'PorcentajeCCSS', 10.6700, CAST(GETDATE() AS date), NULL, 1);
+    VALUES (N'PorcentajeCCSS', 10.6700, '2026-01-01', NULL, 1);
 
 IF NOT EXISTS (SELECT 1 FROM dbo.ParametroPlanilla WHERE NombreParametro = N'PorcentajeHoraExtra')
     INSERT INTO dbo.ParametroPlanilla (NombreParametro, Valor, FechaInicio, FechaFin, Estado)
-    VALUES (N'PorcentajeHoraExtra', 1.5000, CAST(GETDATE() AS date), NULL, 1);
+    VALUES (N'PorcentajeHoraExtra', 1.5000, '2026-01-01', NULL, 1);
 
 IF NOT EXISTS (SELECT 1 FROM dbo.ParametroPlanilla WHERE NombreParametro = N'DiasVacacionesPorMes')
     INSERT INTO dbo.ParametroPlanilla (NombreParametro, Valor, FechaInicio, FechaFin, Estado)
-    VALUES (N'DiasVacacionesPorMes', 1.0000, CAST(GETDATE() AS date), NULL, 1);
+    VALUES (N'DiasVacacionesPorMes', 1.0000, '2026-01-01', NULL, 1);
 GO
 
 /* ----------------------------------------------------------------------------

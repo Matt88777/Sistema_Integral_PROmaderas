@@ -38,10 +38,12 @@
    los parametros de renta (pisos y porcentajes de los 4 tramos) mas HorasMes, que hasta
    ahora estaban hardcodeados en PlanillaLogica.cs.
 
-   Ademas normaliza la FechaInicio de 'DiasVacacionesPorMes' a 2026-01-01: el SEED lo
-   siembra con GETDATE(), asi que su vigencia arrancaba el dia de la instalacion y los
-   periodos de planilla anteriores a esa fecha se quedaban sin parametro (PLA-HU-012).
-   Ver Seccion 7.
+   Ademas normaliza a 2026-01-01 la FechaInicio de los tres parametros que el SEED sembraba
+   con GETDATE() ('DiasVacacionesPorMes', 'PorcentajeCCSS', 'PorcentajeHoraExtra'): su
+   vigencia arrancaba el dia de la instalacion, asi que los periodos de planilla anteriores
+   a esa fecha se quedaban sin parametro (PLA-HU-012 y el calculo de planilla).
+   El SEED ya quedo corregido para las instalaciones nuevas; este UPDATE cubre las bases
+   que ya existen. Ver Seccion 7.
    ===================================================================================== */
 
 USE PROmaderasDB_NEW;
@@ -412,17 +414,25 @@ BEGIN
 END
 GO
 
-/* El SEED siembra 'DiasVacacionesPorMes' con GETDATE(), asi que su vigencia arranca el dia
-   en que se instalo la base. Todos los demas parametros arrancan el 2026-01-01. Si no se
-   normaliza, al resolver el parametro vigente para un periodo de planilla anterior a esa
-   fecha no se encuentra ninguna version y se rompe PLA-HU-012. */
+/* El SEED sembraba estos tres parametros con GETDATE(), asi que su vigencia arrancaba el
+   dia en que se instalo la base. Todos los demas parametros arrancan el 2026-01-01. Si no
+   se normaliza, al resolver el parametro vigente para un periodo de planilla anterior a esa
+   fecha no se encuentra ninguna version y se rompen PLA-HU-012 y el calculo de planilla.
+
+   El SEED ya quedo arreglado (usa '2026-01-01' fijo), pero eso solo cubre instalaciones
+   NUEVAS: este UPDATE es el que normaliza las bases que ya existen.
+
+   El "AND FechaInicio > '2026-01-01'" va tambien en el WHERE del UPDATE, no solo en el
+   IF EXISTS: no queremos pisar filas que ya estan bien. */
 IF EXISTS (SELECT 1 FROM dbo.ParametroPlanilla
-           WHERE NombreParametro = 'DiasVacacionesPorMes' AND FechaInicio > '2026-01-01')
+           WHERE NombreParametro IN ('DiasVacacionesPorMes','PorcentajeCCSS','PorcentajeHoraExtra')
+             AND FechaInicio > '2026-01-01')
 BEGIN
     UPDATE dbo.ParametroPlanilla
        SET FechaInicio = '2026-01-01'
-     WHERE NombreParametro = 'DiasVacacionesPorMes';
-    PRINT '  [~] DiasVacacionesPorMes: FechaInicio normalizada a 2026-01-01.';
+     WHERE NombreParametro IN ('DiasVacacionesPorMes','PorcentajeCCSS','PorcentajeHoraExtra')
+       AND FechaInicio > '2026-01-01';
+    PRINT '  [~] FechaInicio normalizada a 2026-01-01 en los parametros sembrados con GETDATE().';
 END
 GO
 
