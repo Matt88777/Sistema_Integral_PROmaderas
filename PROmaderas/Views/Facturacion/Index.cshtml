@@ -63,6 +63,22 @@
                     <i class="bi bi-x-lg"></i>
                 </a>
             </div>
+
+            @* FAC-HU-005: solo el Administrador puede ver las facturas anuladas.
+               Va dentro del mismo form para que conviva con los filtros de FAC-HU-002. *@
+            @if (User.IsInRole(Roles.Administrador))
+            {
+                <div class="col-12">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="true"
+                               name="incluirInactivas" id="incluirInactivas"
+                               checked="@Model.IncluirInactivas" />
+                        <label class="form-check-label" for="incluirInactivas">
+                            Incluir facturas inactivas (anuladas)
+                        </label>
+                    </div>
+                </div>
+            }
         </div>
     </form>
 
@@ -91,7 +107,8 @@
                 <tbody>
                     @foreach (var f in Model.Facturas)
                     {
-                        <tr>
+                        @* Las inactivas se ven atenuadas; el badge "Anulada" lo pinta la columna Estado. *@
+                        <tr class="@(f.Activa ? "" : "table-secondary opacity-75")">
                             <td class="fw-semibold" style="color:#c9a03c">@f.NumeroFactura</td>
                             <td>@f.Pedido?.NumeroOrden</td>
                             <td>@f.Cliente?.Nombre</td>
@@ -127,11 +144,20 @@
                                    class="btn btn-sm btn-accion-ver" title="Ver detalles">
                                     <i class="bi bi-eye"></i>
                                 </a>
-                                @if (User.IsInRole("Administrador") || User.IsInRole("Contador"))
+                                @if (f.Activa && (User.IsInRole(Roles.Administrador) || User.IsInRole(Roles.Contador)))
                                 {
                                     <a asp-action="CambiarEstado" asp-route-id="@f.Id"
                                        class="btn btn-sm btn-outline-secondary" title="Cambiar estado">
                                         <i class="bi bi-arrow-repeat"></i>
+                                    </a>
+                                }
+                                @* FAC-HU-005: inactivar/reactivar es exclusivo del Administrador. *@
+                                @if (User.IsInRole(Roles.Administrador))
+                                {
+                                    <a asp-action="CambiarActiva" asp-route-id="@f.Id"
+                                       class="btn btn-sm @(f.Activa ? "btn-outline-danger" : "btn-outline-success")"
+                                       title="@(f.Activa ? "Inactivar factura" : "Reactivar factura")">
+                                        <i class="bi @(f.Activa ? "bi-slash-circle" : "bi-arrow-counterclockwise")"></i>
                                     </a>
                                 }
                             </td>

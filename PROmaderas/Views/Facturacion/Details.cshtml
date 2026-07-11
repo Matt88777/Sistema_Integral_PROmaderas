@@ -13,6 +13,23 @@
         <div class="alert alert-warning alert-dismissible fade show">@TempData["Error"]<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
     }
 
+    @* FAC-HU-005: la factura anulada se puede abrir, pero se anuncia sin ambigüedad. *@
+    @if (!Model.Activa)
+    {
+        var motivoAnulacion = ViewBag.MotivoAnulacion as string;
+        <div class="alert alert-danger d-flex align-items-start">
+            <i class="bi bi-exclamation-octagon-fill fs-4 me-2"></i>
+            <div>
+                <strong class="d-block fs-5">FACTURA ANULADA</strong>
+                <span>Esta factura está inactiva. Se conserva como evidencia y no admite pagos.</span>
+                @if (!string.IsNullOrWhiteSpace(motivoAnulacion))
+                {
+                    <div class="mt-1"><strong>Motivo:</strong> @motivoAnulacion</div>
+                }
+            </div>
+        </div>
+    }
+
     <div class="row mb-3 align-items-center">
         <div class="col"><h2>Factura <span class="text-warning">@Model.NumeroFactura</span></h2></div>
         <div class="col-auto">
@@ -116,7 +133,7 @@
     </div>
 
     <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i>Volver al listado</a>
-    @if (User.IsInRole("Administrador") || User.IsInRole("Contador"))
+    @if (User.IsInRole(Roles.Administrador) || User.IsInRole(Roles.Contador))
     {
         @if (Model.Activa && Model.Estado != EstadosFactura.Pagada && Model.SaldoPendiente > 0)
         {
@@ -124,8 +141,27 @@
                 <i class="bi bi-cash-coin me-1"></i>Registrar pago
             </a>
         }
-        <a asp-action="CambiarEstado" asp-route-id="@Model.Id" class="btn btn-warning fw-bold">
-            <i class="bi bi-arrow-repeat me-1"></i>Cambiar estado
-        </a>
+        @if (Model.Activa)
+        {
+            <a asp-action="CambiarEstado" asp-route-id="@Model.Id" class="btn btn-warning fw-bold">
+                <i class="bi bi-arrow-repeat me-1"></i>Cambiar estado
+            </a>
+        }
+    }
+    @* FAC-HU-005: inactivar/reactivar es exclusivo del Administrador. *@
+    @if (User.IsInRole(Roles.Administrador))
+    {
+        @if (Model.Activa)
+        {
+            <a asp-action="CambiarActiva" asp-route-id="@Model.Id" class="btn btn-danger fw-bold">
+                <i class="bi bi-slash-circle me-1"></i>Inactivar factura
+            </a>
+        }
+        else
+        {
+            <a asp-action="CambiarActiva" asp-route-id="@Model.Id" class="btn btn-success fw-bold">
+                <i class="bi bi-arrow-counterclockwise me-1"></i>Reactivar factura
+            </a>
+        }
     }
 </div>

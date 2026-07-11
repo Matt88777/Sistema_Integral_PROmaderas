@@ -1,0 +1,108 @@
+@model PROmaderas.UI.Models.CambiarActivaFacturaViewModel
+@{
+    var inactivar = Model.ActivaActual;
+    ViewData["Title"] = inactivar ? "Inactivar factura" : "Reactivar factura";
+}
+
+<div class="container mt-4" style="max-width:640px">
+    <div class="row mb-3 align-items-center">
+        <div class="col">
+            <h2>
+                <i class="bi @(inactivar ? "bi-slash-circle" : "bi-arrow-counterclockwise") me-2"
+                   style="color:#c9a03c"></i>@ViewData["Title"]
+            </h2>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body">
+            <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+            <div class="row g-3 mb-4">
+                <div class="col-md-4">
+                    <div class="small text-muted">N° Factura</div>
+                    <strong style="color:#c9a03c">@Model.NumeroFactura</strong>
+                </div>
+                <div class="col-md-4">
+                    <div class="small text-muted">Estado actual</div>
+                    <strong>@Model.EstadoActual</strong>
+                </div>
+                <div class="col-md-4">
+                    <div class="small text-muted">Saldo pendiente</div>
+                    <strong>₡@Model.SaldoPendiente.ToString("N2")</strong>
+                </div>
+            </div>
+
+            @if (inactivar)
+            {
+                <div class="alert alert-warning">
+                    <i class="bi bi-exclamation-triangle me-1"></i>
+                    La factura pasará a <strong>@EstadosFactura.Anulada</strong> y dejará de aparecer en el
+                    listado (salvo que se marque <em>Incluir facturas inactivas</em>). No se borra nada:
+                    el documento y sus pagos quedan como evidencia.
+                </div>
+
+                @if (Model.TienePagos)
+                {
+                    <div class="alert alert-danger">
+                        <i class="bi bi-cash-stack me-1"></i>
+                        <strong>Atención:</strong> esta factura tiene <strong>@Model.CantidadPagos</strong>
+                        pago(s) registrado(s) por un total de
+                        <strong>₡@Model.TotalPagado.ToString("N2")</strong>.
+                        ¿Seguro que desea anularla?
+                    </div>
+                }
+            }
+            else if (!Model.PuedeConfirmar)
+            {
+                <div class="alert alert-danger">
+                    <i class="bi bi-x-octagon me-1"></i>
+                    @Model.ImpedimentoReactivacion
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle me-1"></i>
+                    La factura volverá a estar activa. Su estado <strong>se recalcula</strong> a partir del
+                    saldo y de los pagos registrados (@EstadosFactura.Pagada, @EstadosFactura.PendienteDePago
+                    o @EstadosFactura.Emitida): no se restaura a ciegas el estado anterior.
+                </div>
+            }
+
+            @if (!Model.PuedeConfirmar)
+            {
+                @* Reactivación bloqueada: no tiene sentido pedir el motivo. *@
+                <a asp-action="Details" asp-route-id="@Model.FacturaId" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-1"></i>Volver a la factura
+                </a>
+            }
+            else
+            {
+                <form asp-action="CambiarActiva" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" asp-for="FacturaId" />
+
+                    <div class="mb-4">
+                        <label asp-for="Motivo" class="form-label fw-semibold">
+                            Motivo del cambio <span class="text-danger">*</span>
+                        </label>
+                        <textarea asp-for="Motivo" class="form-control" rows="3"
+                                  placeholder="Ej. Se facturó la orden equivocada."></textarea>
+                        <span asp-validation-for="Motivo" class="text-danger"></span>
+                        <div class="form-text">Queda registrado en la bitácora de auditoría.</div>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn @(inactivar ? "btn-danger" : "btn-success") fw-bold px-4">
+                            <i class="bi bi-check-circle me-1"></i>@(inactivar ? "Inactivar factura" : "Reactivar factura")
+                        </button>
+                        <a asp-action="Details" asp-route-id="@Model.FacturaId" class="btn btn-outline-secondary">
+                            <i class="bi bi-x-lg me-1"></i>Cancelar
+                        </a>
+                    </div>
+                </form>
+            }
+        </div>
+    </div>
+</div>

@@ -21,15 +21,22 @@ namespace PROmaderas.UI.Controllers
         }
 
         public async Task<IActionResult> Index(int? clienteId, DateTime? fechaDesde,
-                                               DateTime? fechaHasta, string? numeroFactura)
+                                               DateTime? fechaHasta, string? numeroFactura,
+                                               bool incluirInactivas = false)
         {
+            // FAC-HU-005: ver las inactivas es privilegio del Administrador. No alcanza con
+            // ocultar el checkbox: cualquiera podría mandar ?incluirInactivas=true a mano.
+            var incluir = incluirInactivas && User.IsInRole(Roles.Administrador);
+
             var vm = new ConsultaFacturasViewModel
             {
                 ClienteId = clienteId,
                 FechaDesde = fechaDesde,
                 FechaHasta = fechaHasta,
                 NumeroFactura = numeroFactura,
-                Facturas = await _logica.BuscarConFiltros(clienteId, fechaDesde, fechaHasta, numeroFactura),
+                IncluirInactivas = incluir,
+                Facturas = await _logica.BuscarConFiltros(clienteId, fechaDesde, fechaHasta,
+                                                          numeroFactura, incluir),
                 Clientes = await _clienteLogica.ObtenerTodos()
             };
             return View(vm);
@@ -111,6 +118,11 @@ namespace PROmaderas.UI.Controllers
             if (factura == null) return NotFound();
             // Historial de pagos vía ViewBag para no cambiar el @model FacturacionAD de la vista.
             ViewBag.Pagos = await _logica.ObtenerPagosPorFactura(id);
+
+            // FAC-HU-005: el Details abre facturas anuladas y muestra por qué se anularon.
+            if (!factura.Activa)
+                ViewBag.MotivoAnulacion = await _logica.ObtenerMotivoAnulacion(id);
+
             return View(factura);
         }
 
@@ -218,6 +230,87 @@ namespace PROmaderas.UI.Controllers
                 vm.SaldoPendiente = factura.SaldoPendiente;
                 return View(vm);
             }
+        }
+
+        // FAC-HU-005: el ADMINISTRADOR (no el Contador) inactiva/reactiva una factura.
+        // Una sola pantalla: la dirección del cambio la marca el estado actual de Activa.
+        [Authorize(Roles = Roles.Administrador)]
+        public async Task<IActionResult> CambiarActiva(int id)
+        {
+            var factura = await _logica.ObtenerDetalle(id);
+            if (factura == null) return NotFound();
+
+            return View(await ArmarCambiarActivaVm(factura, new CambiarActivaFacturaViewModel()));
+        }
+
+        [HttpPost, ValidateAntiForgeryToken]
+        [Authorize(Roles = Roles.Administrador)]
+        public async Task<IActionResult> CambiarActiva(CambiarActivaFacturaViewModel vm)
+        {
+            var factura = await _logica.ObtenerDetalle(vm.FacturaId);
+            if (factura == null) return NotFound();
+
+            if (!ModelState.IsValid)
+                return View(await ArmarCambiarActivaVm(factura, vm));
+
+            try
+            {
+                // La dirección del cambio sale de la BD, no del hidden del formulario.
+                var inactivar = factura.Activa;
+
+                // La identidad viaja en el DTO (la Lógica/AD no conocen Identity ni HttpContext).
+                var ctx = new ContextoAuditoria
+                {
+                    UsuarioIdentityId = User.FindFirstValue(ClaimTypes.NameIdentifier),
+                    Email = User.Identity?.Name,
+                    Ip = HttpContext.Connection.RemoteIpAddress?.ToString(),
+                    Accion = inactivar
+                        ? AccionesAuditoria.InactivarFactura
+                        : AccionesAuditoria.ReactivarFactura
+                };
+
+                if (inactivar)
+                {
+                    await _logica.Inactivar(vm.FacturaId, vm.Motivo, ctx);
+                    TempData["Mensaje"] = "La factura fue inactivada y quedó en estado Anulada.";
+                }
+                else
+                {
+                    await _logica.Reactivar(vm.FacturaId, vm.Motivo, ctx);
+                    TempData["Mensaje"] = "La factura fue reactivada y su estado se recalculó.";
+                }
+
+                return RedirectToAction(nameof(Details), new { id = vm.FacturaId });
+            }
+            catch (ArgumentException ex)
+            {
+                ModelState.AddModelError("", ex.Message);
+                return View(await ArmarCambiarActivaVm(factura, vm));
+            }
+        }
+
+        // Completa el contexto de la pantalla (estado, pagos, advertencia) desde la BD,
+        // conservando lo único que el usuario escribe: el motivo.
+        private async Task<CambiarActivaFacturaViewModel> ArmarCambiarActivaVm(
+            FacturacionAD factura, CambiarActivaFacturaViewModel vm)
+        {
+            var pagos = await _logica.ObtenerPagosPorFactura(factura.Id);
+
+            vm.FacturaId = factura.Id;
+            vm.NumeroFactura = factura.NumeroFactura;
+            vm.EstadoActual = factura.Estado;
+            vm.ActivaActual = factura.Activa;
+            vm.SaldoPendiente = factura.SaldoPendiente;
+            vm.CantidadPagos = pagos.Count;
+            vm.TotalPagado = pagos.Sum(p => p.Monto);
+
+            // Solo aplica al flujo de reactivar: si la orden ya tiene otra factura activa,
+            // la vista lo avisa y no deja confirmar (la Lógica igual lo rechaza en el POST).
+            vm.ImpedimentoReactivacion = factura.Activa
+                ? null
+                : await _logica.ObtenerImpedimentoReactivacion(factura.Id);
+
+            return vm;
         }
     }
 }

@@ -15,24 +15,36 @@ namespace PROmaderas.AccesoADatos.Facturacion
             _contexto = contexto;
         }
 
-        public async Task<List<FacturacionAD>> ObtenerTodasActivas()
+        public async Task<List<FacturacionAD>> ObtenerTodas(bool incluirInactivas = false)
         {
-            return await _contexto.Facturaciones
+            var consulta = _contexto.Facturaciones
                 .Include(f => f.Pedido)
                 .Include(f => f.Cliente)
-                .Where(f => f.Activa)
+                .AsQueryable();
+
+            // FAC-HU-005: el filtro por Activa solo se aplica cuando NO se piden las inactivas.
+            if (!incluirInactivas)
+                consulta = consulta.Where(f => f.Activa);
+
+            return await consulta
                 .OrderByDescending(f => f.Fecha)
                 .ToListAsync();
         }
 
         public async Task<List<FacturacionAD>> BuscarConFiltros(int? clienteId, DateTime? fechaDesde,
-                                                                DateTime? fechaHasta, string? numeroFactura)
+                                                                DateTime? fechaHasta, string? numeroFactura,
+                                                                bool incluirInactivas = false)
         {
-            // Mismo query base que ObtenerTodasActivas; se le suman .Where() condicionales.
+            // Mismo query base que ObtenerTodas; se le suman .Where() condicionales.
             var consulta = _contexto.Facturaciones
                 .Include(f => f.Pedido)
                 .Include(f => f.Cliente)
-                .Where(f => f.Activa);
+                .AsQueryable();
+
+            // FAC-HU-005: sin esto, una factura inactivada desaparecería del Index
+            // y no habría forma de encontrarla para reactivarla.
+            if (!incluirInactivas)
+                consulta = consulta.Where(f => f.Activa);
 
             if (clienteId.HasValue)
                 consulta = consulta.Where(f => f.ClienteId == clienteId.Value);
@@ -97,6 +109,55 @@ namespace PROmaderas.AccesoADatos.Facturacion
                 valoresNuevos));
 
             await _contexto.SaveChangesAsync();
+        }
+
+        public async Task CambiarActiva(int id, bool activa, string nuevoEstado, string motivo,
+                                        ContextoAuditoria auditoria)
+        {
+            // Mismo patrón atómico que CambiarEstado: UPDATE + INSERT bitácora en UN SaveChangesAsync.
+            var factura = await _contexto.Facturaciones
+                .FirstOrDefaultAsync(f => f.Id == id);
+
+            if (factura == null)
+                throw new Exception($"No se encontró la factura con ID {id}.");
+
+            // Se capturan ANTES de mutar: el Estado previo es la evidencia que exige la HU.
+            var valoresAnteriores = new { factura.Activa, factura.Estado };
+
+            factura.Activa = activa;
+            factura.Estado = nuevoEstado;
+
+            _contexto.Facturaciones.Update(factura);
+
+            _contexto.Bitacoras.Add(ConstructorBitacora.Construir(
+                "Factura",
+                factura.Id,
+                auditoria,
+                valoresAnteriores,
+                new { Activa = activa, Estado = nuevoEstado, Motivo = motivo }));
+
+            await _contexto.SaveChangesAsync();
+        }
+
+        public async Task<BitacoraAuditoriaAD?> ObtenerUltimaBitacoraFactura(int idFactura, string accion)
+        {
+            return await _contexto.Bitacoras
+                .Where(b => b.TablaAfectada == "Factura"
+                         && b.IdRegistroAfectado == idFactura
+                         && b.Accion == accion)
+                .OrderByDescending(b => b.FechaAccion)
+                .ThenByDescending(b => b.IdBitacora)   // desempate si dos quedan en el mismo tick
+                .FirstOrDefaultAsync();
+        }
+
+        public async Task<FacturacionAD?> ObtenerOtraFacturaActivaDeOrden(int pedidoId, int idFacturaExcluida)
+        {
+            // Include(Pedido) para poder nombrar la orden en el mensaje de error de la Lógica.
+            return await _contexto.Facturaciones
+                .Include(f => f.Pedido)
+                .FirstOrDefaultAsync(f => f.PedidoId == pedidoId
+                                       && f.Activa
+                                       && f.Id != idFacturaExcluida);
         }
 
         public async Task RegistrarPago(PagoFacturaAD pago, ContextoAuditoria auditoria)
