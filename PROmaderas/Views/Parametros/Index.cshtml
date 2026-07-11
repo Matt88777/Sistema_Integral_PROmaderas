@@ -1,0 +1,107 @@
+@model List<ParametroConVigenciaAD>
+@{
+    ViewData["Title"] = "Parámetros de planilla";
+}
+
+<partial name="_TemaOscuro" />
+
+<div class="container mt-4">
+    <div class="row mb-3 align-items-center">
+        <div class="col">
+            <h2><i class="bi bi-sliders me-2" style="color:#c9a03c"></i>Parámetros de planilla</h2>
+        </div>
+        <div class="col-auto">
+            <a asp-action="Create" class="btn btn-warning fw-bold">
+                <i class="bi bi-plus-circle me-1"></i>Nuevo parámetro
+            </a>
+        </div>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            <i class="bi bi-check-circle me-1"></i>@TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-warning alert-dismissible fade show">
+            <i class="bi bi-exclamation-triangle me-1"></i>@TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <partial name="_ConvencionUnidades" />
+
+    <div class="alert alert-secondary">
+        <i class="bi bi-clock-history me-1"></i>
+        Los valores <strong>no se editan en sitio</strong>: cada cambio crea una
+        <strong>versión nueva</strong> con su fecha de vigencia y cierra la anterior.
+        Las planillas ya calculadas siguen resolviendo contra la versión que regía en su período.
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-striped table-hover align-middle">
+            <thead class="table-dark">
+                <tr>
+                    <th>Parámetro</th>
+                    <th class="text-end">Valor vigente hoy</th>
+                    <th>Vigente desde</th>
+                    <th class="text-center">Versiones</th>
+                    <th class="text-center">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var p in Model)
+                {
+                    @* pm-fila-alerta: tinte dorado translúcido. table-warning pintaba fondo
+                       claro y el texto del td (blanco, forzado por el tema) desaparecía. *@
+                    <tr class="@(p.Vigente == null ? "pm-fila-alerta" : "")">
+                        <td class="fw-semibold" style="color:#c9a03c">@p.NombreParametro</td>
+                        <td class="text-end">
+                            @if (p.Vigente != null)
+                            {
+                                <span class="fw-bold">@p.Vigente.Valor.ToString("N4")</span>
+                            }
+                            else
+                            {
+                                @* <strong> y no <span>: el tema fuerza los span a blanco 0.72
+                                   con !important y se comería el color de advertencia. *@
+                                <strong style="color:#E2C97E">
+                                    <i class="bi bi-exclamation-triangle me-1"></i>Sin versión vigente
+                                </strong>
+                            }
+                        </td>
+                        <td>
+                            @(p.Vigente != null ? p.Vigente.FechaInicio.ToString("dd/MM/yyyy") : "—")
+                        </td>
+                        <td class="text-center">
+                            <span class="badge bg-secondary">@p.TotalVersiones</span>
+                        </td>
+                        <td class="text-center">
+                            <div class="d-flex gap-2 justify-content-center">
+                                <a asp-action="Historial" asp-route-nombre="@p.NombreParametro"
+                                   class="btn btn-sm btn-accion-ver" title="Ver historial">
+                                    <i class="bi bi-clock-history"></i>
+                                </a>
+                                <a asp-action="NuevaVersion" asp-route-nombre="@p.NombreParametro"
+                                   class="btn btn-sm btn-outline-secondary" title="Nueva versión">
+                                    <i class="bi bi-plus-slash-minus"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                }
+                @if (!Model.Any())
+                {
+                    <tr>
+                        <td colspan="5" class="text-center text-muted py-4">
+                            <i class="bi bi-inbox me-1"></i>No hay parámetros configurados.
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

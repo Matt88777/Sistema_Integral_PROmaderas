@@ -8,5 +8,10 @@ namespace PROmaderas.Abstracciones.Catalogos
     {
         public const string InactivarFactura = "Inactivación de factura";
         public const string ReactivarFactura = "Reactivación de factura";
+
+        // PLA-HU-019: las 3 escrituras del versionado de parámetros de planilla.
+        public const string CrearParametro = "Creación de parámetro de planilla";
+        public const string NuevaVersionParametro = "Nueva versión de parámetro";
+        public const string AnularVersionParametro = "Anulación de versión de parámetro";
     }
 }

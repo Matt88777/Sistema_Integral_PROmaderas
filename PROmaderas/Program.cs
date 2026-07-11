@@ -35,6 +35,8 @@ using PROmaderas.AccesoADatos.Planilla;
 using PROmaderas.LogicaDeNegocio.Planilla;
 using PROmaderas.AccesoADatos.Deducciones;
 using PROmaderas.LogicaDeNegocio.Deducciones;
+using PROmaderas.AccesoADatos.Parametros;
+using PROmaderas.LogicaDeNegocio.Parametros;
 
 
 
@@ -116,6 +118,11 @@ builder.Services.AddScoped<IProduccionLogica, ProduccionLogica>();
 
 builder.Services.AddScoped<IDeduccionInternaRepositorio, DeduccionInternaRepositorio>();
 builder.Services.AddScoped<IDeduccionInternaLogica, DeduccionInternaLogica>();
+
+// PLA-HU-019: parámetros de planilla versionados por vigencia.
+builder.Services.AddScoped<IParametroPlanillaRepositorio, ParametroPlanillaRepositorio>();
+builder.Services.AddScoped<IParametroPlanillaLogica, ParametroPlanillaLogica>();
+
 builder.Services.AddScoped<IPlanillaRepositorio, PlanillaRepositorio>();
 builder.Services.AddScoped<IPlanillaLogica, PlanillaLogica>();
 builder.Services.AddScoped<ILicenciaRepositorio, LicenciaRepositorio>();

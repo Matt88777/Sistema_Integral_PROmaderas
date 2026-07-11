@@ -1,0 +1,92 @@
+@model PROmaderas.UI.Models.NuevaVersionParametroViewModel
+@{
+    ViewData["Title"] = $"Nueva versión de {Model.NombreParametro}";
+}
+
+<partial name="_TemaOscuro" />
+
+<div class="container mt-4" style="max-width:720px">
+    <h2 class="mb-4">
+        <i class="bi bi-plus-slash-minus me-2" style="color:#c9a03c"></i>
+        Nueva versión — <span style="color:#c9a03c">@Model.NombreParametro</span>
+    </h2>
+
+    <partial name="_ConvencionUnidades" />
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body">
+            <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+            <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                    <div class="small text-muted">Valor vigente hoy</div>
+                    @if (Model.TieneVigente)
+                    {
+                        <strong class="fs-5">@Model.ValorActual!.Value.ToString("N4")</strong>
+                    }
+                    else
+                    {
+                        <strong class="text-danger">Sin versión vigente</strong>
+                    }
+                </div>
+                <div class="col-md-6">
+                    <div class="small text-muted">Vigente desde</div>
+                    <strong>
+                        @(Model.VigenteDesde.HasValue ? Model.VigenteDesde.Value.ToString("dd/MM/yyyy") : "—")
+                    </strong>
+                </div>
+            </div>
+
+            @if (Model.TieneVigente)
+            {
+                <div class="alert alert-secondary">
+                    <i class="bi bi-shield-check me-1"></i>
+                    La versión actual <strong>no se modifica</strong>: se cierra el día anterior al
+                    inicio de la nueva vigencia y <strong>queda válida</strong> para su período.
+                    Las planillas ya calculadas no cambian.
+                </div>
+            }
+
+            <form asp-action="NuevaVersion" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="NombreParametro" />
+
+                <div class="mb-3">
+                    <label asp-for="Valor" class="form-label fw-semibold"></label>
+                    <input asp-for="Valor" type="number" step="0.0001" min="0" class="form-control" />
+                    <span asp-validation-for="Valor" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="FechaInicio" class="form-label fw-semibold"></label>
+                    <input asp-for="FechaInicio" type="date" class="form-control" />
+                    <span asp-validation-for="FechaInicio" class="text-danger"></span>
+                    <div class="form-text">
+                        Debe ser <strong>posterior</strong> al inicio de la versión actual: no se pueden
+                        insertar versiones en el pasado.
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label asp-for="Motivo" class="form-label fw-semibold">
+                        Motivo del cambio <span class="text-danger">*</span>
+                    </label>
+                    <textarea asp-for="Motivo" class="form-control" rows="3"
+                              placeholder="Ej. Ajuste por reforma de la CCSS vigente a partir de enero."></textarea>
+                    <span asp-validation-for="Motivo" class="text-danger"></span>
+                    <div class="form-text">Queda registrado en la bitácora de auditoría.</div>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-warning fw-bold px-4">
+                        <i class="bi bi-check-circle me-1"></i>Crear versión
+                    </button>
+                    <a asp-action="Historial" asp-route-nombre="@Model.NombreParametro"
+                       class="btn btn-outline-secondary">
+                        <i class="bi bi-x-lg me-1"></i>Cancelar
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

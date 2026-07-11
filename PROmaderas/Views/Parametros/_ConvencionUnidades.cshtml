@@ -1,0 +1,30 @@
+@* PLA-HU-019: la convención de unidades se muestra en TODA pantalla donde se digite un
+   valor. Sin esto alguien mete 0.1067 donde va 10.67 y el cálculo sale por diez veces mal. *@
+<div class="alert alert-info">
+    <div class="fw-bold mb-2">
+        <i class="bi bi-info-circle me-1"></i>Convención de unidades — leer antes de digitar un valor
+    </div>
+    <ul class="mb-2">
+        <li>
+            <strong>*Porc / Porcentaje*</strong> — número de 0 a 100; el cálculo lo
+            <strong>divide entre 100</strong>. Ej: <code>PorcentajeCCSS = 10.67</code> (no 0.1067).
+        </li>
+        <li>
+            <strong>*Factor*</strong> — multiplicador directo, <strong>no</strong> se divide.
+            Ej: <code>PorcentajeHoraExtra = 1.5</code>.
+        </li>
+        <li>
+            <strong>*Piso / Monto*</strong> — monto en colones, tal cual.
+            Ej: <code>RentaTramo1Piso = 929000</code>.
+        </li>
+        <li>
+            <strong>*Dias / Anios / Horas*</strong> — cantidad, tal cual.
+            Ej: <code>HorasMes = 240</code>.
+        </li>
+    </ul>
+    <div class="mb-0">
+        <i class="bi bi-exclamation-triangle-fill me-1 text-warning"></i>
+        <strong>Trampa:</strong> <code>PorcentajeHoraExtra</code> se llama "Porcentaje" pero es un
+        <strong>FACTOR</strong> (1.5), no un porcentaje. Nombre heredado del seed. No lo renombre.
+    </div>
+</div>

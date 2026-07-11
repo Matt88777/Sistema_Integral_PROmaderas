@@ -1,0 +1,188 @@
+@model List<ParametroPlanillaAD>
+@{
+    var nombre = ViewBag.Nombre as string ?? "";
+    var idVigente = ViewBag.IdVigente as int?;
+    ViewData["Title"] = $"Historial de {nombre}";
+}
+
+<partial name="_TemaOscuro" />
+
+<div class="container mt-4">
+    <div class="row mb-3 align-items-center">
+        <div class="col">
+            <h2>
+                <i class="bi bi-clock-history me-2" style="color:#c9a03c"></i>
+                Historial — <span style="color:#c9a03c">@nombre</span>
+            </h2>
+        </div>
+        <div class="col-auto d-flex gap-2">
+            <a asp-action="NuevaVersion" asp-route-nombre="@nombre" class="btn btn-warning fw-bold">
+                <i class="bi bi-plus-slash-minus me-1"></i>Nueva versión
+            </a>
+            <a asp-action="Index" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-1"></i>Volver
+            </a>
+        </div>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            <i class="bi bi-check-circle me-1"></i>@TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-warning alert-dismissible fade show">
+            <i class="bi bi-exclamation-triangle me-1"></i>@TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="alert alert-secondary">
+        <i class="bi bi-shield-check me-1"></i>
+        Una versión <strong>cerrada</strong> (con fecha de fin) <strong>sigue siendo válida</strong>:
+        las planillas de su período la necesitan. <strong>Anular</strong> es otra cosa — marca la
+        versión como error de digitación y deja de resolverse como vigente <em>en cualquier fecha</em>.
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-striped table-hover align-middle">
+            <thead class="table-dark">
+                <tr>
+                    <th class="text-end">Valor</th>
+                    <th>Vigente desde</th>
+                    <th>Vigente hasta</th>
+                    <th>Situación</th>
+                    <th class="text-center">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var v in Model)
+                {
+                    var esVigente = idVigente.HasValue && v.IdParametroPlanilla == idVigente.Value;
+                    var anulada = !v.Estado;
+                    @* pm-fila-anulada: atenuada con blanco 0.55 sobre fondo oscuro. Antes era
+                       table-secondary + opacity-75, o sea fondo gris CLARO con el texto blanco
+                       que el tema fuerza en los td: ilegible, y el opacity mataba también el badge. *@
+                    <tr class="@(anulada ? "pm-fila-anulada" : "")">
+                        <td class="text-end fw-bold">@v.Valor.ToString("N4")</td>
+                        <td>@v.FechaInicio.ToString("dd/MM/yyyy")</td>
+                        <td>@(v.FechaFin.HasValue ? v.FechaFin.Value.ToString("dd/MM/yyyy") : "—")</td>
+                        <td>
+                            @if (anulada)
+                            {
+                                <span class="badge" style="background:#64748B;color:#fff">Anulada</span>
+                            }
+                            else if (esVigente)
+                            {
+                                <span class="badge" style="background:#15803D;color:#fff">Rige hoy</span>
+                            }
+                            else if (v.FechaFin.HasValue)
+                            {
+                                <span class="badge" style="background:#B45309;color:#fff">Cerrada (válida)</span>
+                            }
+                            else
+                            {
+                                <span class="badge" style="background:#0369A1;color:#fff">Futura</span>
+                            }
+                        </td>
+                        <td class="text-center">
+                            @if (!anulada)
+                            {
+                                <button type="button" class="btn btn-sm btn-outline-danger"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#modalAnular-@v.IdParametroPlanilla"
+                                        title="Anular versión">
+                                    <i class="bi bi-slash-circle"></i>
+                                </button>
+                            }
+                            else
+                            {
+                                <span class="text-muted">—</span>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    @* Un modal de confirmación por versión: la anulación pide motivo obligatorio.
+       modal-pm: lo engancha con los estilos oscuros de _TemaOscuro.
+       modal-dialog-centered + modal-dialog-scrollable: el body scrollea solo, así el
+       textarea y los botones Confirmar/Cancelar quedan siempre dentro del cuadro. *@
+    @foreach (var v in Model.Where(x => x.Estado))
+    {
+        <div class="modal fade modal-pm" id="modalAnular-@v.IdParametroPlanilla" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+                <form asp-action="AnularVersion" method="post" class="modal-content">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="idVersion" value="@v.IdParametroPlanilla" />
+                    <input type="hidden" name="nombre" value="@nombre" />
+
+                    <div class="modal-header">
+                        <h5 class="modal-title">
+                            <i class="bi bi-slash-circle me-1 text-danger"></i>Anular versión
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+
+                    <div class="modal-body">
+                        <div class="alert alert-danger">
+                            <strong>Solo para corregir un error de digitación.</strong>
+                            La versión anulada deja de resolverse como vigente en cualquier fecha, así que
+                            las planillas de su período se quedan sin este parámetro hasta que otra versión
+                            cubra ese rango.
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-6">
+                                <div class="small text-muted">Valor</div>
+                                <strong>@v.Valor.ToString("N4")</strong>
+                            </div>
+                            <div class="col-6">
+                                <div class="small text-muted">Vigencia</div>
+                                <strong>
+                                    @v.FechaInicio.ToString("dd/MM/yyyy") —
+                                    @(v.FechaFin.HasValue ? v.FechaFin.Value.ToString("dd/MM/yyyy") : "sin cierre")
+                                </strong>
+                            </div>
+                        </div>
+
+                        <label class="form-label fw-semibold">
+                            Motivo de la anulación <span class="text-danger">*</span>
+                        </label>
+                        <textarea name="motivo" class="form-control" rows="3" required
+                                  placeholder="Ej. Se digitó 1067 en vez de 10.67."></textarea>
+                        <div class="form-text">Queda registrado en la bitácora de auditoría.</div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                            Cancelar
+                        </button>
+                        <button type="submit" class="btn btn-danger fw-bold">
+                            <i class="bi bi-check-circle me-1"></i>Anular versión
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    }
+</div>
+
+<script>
+    // El panel del tema (<main class="app-content-panel">) usa backdrop-filter, y un ancestro
+    // con backdrop-filter se vuelve el containing block de sus descendientes position:fixed.
+    // Resultado: el modal de Bootstrap se posiciona y recorta contra el panel en vez de contra
+    // el viewport (por eso salía cortado). Moverlos a <body> los devuelve al viewport.
+    // Por eso sus estilos se enganchan con .modal-pm y no con .app-content-panel: acá dejan
+    // de estar dentro del panel.
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.modal-pm').forEach(function (m) {
+            document.body.appendChild(m);
+        });
+    });
+</script>

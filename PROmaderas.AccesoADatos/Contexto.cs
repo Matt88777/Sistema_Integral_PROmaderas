@@ -27,6 +27,7 @@ namespace PROmaderas.AccesoADatos
         public DbSet<LicenciaAD> Licencias { get; set; }
         public DbSet<DeduccionInternaAD> DeduccionesInternas { get; set; }
         public DbSet<EmpleadoDeduccionAD> EmpleadoDeducciones { get; set; }
+        public DbSet<ParametroPlanillaAD> ParametrosPlanilla { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -251,6 +252,14 @@ namespace PROmaderas.AccesoADatos
                 e.HasOne(x => x.Deduccion).WithMany().HasForeignKey(x => x.IdDeduccion);
             });
 
-        }   
+            // PLA-HU-019: el resto de las columnas mapea por convención (los nombres de
+            // propiedad coinciden con los de la tabla).
+            modelBuilder.Entity<ParametroPlanillaAD>(e =>
+            {
+                e.ToTable("ParametroPlanilla");
+                e.HasKey(x => x.IdParametroPlanilla);
+            });
+
+        }
     }       
 }           
