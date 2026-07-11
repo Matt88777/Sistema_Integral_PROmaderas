@@ -1,6 +1,6 @@
 /* =====================================================================================
    PROMADERAS S.A. - Sistema Integral de Gestion
-   Script:  PROmaderasDB_SPRINT4.sql   (v2 - corregido contra el esquema real)
+   Script:  PROmaderasDB_SPRINT4.sql   (v3 - corregido contra el esquema real)
    Autor:   Jimenez Bogantes Mattias
    Curso:   SC-702 Diseno y Desarrollo de Sistemas - Universidad Fidelitas
 
@@ -30,6 +30,18 @@
    HU QUE NO NECESITAN NADA DE ESTE SCRIPT
    ---------------------------------------
      FAC-HU-005, PLA-HU-021, REP-HU-001, REP-HU-002, REP-HU-003
+
+   CAMBIOS DE LA v3
+   ----------------
+   Limpia el parametro duplicado 'VacacionesDiasPorMes' que la v2 insertaba de mas (el
+   nombre bueno es 'DiasVacacionesPorMes', que ya siembra PROmaderasDB_SEED.sql) y agrega
+   los parametros de renta (pisos y porcentajes de los 4 tramos) mas HorasMes, que hasta
+   ahora estaban hardcodeados en PlanillaLogica.cs.
+
+   Ademas normaliza la FechaInicio de 'DiasVacacionesPorMes' a 2026-01-01: el SEED lo
+   siembra con GETDATE(), asi que su vigencia arrancaba el dia de la instalacion y los
+   periodos de planilla anteriores a esa fecha se quedaban sin parametro (PLA-HU-012).
+   Ver Seccion 7.
    ===================================================================================== */
 
 USE PROmaderasDB_NEW;
@@ -38,7 +50,7 @@ GO
 SET NOCOUNT ON;
 GO
 
-PRINT '=== PROmaderasDB_SPRINT4.sql (v2) : INICIO ===';
+PRINT '=== PROmaderasDB_SPRINT4.sql (v3) : INICIO ===';
 GO
 
 
@@ -49,7 +61,7 @@ GO
    Las ACUMULADAS no se guardan: se DERIVAN en LogicaDeNegocio como
 
        acumuladas = SaldoVacacionesInicial
-                  + (meses trabajados desde FechaIngreso * parametro 'VacacionesDiasPorMes')
+                  + (meses trabajados desde FechaIngreso * parametro 'DiasVacacionesPorMes')
 
        saldo      = acumuladas - SUM(Vacacion.Dias WHERE Estado = 'Disfrutada')
 
@@ -366,8 +378,22 @@ ELSE PRINT '  [=] UQ_ParametroPlanilla_Nombre_Vigencia ya existia.';
 GO
 
 
+/* CONVENCION DE UNIDADES en ParametroPlanilla.Valor
+   -------------------------------------------------
+   *Porc / Porcentaje*  -> numero 0..100. HAY QUE DIVIDIR ENTRE 100 al usarlo.
+                           ej: PorcentajeCCSS = 10.67  -> bruto * (10.67/100)
+   *Factor*             -> multiplicador directo, NO se divide.
+                           ej: PorcentajeHoraExtra = 1.5 -> valorHora * 1.5
+   *Piso / Monto*       -> monto en colones, se usa tal cual.
+                           ej: RentaTramo1Piso = 929000
+   *Dias / Anios / Horas* -> cantidad, se usa tal cual.
+                           ej: HorasMes = 240
+
+   OJO: 'PorcentajeHoraExtra' se llama "Porcentaje" pero es un FACTOR (1.5), NO un
+   porcentaje. Nombre heredado del SEED. No lo renombres, solo tenelo presente. */
+
 /* =====================================================================================
-   SECCION 7 - Parametros que consumen las HU 012, 013, 014 y 017 (idempotente)
+   SECCION 7 - Parametros que consumen las HU 012, 013, 014, 017 y 019 (idempotente)
    -------------------------------------------------------------------------------------
    Valores de arranque. PLA-HU-019 permite cambiarlos desde la app (creando una version
    nueva, no editando estas filas).
@@ -376,9 +402,29 @@ GO
    scripts/PROmaderasDB_SEED.sql. No cambia nada mas.
    ===================================================================================== */
 
-IF NOT EXISTS (SELECT 1 FROM dbo.ParametroPlanilla WHERE NombreParametro = 'VacacionesDiasPorMes' AND Estado = 1)
-    INSERT INTO dbo.ParametroPlanilla (NombreParametro, Valor, FechaInicio, FechaFin, Estado)
-    VALUES ('VacacionesDiasPorMes', 1.0000, '2026-01-01', NULL, 1);
+/* La v2 de este script insertaba 'VacacionesDiasPorMes', que duplica el concepto que el
+   SEED ya siembra como 'DiasVacacionesPorMes'. El nombre bueno es el del SEED. Este DELETE
+   limpia la fila mala en las bases donde la v2 ya se corrio. */
+IF EXISTS (SELECT 1 FROM dbo.ParametroPlanilla WHERE NombreParametro = 'VacacionesDiasPorMes')
+BEGIN
+    DELETE FROM dbo.ParametroPlanilla WHERE NombreParametro = 'VacacionesDiasPorMes';
+    PRINT '  [-] Parametro duplicado VacacionesDiasPorMes eliminado (el bueno es DiasVacacionesPorMes).';
+END
+GO
+
+/* El SEED siembra 'DiasVacacionesPorMes' con GETDATE(), asi que su vigencia arranca el dia
+   en que se instalo la base. Todos los demas parametros arrancan el 2026-01-01. Si no se
+   normaliza, al resolver el parametro vigente para un periodo de planilla anterior a esa
+   fecha no se encuentra ninguna version y se rompe PLA-HU-012. */
+IF EXISTS (SELECT 1 FROM dbo.ParametroPlanilla
+           WHERE NombreParametro = 'DiasVacacionesPorMes' AND FechaInicio > '2026-01-01')
+BEGIN
+    UPDATE dbo.ParametroPlanilla
+       SET FechaInicio = '2026-01-01'
+     WHERE NombreParametro = 'DiasVacacionesPorMes';
+    PRINT '  [~] DiasVacacionesPorMes: FechaInicio normalizada a 2026-01-01.';
+END
+GO
 
 IF NOT EXISTS (SELECT 1 FROM dbo.ParametroPlanilla WHERE NombreParametro = 'IncapacidadCCSSPorcPatrono' AND Estado = 1)
     INSERT INTO dbo.ParametroPlanilla (NombreParametro, Valor, FechaInicio, FechaFin, Estado)
@@ -399,6 +445,47 @@ IF NOT EXISTS (SELECT 1 FROM dbo.ParametroPlanilla WHERE NombreParametro = 'Cesa
 IF NOT EXISTS (SELECT 1 FROM dbo.ParametroPlanilla WHERE NombreParametro = 'CesantiaTopeAnios' AND Estado = 1)
     INSERT INTO dbo.ParametroPlanilla (NombreParametro, Valor, FechaInicio, FechaFin, Estado)
     VALUES ('CesantiaTopeAnios', 8.0000, '2026-01-01', NULL, 1);
+
+/* PLA-HU-019: parametros del calculo de planilla que hoy estan hardcodeados en
+   PlanillaLogica.cs (HorasMes = 240m y los 4 tramos de renta, lineas 126-141).
+   El CCSS (PorcentajeCCSS) y el factor de hora extra (PorcentajeHoraExtra) ya los
+   siembra PROmaderasDB_SEED.sql: no se repiten aca. */
+
+IF NOT EXISTS (SELECT 1 FROM dbo.ParametroPlanilla WHERE NombreParametro = 'HorasMes' AND Estado = 1)
+    INSERT INTO dbo.ParametroPlanilla (NombreParametro, Valor, FechaInicio, FechaFin, Estado)
+    VALUES ('HorasMes', 240.0000, '2026-01-01', NULL, 1);
+
+IF NOT EXISTS (SELECT 1 FROM dbo.ParametroPlanilla WHERE NombreParametro = 'RentaTramo1Piso' AND Estado = 1)
+    INSERT INTO dbo.ParametroPlanilla (NombreParametro, Valor, FechaInicio, FechaFin, Estado)
+    VALUES ('RentaTramo1Piso', 929000.0000, '2026-01-01', NULL, 1);
+
+IF NOT EXISTS (SELECT 1 FROM dbo.ParametroPlanilla WHERE NombreParametro = 'RentaTramo1Porc' AND Estado = 1)
+    INSERT INTO dbo.ParametroPlanilla (NombreParametro, Valor, FechaInicio, FechaFin, Estado)
+    VALUES ('RentaTramo1Porc', 10.0000, '2026-01-01', NULL, 1);
+
+IF NOT EXISTS (SELECT 1 FROM dbo.ParametroPlanilla WHERE NombreParametro = 'RentaTramo2Piso' AND Estado = 1)
+    INSERT INTO dbo.ParametroPlanilla (NombreParametro, Valor, FechaInicio, FechaFin, Estado)
+    VALUES ('RentaTramo2Piso', 1360000.0000, '2026-01-01', NULL, 1);
+
+IF NOT EXISTS (SELECT 1 FROM dbo.ParametroPlanilla WHERE NombreParametro = 'RentaTramo2Porc' AND Estado = 1)
+    INSERT INTO dbo.ParametroPlanilla (NombreParametro, Valor, FechaInicio, FechaFin, Estado)
+    VALUES ('RentaTramo2Porc', 15.0000, '2026-01-01', NULL, 1);
+
+IF NOT EXISTS (SELECT 1 FROM dbo.ParametroPlanilla WHERE NombreParametro = 'RentaTramo3Piso' AND Estado = 1)
+    INSERT INTO dbo.ParametroPlanilla (NombreParametro, Valor, FechaInicio, FechaFin, Estado)
+    VALUES ('RentaTramo3Piso', 2392000.0000, '2026-01-01', NULL, 1);
+
+IF NOT EXISTS (SELECT 1 FROM dbo.ParametroPlanilla WHERE NombreParametro = 'RentaTramo3Porc' AND Estado = 1)
+    INSERT INTO dbo.ParametroPlanilla (NombreParametro, Valor, FechaInicio, FechaFin, Estado)
+    VALUES ('RentaTramo3Porc', 20.0000, '2026-01-01', NULL, 1);
+
+IF NOT EXISTS (SELECT 1 FROM dbo.ParametroPlanilla WHERE NombreParametro = 'RentaTramo4Piso' AND Estado = 1)
+    INSERT INTO dbo.ParametroPlanilla (NombreParametro, Valor, FechaInicio, FechaFin, Estado)
+    VALUES ('RentaTramo4Piso', 4783000.0000, '2026-01-01', NULL, 1);
+
+IF NOT EXISTS (SELECT 1 FROM dbo.ParametroPlanilla WHERE NombreParametro = 'RentaTramo4Porc' AND Estado = 1)
+    INSERT INTO dbo.ParametroPlanilla (NombreParametro, Valor, FechaInicio, FechaFin, Estado)
+    VALUES ('RentaTramo4Porc', 25.0000, '2026-01-01', NULL, 1);
 
 PRINT '  [+] Parametros de planilla verificados/insertados.';
 GO
@@ -437,5 +524,5 @@ UNION ALL SELECT 'ParametroPlanilla versionable (UQ Nombre+FechaInicio)',
                      AND name = 'UQ_ParametroPlanilla_Nombre_Vigencia'), 'OK','FALTA');
 GO
 
-PRINT '=== PROmaderasDB_SPRINT4.sql (v2) : FIN ===';
+PRINT '=== PROmaderasDB_SPRINT4.sql (v3) : FIN ===';
 GO
