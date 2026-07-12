@@ -1,6 +1,6 @@
 /* =====================================================================================
    PROMADERAS S.A. - Sistema Integral de Gestion
-   Script:  PROmaderasDB_SPRINT4.sql   (v3 - corregido contra el esquema real)
+   Script:  PROmaderasDB_SPRINT4.sql   (v4 - corregido contra el esquema real)
    Autor:   Jimenez Bogantes Mattias
    Curso:   SC-702 Diseno y Desarrollo de Sistemas - Universidad Fidelitas
 
@@ -31,6 +31,28 @@
    ---------------------------------------
      FAC-HU-005, PLA-HU-021, REP-HU-001, REP-HU-002, REP-HU-003
 
+   CAMBIOS DE LA v4
+   ----------------
+   ELIMINA el UPDATE de normalizacion de FechaInicio que habia introducido la v3 (Seccion 7).
+
+   Ese UPDATE forzaba a '2026-01-01' la FechaInicio de 'DiasVacacionesPorMes',
+   'PorcentajeCCSS' y 'PorcentajeHoraExtra'. Era seguro SOLO mientras ningun codigo podia
+   versionar parametros: en ese momento, cualquier fila de esos tres nombres con FechaInicio
+   posterior a 2026-01-01 era necesariamente una fila mal sembrada con GETDATE().
+
+   Con PLA-HU-019 cerrada eso dejo de ser cierto: la app ya crea versiones nuevas desde la
+   pantalla de parametros, y el UPDATE no puede distinguir una fila mal sembrada de una
+   version legitima que el admin creo a proposito. Re-correr el script sobre una base con
+   versiones reales (p.ej. PorcentajeCCSS con vigencias en 2026-07-11 y 2026-09-01):
+     - pisaria esas versiones, perdiendo datos de negocio; y
+     - colapsaria varias filas del mismo parametro a la misma FechaInicio, violando
+       UQ_ParametroPlanilla_Nombre_Vigencia (duplicate key).
+
+   La causa de raiz ya esta corregida en PROmaderasDB_SEED.sql, que siembra esos parametros
+   con el literal '2026-01-01' en vez de GETDATE(). Las instalaciones nuevas nacen bien.
+   Para una base vieja que todavia arrastre el problema queda el UPDATE manual documentado
+   en la Seccion 7.
+
    CAMBIOS DE LA v3
    ----------------
    Limpia el parametro duplicado 'VacacionesDiasPorMes' que la v2 insertaba de mas (el
@@ -38,12 +60,8 @@
    los parametros de renta (pisos y porcentajes de los 4 tramos) mas HorasMes, que hasta
    ahora estaban hardcodeados en PlanillaLogica.cs.
 
-   Ademas normaliza a 2026-01-01 la FechaInicio de los tres parametros que el SEED sembraba
-   con GETDATE() ('DiasVacacionesPorMes', 'PorcentajeCCSS', 'PorcentajeHoraExtra'): su
-   vigencia arrancaba el dia de la instalacion, asi que los periodos de planilla anteriores
-   a esa fecha se quedaban sin parametro (PLA-HU-012 y el calculo de planilla).
-   El SEED ya quedo corregido para las instalaciones nuevas; este UPDATE cubre las bases
-   que ya existen. Ver Seccion 7.
+   Ademas normalizaba a 2026-01-01 la FechaInicio de los tres parametros que el SEED sembraba
+   con GETDATE(). Ese UPDATE quedo ELIMINADO en la v4: ver arriba.
    ===================================================================================== */
 
 USE PROmaderasDB_NEW;
@@ -52,7 +70,7 @@ GO
 SET NOCOUNT ON;
 GO
 
-PRINT '=== PROmaderasDB_SPRINT4.sql (v3) : INICIO ===';
+PRINT '=== PROmaderasDB_SPRINT4.sql (v4) : INICIO ===';
 GO
 
 
@@ -414,27 +432,55 @@ BEGIN
 END
 GO
 
-/* El SEED sembraba estos tres parametros con GETDATE(), asi que su vigencia arrancaba el
-   dia en que se instalo la base. Todos los demas parametros arrancan el 2026-01-01. Si no
-   se normaliza, al resolver el parametro vigente para un periodo de planilla anterior a esa
-   fecha no se encuentra ninguna version y se rompen PLA-HU-012 y el calculo de planilla.
+/* ---------------------------------------------------------------------------------------
+   NORMALIZACION DE FechaInicio: ELIMINADA EN LA v4. NO LA VUELVAS A PONER.
+   ---------------------------------------------------------------------------------------
+   Aca vivia un bloque IF EXISTS ... UPDATE que forzaba a '2026-01-01' la FechaInicio de
+   'DiasVacacionesPorMes', 'PorcentajeCCSS' y 'PorcentajeHoraExtra' cuando era posterior a
+   esa fecha.
 
-   El SEED ya quedo arreglado (usa '2026-01-01' fijo), pero eso solo cubre instalaciones
-   NUEVAS: este UPDATE es el que normaliza las bases que ya existen.
+   QUE ARREGLABA
+   El SEED viejo sembraba esos tres parametros con GETDATE(), asi que su vigencia arrancaba
+   el dia de la instalacion y no el 2026-01-01 como el resto. Un periodo de planilla anterior
+   a la fecha de instalacion no encontraba ninguna version vigente y reventaba el calculo
+   (PLA-HU-012 y planilla).
 
-   El "AND FechaInicio > '2026-01-01'" va tambien en el WHERE del UPDATE, no solo en el
-   IF EXISTS: no queremos pisar filas que ya estan bien. */
-IF EXISTS (SELECT 1 FROM dbo.ParametroPlanilla
-           WHERE NombreParametro IN ('DiasVacacionesPorMes','PorcentajeCCSS','PorcentajeHoraExtra')
-             AND FechaInicio > '2026-01-01')
-BEGIN
-    UPDATE dbo.ParametroPlanilla
-       SET FechaInicio = '2026-01-01'
-     WHERE NombreParametro IN ('DiasVacacionesPorMes','PorcentajeCCSS','PorcentajeHoraExtra')
-       AND FechaInicio > '2026-01-01';
-    PRINT '  [~] FechaInicio normalizada a 2026-01-01 en los parametros sembrados con GETDATE().';
-END
-GO
+   POR QUE SE SACO
+   El UPDATE era seguro solo mientras NINGUN codigo podia versionar parametros: en ese
+   escenario, una fila de esos tres nombres con FechaInicio > 2026-01-01 solo podia ser una
+   fila mal sembrada con GETDATE(). Con PLA-HU-019 cerrada la app crea versiones nuevas desde
+   la pantalla de parametros, y el UPDATE no tiene forma de distinguir:
+
+       fila mal sembrada con GETDATE()   vs.   version que el admin creo a proposito
+
+   Sobre una base con versiones reales (p.ej. PorcentajeCCSS vigente desde 2026-07-11 y otra
+   desde 2026-09-01), re-correr el script pisaria esas versiones -perdiendo datos de negocio-
+   y colapsaria varias filas del mismo parametro a la misma FechaInicio, violando
+   UQ_ParametroPlanilla_Nombre_Vigencia (duplicate key). El script dejaria de ser idempotente.
+
+   LA CAUSA YA ESTA CORREGIDA EN EL ORIGEN
+   PROmaderasDB_SEED.sql siembra hoy esos parametros con el literal '2026-01-01' (no
+   GETDATE()), asi que toda instalacion nueva nace bien y no necesita normalizar nada.
+
+   BASES VIEJAS: UPDATE MANUAL, A MANO Y UNA SOLA VEZ
+   Si tenes una base creada con el SEED viejo y NUNCA creaste versiones desde la pantalla de
+   parametros, corre esto a mano (NO forma parte del script). Revisa antes que devuelva solo
+   las filas mal sembradas, y que cada parametro tenga UNA sola fila:
+
+       SELECT IdParametroPlanilla, NombreParametro, Valor, FechaInicio, FechaFin, Estado
+         FROM dbo.ParametroPlanilla
+        WHERE NombreParametro IN ('DiasVacacionesPorMes','PorcentajeCCSS','PorcentajeHoraExtra')
+        ORDER BY NombreParametro, FechaInicio;
+
+       UPDATE dbo.ParametroPlanilla
+          SET FechaInicio = '2026-01-01'
+        WHERE NombreParametro IN ('DiasVacacionesPorMes','PorcentajeCCSS','PorcentajeHoraExtra')
+          AND FechaInicio > '2026-01-01';
+
+   Si algun parametro tiene MAS DE UNA fila, ya hay versiones creadas desde la app: NO corras
+   el UPDATE (te lo tumba el UNIQUE y ademas perderias la version buena). En ese caso corregi
+   solo la fila original, la de la version mas vieja, por IdParametroPlanilla.
+   --------------------------------------------------------------------------------------- */
 
 IF NOT EXISTS (SELECT 1 FROM dbo.ParametroPlanilla WHERE NombreParametro = 'IncapacidadCCSSPorcPatrono' AND Estado = 1)
     INSERT INTO dbo.ParametroPlanilla (NombreParametro, Valor, FechaInicio, FechaFin, Estado)
@@ -534,5 +580,5 @@ UNION ALL SELECT 'ParametroPlanilla versionable (UQ Nombre+FechaInicio)',
                      AND name = 'UQ_ParametroPlanilla_Nombre_Vigencia'), 'OK','FALTA');
 GO
 
-PRINT '=== PROmaderasDB_SPRINT4.sql (v3) : FIN ===';
+PRINT '=== PROmaderasDB_SPRINT4.sql (v4) : FIN ===';
 GO
