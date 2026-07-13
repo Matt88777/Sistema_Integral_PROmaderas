@@ -30,6 +30,22 @@ namespace PROmaderas.Abstracciones.Catalogos
         // Cantidad de días de vacaciones que acumula un empleado por mes trabajado. Se usa tal cual.
         public const string DiasVacacionesPorMes = "DiasVacacionesPorMes";
 
+        // PLA-HU-017 (liquidación).
+        //
+        // TRAMPA: la fila se llama "PreavisoDiasPorAnio" pero su valor (30) NO se multiplica por
+        // los años trabajados. En Costa Rica el preaviso topa en 1 mes: con 2 años o con 20, son
+        // 30 días igual. Multiplicarlo por la antigüedad pagaría múltiplos de más. El nombre viene
+        // heredado del script y no se renombra; la constante de C# sí dice la verdad. Es el mismo
+        // caso que FactorHoraExtra.
+        public const string PreavisoDias = "PreavisoDiasPorAnio";
+
+        // Cantidad: días de cesantía por año trabajado (19.5). Se usa tal cual, y este SÍ se
+        // multiplica por los años (topados por CesantiaTopeAnios).
+        public const string CesantiaDiasPorAnio = "CesantiaDiasPorAnio";
+
+        // Cantidad: tope de años que se le reconocen a la cesantía (8). Se usa tal cual.
+        public const string CesantiaTopeAnios = "CesantiaTopeAnios";
+
         // Porcentajes de los tramos de renta (10/15/20/25). DIVIDIR ENTRE 100.
         public const string RentaTramo1Porc = "RentaTramo1Porc";
         public const string RentaTramo2Porc = "RentaTramo2Porc";

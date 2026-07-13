@@ -18,5 +18,10 @@ namespace PROmaderas.Abstracciones.Catalogos
         // digitada se anula y se vuelve a registrar.
         public const string RegistrarVacacion = "Registro de vacación";
         public const string AnularVacacion = "Anulación de vacación";
+
+        // PLA-HU-017: las 2 escrituras de liquidación. Calcular NO se audita (no escribe nada);
+        // solo se auditan las que tocan la BD.
+        public const string CalcularLiquidacion = "Cálculo de liquidación";
+        public const string AnularLiquidacion = "Anulación de liquidación";
     }
 }

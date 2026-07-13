@@ -1,0 +1,44 @@
+@model LiquidacionCalculoAD
+@{
+    ViewData["Title"] = $"Liquidación de {Model.NombreEmpleado}";
+    var anulada = Model.EstadoLiquidacion == EstadosLiquidacion.Anulada;
+}
+
+<partial name="_TemaOscuro" />
+
+<div class="container mt-4" style="max-width:900px">
+    <div class="row mb-3 align-items-center">
+        <div class="col">
+            <h2>
+                <i class="bi bi-file-earmark-text me-2" style="color:#c9a03c"></i>
+                Liquidación — <span style="color:#c9a03c">@Model.NombreEmpleado</span>
+            </h2>
+        </div>
+        <div class="col-auto">
+            <a asp-action="Index" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-1"></i>Volver
+            </a>
+        </div>
+    </div>
+
+    @if (anulada)
+    {
+        <div class="alert alert-danger">
+            <i class="bi bi-slash-circle me-1"></i>
+            <strong>Esta liquidación está ANULADA.</strong>
+            Se conserva como evidencia de que se emitió y se anuló, pero no tiene efecto: el
+            empleado volvió a quedar activo. Los montos de abajo son los que se habían calculado.
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-secondary">
+            <i class="bi bi-shield-check me-1"></i>
+            Documento <strong>emitido</strong>. Los montos quedaron <strong>congelados</strong> al
+            calcularse: no cambian aunque después se editen los parámetros de planilla o los datos
+            del empleado.
+        </div>
+    }
+
+    <partial name="_Desglose" model="Model" />
+</div>

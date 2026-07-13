@@ -32,12 +32,21 @@ namespace PROmaderas.LogicaDeNegocio.Vacaciones
                 .Select(e => ArmarSaldo(
                     e,
                     disfrutados.TryGetValue(e.IdEmpleado ?? 0, out var d) ? d : 0m,
-                    diasPorMes))
+                    diasPorMes,
+                    DateTime.Today))   // el listado siempre corta a hoy
                 .OrderBy(s => s.NombreCompleto)
                 .ToList();
         }
 
+        // El saldo de la pantalla de Vacaciones: corta a hoy. Se conserva idéntico delegando en
+        // la sobrecarga con fecha de corte.
         public async Task<SaldoVacacionesAD> ObtenerSaldo(int idEmpleado)
+            => await ObtenerSaldo(idEmpleado, DateTime.Today);
+
+        // PLA-HU-017: la liquidación necesita el saldo A LA FECHA DE SALIDA. Si los meses
+        // trabajados se contaran contra hoy, a alguien que salió en marzo se le pagarían
+        // vacaciones que nunca acumuló.
+        public async Task<SaldoVacacionesAD> ObtenerSaldo(int idEmpleado, DateTime fechaCorte)
         {
             var empleado = await _repositorio.ObtenerEmpleadoPorId(idEmpleado)
                 ?? throw new ArgumentException("El empleado no existe.");
@@ -45,7 +54,7 @@ namespace PROmaderas.LogicaDeNegocio.Vacaciones
             var diasPorMes = await ObtenerDiasVacacionesPorMes();
             var disfrutadas = await _repositorio.ObtenerDiasDisfrutados(idEmpleado);
 
-            return ArmarSaldo(empleado, disfrutadas, diasPorMes);
+            return ArmarSaldo(empleado, disfrutadas, diasPorMes, fechaCorte);
         }
 
         public async Task<List<VacacionAD>> ObtenerHistorial(int idEmpleado)
@@ -143,13 +152,15 @@ namespace PROmaderas.LogicaDeNegocio.Vacaciones
             return valor.Value;
         }
 
+        // fechaCorte: hasta cuándo se cuentan los meses trabajados. La pantalla de Vacaciones
+        // pasa DateTime.Today; la liquidación pasa la fecha de salida (PLA-HU-017).
         private static SaldoVacacionesAD ArmarSaldo(EmpleadoAD empleado, decimal disfrutadas,
-                                                    decimal diasPorMes)
+                                                    decimal diasPorMes, DateTime fechaCorte)
         {
             var tieneFechaIngreso = empleado.FechaIngreso.HasValue;
 
             var meses = tieneFechaIngreso
-                ? CalcularMesesCompletos(empleado.FechaIngreso!.Value, DateTime.Today)
+                ? CalcularMesesCompletos(empleado.FechaIngreso!.Value, fechaCorte)
                 : 0;
 
             // BUG B: sin fecha de ingreso no hay acumulado que valga. Se deja en 0 y la vista

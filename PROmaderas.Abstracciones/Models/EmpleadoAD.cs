@@ -40,4 +40,17 @@ public class EmpleadoAD
     [Range(0, 99999999.99, ErrorMessage = "El saldo de vacaciones inicial no puede ser negativo.")]
     [Display(Name = "Saldo de vacaciones inicial (días)")]
     public decimal SaldoVacacionesInicial { get; set; }
+
+    // PLA-HU-017: cuándo y por qué salió la persona. Las escribe la liquidación, NO el
+    // formulario de Empleados: por eso EmpleadoRepositorio.Actualizar las restaura siempre
+    // desde la BD (sin eso, editar el teléfono de un empleado ya liquidado le borraría la
+    // fecha de salida, porque el form no manda estos campos y el Update es sobre una
+    // entidad detached).
+    //
+    // MotivoSalida es siempre uno de MotivosSalida: la columna no tiene CHECK.
+    [Column(TypeName = "date")]
+    public DateTime? FechaSalida { get; set; }
+
+    [MaxLength(50)]
+    public string? MotivoSalida { get; set; }
 }

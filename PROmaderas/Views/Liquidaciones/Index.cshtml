@@ -1,0 +1,185 @@
+@model List<LiquidacionAD>
+@{
+    ViewData["Title"] = "Liquidaciones";
+
+    // El nombre no vive en Liquidacion (solo el IdEmpleado): el controller lo resuelve con un
+    // único query que incluye a los empleados inactivos (el liquidado lo es).
+    var nombres = (ViewBag.Nombres as Dictionary<int, string>) ?? new Dictionary<int, string>();
+}
+
+<partial name="_TemaOscuro" />
+
+<div class="container mt-4">
+    <div class="row mb-3 align-items-center">
+        <div class="col">
+            <h2><i class="bi bi-file-earmark-text me-2" style="color:#c9a03c"></i>Liquidaciones</h2>
+        </div>
+        <div class="col-auto">
+            <a asp-action="Create" class="btn btn-warning fw-bold">
+                <i class="bi bi-calculator me-1"></i>Nueva liquidación
+            </a>
+        </div>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            <i class="bi bi-check-circle me-1"></i>@TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-warning alert-dismissible fade show">
+            <i class="bi bi-exclamation-triangle me-1"></i>@TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="alert alert-secondary">
+        <i class="bi bi-shield-check me-1"></i>
+        Una liquidación es un <strong>documento emitido</strong>: sus montos quedan
+        <strong>congelados</strong> y no cambian aunque después se editen los parámetros de
+        planilla o los datos del empleado. No se edita — se <strong>anula</strong> (con motivo) y
+        se vuelve a calcular. Al anularla, el empleado <strong>vuelve a quedar activo</strong>.
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-striped table-hover align-middle">
+            <thead class="table-dark">
+                <tr>
+                    <th>Empleado</th>
+                    <th>Fecha de salida</th>
+                    <th>Motivo</th>
+                    <th class="text-end">Total</th>
+                    <th>Estado</th>
+                    <th class="text-center">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var l in Model)
+                {
+                    var anulada = l.Estado == EstadosLiquidacion.Anulada;
+                    var nombre = nombres.TryGetValue(l.IdEmpleado, out var n)
+                        ? n
+                        : $"Empleado #{l.IdEmpleado}";
+
+                    @* pm-fila-anulada: atenuada pero legible sobre el fondo oscuro. *@
+                    <tr class="@(anulada ? "pm-fila-anulada" : "")">
+                        <td class="fw-semibold" style="color:#c9a03c">@nombre</td>
+                        <td>@l.FechaSalida.ToString("dd/MM/yyyy")</td>
+                        <td>@l.MotivoSalida</td>
+                        <td class="text-end fw-bold">₡@l.TotalLiquidacion.ToString("N2")</td>
+                        <td>
+                            @if (anulada)
+                            {
+                                <span class="badge" style="background:#64748B;color:#fff">Anulada</span>
+                            }
+                            else
+                            {
+                                <span class="badge" style="background:#15803D;color:#fff">@l.Estado</span>
+                            }
+                        </td>
+                        <td class="text-center">
+                            <div class="d-flex gap-2 justify-content-center">
+                                <a asp-action="Detalle" asp-route-id="@l.IdLiquidacion"
+                                   class="btn btn-sm btn-accion-ver" title="Ver desglose">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                @if (!anulada)
+                                {
+                                    <button type="button" class="btn btn-sm btn-outline-danger"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#modalAnular-@l.IdLiquidacion"
+                                            title="Anular liquidación">
+                                        <i class="bi bi-slash-circle"></i>
+                                    </button>
+                                }
+                            </div>
+                        </td>
+                    </tr>
+                }
+                @if (!Model.Any())
+                {
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-4">
+                            <i class="bi bi-inbox me-1"></i>No hay liquidaciones registradas.
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    @* Un modal de confirmación por liquidación activa. modal-pm lo engancha con _TemaOscuro. *@
+    @foreach (var l in Model.Where(x => x.Estado != EstadosLiquidacion.Anulada))
+    {
+        var nombreModal = nombres.TryGetValue(l.IdEmpleado, out var nm)
+            ? nm
+            : $"Empleado #{l.IdEmpleado}";
+
+        <div class="modal fade modal-pm" id="modalAnular-@l.IdLiquidacion" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+                <form asp-action="Anular" method="post" class="modal-content">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" value="@l.IdLiquidacion" />
+
+                    <div class="modal-header">
+                        <h5 class="modal-title">
+                            <i class="bi bi-slash-circle me-1 text-danger"></i>Anular liquidación
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+
+                    <div class="modal-body">
+                        <div class="alert alert-warning">
+                            <strong>Esto revierte la salida del empleado.</strong>
+                            @nombreModal vuelve a quedar <strong>activo</strong>, y se le borran la
+                            fecha y el motivo de salida. La liquidación queda en el historial como
+                            evidencia de que se emitió y se anuló.
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-6">
+                                <div class="small text-muted">Fecha de salida</div>
+                                <strong>@l.FechaSalida.ToString("dd/MM/yyyy")</strong>
+                            </div>
+                            <div class="col-6">
+                                <div class="small text-muted">Total liquidado</div>
+                                <strong>₡@l.TotalLiquidacion.ToString("N2")</strong>
+                            </div>
+                        </div>
+
+                        <label class="form-label fw-semibold">
+                            Motivo de la anulación <span class="text-danger">*</span>
+                        </label>
+                        <textarea name="motivo" class="form-control" rows="3" required
+                                  placeholder="Ej. Se digitó mal la fecha de salida."></textarea>
+                        <div class="form-text">Queda registrado en la bitácora de auditoría.</div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                            Cancelar
+                        </button>
+                        <button type="submit" class="btn btn-danger fw-bold">
+                            <i class="bi bi-check-circle me-1"></i>Anular liquidación
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    }
+</div>
+
+<script>
+    // El panel del tema (<main class="app-content-panel">) usa backdrop-filter, y un ancestro
+    // con backdrop-filter se vuelve el containing block de sus descendientes position:fixed.
+    // Resultado: el modal de Bootstrap se posiciona y recorta contra el panel en vez de contra
+    // el viewport. Moverlos a <body> los devuelve al viewport.
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.modal-pm').forEach(function (m) {
+            document.body.appendChild(m);
+        });
+    });
+</script>

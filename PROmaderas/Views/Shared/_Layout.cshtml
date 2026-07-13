@@ -114,6 +114,9 @@
                                                     @* PLA-HU-012: la HU dice "Como Administrador"; el Contador no entra. *@
                                                     <a class="dropdown-item" asp-controller="Vacaciones" asp-action="Index"><i class="bi bi-umbrella me-2"></i>Vacaciones</a>
                                                 }
+                                                @* PLA-HU-017: la HU dice "Como Contador", así que acá SÍ entra
+                                                   (el bloque ya está limitado a Administrador o Contador). *@
+                                                <a class="dropdown-item" asp-controller="Liquidaciones" asp-action="Index"><i class="bi bi-file-earmark-text me-2"></i>Liquidaciones</a>
                                             </li>
                                         }
 

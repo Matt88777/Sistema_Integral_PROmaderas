@@ -1,0 +1,157 @@
+@* PLA-HU-019 — contraste sobre el tema oscuro.
+
+   El contenido de las vistas vive dentro de <main class="app-content-panel"> (fondo azul
+   marino). Varias clases de Bootstrap asumen fondo CLARO y site.css las deja con texto
+   oscuro (.alert-danger -> #7b1e17, .alert-warning -> #6c5700, .alert-info -> --pm-navy),
+   que sobre el panel queda ilegible. Acá se re-tintan REUSANDO la paleta del tema
+   (variables :root de site.css). No se inventan colores nuevos ni se toca site.css.
+
+   Los modales se estilan por .modal-pm y NO por .app-content-panel, porque el script del
+   final de Historial.cshtml los mueve fuera del panel (ver el comentario de allá). *@
+<style>
+    /* ── Alertas: mismo tinte de la paleta, pero el texto pasa a claro ── */
+    .app-content-panel .alert-danger,
+    .modal-pm .alert-danger {
+        background: rgba(176,58,46,0.22) !important;   /* --pm-danger */
+        border-left: 4px solid var(--pm-danger) !important;
+        color: #F2B8B2 !important;
+    }
+
+    .app-content-panel .alert-warning,
+    .modal-pm .alert-warning {
+        background: rgba(201,168,76,0.16) !important;  /* --pm-gold */
+        border-left: 4px solid var(--pm-gold) !important;
+        color: var(--pm-gold-light) !important;
+    }
+
+    .app-content-panel .alert-info,
+    .modal-pm .alert-info {
+        background: rgba(42,74,127,0.35) !important;   /* --pm-navy-light */
+        border-left: 4px solid var(--pm-navy-light) !important;
+        color: rgba(255,255,255,0.85) !important;
+    }
+
+    .app-content-panel .alert-secondary,
+    .modal-pm .alert-secondary {
+        background: rgba(255,255,255,0.06) !important;
+        border-left: 4px solid rgba(255,255,255,0.28) !important;
+        color: rgba(255,255,255,0.82) !important;
+    }
+
+    .app-content-panel .alert-success,
+    .modal-pm .alert-success {
+        background: rgba(46,125,82,0.22) !important;   /* --pm-accent */
+        border-left: 4px solid var(--pm-accent) !important;
+        color: #A8DCC0 !important;
+    }
+
+    /* site.css fuerza span/li/p/small a blanco 0.72 dentro del panel, y deja <strong> y el
+       texto suelto heredando el color OSCURO del alert. Se unifica: todo hereda el color
+       del alert, que arriba ya quedó claro. */
+    .app-content-panel .alert span,
+    .app-content-panel .alert li,
+    .app-content-panel .alert p,
+    .app-content-panel .alert div,
+    .app-content-panel .alert small,
+    .app-content-panel .alert strong,
+    .app-content-panel .alert i,
+    .modal-pm .alert span,
+    .modal-pm .alert li,
+    .modal-pm .alert p,
+    .modal-pm .alert div,
+    .modal-pm .alert strong,
+    .modal-pm .alert i {
+        color: inherit !important;
+    }
+
+    .app-content-panel .alert code,
+    .modal-pm .alert code {
+        background: rgba(255,255,255,0.10);
+        color: var(--pm-gold-light);
+        padding: 1px 5px;
+        border-radius: 4px;
+    }
+
+    /* La X de cerrar es un SVG negro: sobre el alert oscuro no se ve. */
+    .app-content-panel .alert .btn-close,
+    .modal-pm .btn-close {
+        filter: invert(1) grayscale(1) brightness(1.8);
+        opacity: 0.7;
+    }
+
+    /* El rojo de validación de Bootstrap (#dc3545) queda flojo sobre el navy. */
+    .app-content-panel .text-danger {
+        color: #F2B8B2 !important;
+    }
+
+    /* .form-text renderiza como <div>: no lo agarra ninguna de las reglas de texto del
+       tema (que cubren p/span/small/li/.text-muted) y se queda en el gris #6c757d de
+       Bootstrap, casi invisible sobre el navy. */
+    .app-content-panel .form-text {
+        color: rgba(255,255,255,0.60) !important;
+    }
+
+    /* ── Filas de tabla ──
+       .table-secondary / .table-warning pintan fondo CLARO, y site.css fuerza el texto de
+       los <td> a blanco 0.80: texto claro sobre fondo claro. Se reemplazan por tintes
+       translúcidos sobre el fondo oscuro. El selector se escribe con .app-content-panel
+       .table tbody por delante para ganarle en especificidad a la regla de site.css. */
+    .app-content-panel .table tbody tr.pm-fila-anulada > td {
+        background-color: rgba(255,255,255,0.03) !important;
+        color: rgba(255,255,255,0.55) !important;   /* atenuado, pero legible */
+    }
+
+    .app-content-panel .table tbody tr.pm-fila-alerta > td {
+        background-color: rgba(201,168,76,0.14) !important;  /* --pm-gold */
+    }
+
+    /* ── Modal ── */
+    .modal-pm .modal-content {
+        background: #0D1B35 !important;              /* mismo navy que los dropdowns del tema */
+        border: 1px solid rgba(201,168,76,0.25) !important;
+        border-radius: var(--pm-radius-sm) !important;
+        color: rgba(255,255,255,0.85) !important;
+    }
+
+    .modal-pm .modal-header,
+    .modal-pm .modal-footer {
+        border-color: rgba(255,255,255,0.10) !important;
+    }
+
+    .modal-pm .modal-title {
+        color: #FFFFFF !important;
+    }
+
+    .modal-pm .text-muted,
+    .modal-pm .form-text {
+        color: rgba(255,255,255,0.60) !important;
+    }
+
+    .modal-pm .form-label,
+    .modal-pm label {
+        color: rgba(255,255,255,0.85) !important;
+    }
+
+    /* El textarea se salía del cuadro: sin box-sizing, el padding se suma al 100% de ancho. */
+    .modal-pm .form-control,
+    .modal-pm textarea {
+        background-color: rgba(255,255,255,0.07) !important;
+        border-color: rgba(201,168,76,0.25) !important;
+        color: #FFFFFF !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+        .modal-pm .form-control:focus,
+        .modal-pm textarea:focus {
+            background-color: rgba(255,255,255,0.11) !important;
+            border-color: var(--pm-gold) !important;
+            box-shadow: 0 0 0 3px rgba(201,168,76,0.18) !important;
+            color: #FFFFFF !important;
+        }
+
+    .modal-pm .modal-dialog {
+        max-width: 560px;
+    }
+</style>

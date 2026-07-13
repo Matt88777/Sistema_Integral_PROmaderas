@@ -1,0 +1,144 @@
+@model LiquidacionCalculoAD
+@{
+    // Escenario 2: el desglose rubro por rubro, con la FÓRMULA de cada monto visible. Un total
+    // sin fórmula no lo puede auditar nadie.
+    //
+    // Escenario 3: los rubros que el motivo NO genera se muestran igual, en ₡0 y con la razón.
+    // Ocultarlos dejaría al contador sin saber si el sistema se los comió o si no aplican.
+    //
+    // Se comparte entre la preview (Create) y el detalle de una liquidación emitida (Detalle):
+    // el contador ve exactamente el mismo desglose antes y después de guardar.
+}
+
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-body">
+        <h5 class="mb-3">
+            <i class="bi bi-receipt me-2" style="color:#c9a03c"></i>Desglose de la liquidación
+        </h5>
+
+        <div class="row g-3 mb-4">
+            <div class="col-md-3">
+                <div class="small text-muted">Empleado</div>
+                <strong>@Model.NombreEmpleado</strong>
+                <div class="small text-muted">@Model.Cedula</div>
+            </div>
+            <div class="col-md-3">
+                <div class="small text-muted">Período laborado</div>
+                <strong>
+                    @Model.FechaIngreso.ToString("dd/MM/yyyy") — @Model.FechaSalida.ToString("dd/MM/yyyy")
+                </strong>
+                <div class="small text-muted">@Model.AniosLaborados.ToString("N2") año(s)</div>
+            </div>
+            <div class="col-md-3">
+                <div class="small text-muted">Motivo de salida</div>
+                <strong style="color:#c9a03c">@Model.MotivoSalida</strong>
+            </div>
+            <div class="col-md-3">
+                <div class="small text-muted">Salario</div>
+                <strong>₡@Model.SalarioPromedio.ToString("N2")</strong>
+                <div class="small text-muted">
+                    día: ₡@Model.SalarioDia.ToString("N2") (salario ÷ 30)
+                </div>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Rubro</th>
+                        <th>Cómo se calcula</th>
+                        <th class="text-end">Monto</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @* ── Rubro 1: vacaciones. SIEMPRE se pagan. ── *@
+                    <tr>
+                        <td class="fw-semibold">Vacaciones pendientes</td>
+                        <td class="small">
+                            @Model.DiasVacacionesPendientes.ToString("N2") día(s) al
+                            @Model.FechaSalida.ToString("dd/MM/yyyy")
+                            × ₡@Model.SalarioDia.ToString("N2")
+                        </td>
+                        <td class="text-end fw-bold">₡@Model.MontoVacaciones.ToString("N2")</td>
+                    </tr>
+
+                    @* ── Rubro 2: aguinaldo proporcional. SIEMPRE se paga. ── *@
+                    <tr>
+                        <td class="fw-semibold">Aguinaldo proporcional</td>
+                        <td class="small">
+                            Salarios brutos devengados del
+                            @Model.AguinaldoDesde.ToString("dd/MM/yyyy") al
+                            @Model.AguinaldoHasta.ToString("dd/MM/yyyy")
+                            (₡@Model.AguinaldoBrutosDevengados.ToString("N2")) ÷ 12
+                        </td>
+                        <td class="text-end fw-bold">₡@Model.MontoAguinaldoProporcional.ToString("N2")</td>
+                    </tr>
+
+                    @* ── Rubro 3: preaviso. Escenario 3: si no aplica, va en ₡0 CON la razón. ── *@
+                    <tr class="@(Model.GeneraPreaviso ? "" : "pm-fila-anulada")">
+                        <td class="fw-semibold">Preaviso</td>
+                        <td class="small">
+                            @if (Model.GeneraPreaviso)
+                            {
+                                @: @Model.PreavisoDias.ToString("N0") días × ₡@Model.SalarioDia.ToString("N2")
+                                <div class="text-muted">
+                                    Tope de 1 mes: no se multiplica por los años trabajados.
+                                </div>
+                            }
+                            else
+                            {
+                                <strong style="color:#E2C97E">
+                                    <i class="bi bi-dash-circle me-1"></i>
+                                    «@Model.MotivoSalida» no genera preaviso.
+                                </strong>
+                            }
+                        </td>
+                        <td class="text-end fw-bold">₡@Model.MontoPreaviso.ToString("N2")</td>
+                    </tr>
+
+                    @* ── Rubro 4: cesantía. Idem. ── *@
+                    <tr class="@(Model.GeneraCesantia ? "" : "pm-fila-anulada")">
+                        <td class="fw-semibold">Cesantía</td>
+                        <td class="small">
+                            @if (Model.GeneraCesantia)
+                            {
+                                @: @Model.CesantiaDiasPorAnio.ToString("N2") días/año × @Model.CesantiaAniosReconocidos.ToString("N2") año(s) × ₡@Model.SalarioDia.ToString("N2")
+                                @if (Model.AniosLaborados > Model.CesantiaTopeAnios)
+                                {
+                                    <div class="text-muted">
+                                        Años topados a @Model.CesantiaTopeAnios.ToString("N0")
+                                        (trabajó @Model.AniosLaborados.ToString("N2")).
+                                    </div>
+                                }
+                            }
+                            else
+                            {
+                                <strong style="color:#E2C97E">
+                                    <i class="bi bi-dash-circle me-1"></i>
+                                    «@Model.MotivoSalida» no genera cesantía.
+                                </strong>
+                            }
+                        </td>
+                        <td class="text-end fw-bold">₡@Model.MontoCesantia.ToString("N2")</td>
+                    </tr>
+
+                    @* ── Otros ── *@
+                    <tr>
+                        <td class="fw-semibold">Otros montos</td>
+                        <td class="small text-muted">Rubros extra pactados.</td>
+                        <td class="text-end fw-bold">₡@Model.OtrosMontos.ToString("N2")</td>
+                    </tr>
+                </tbody>
+                <tfoot>
+                    <tr class="table-dark">
+                        <th colspan="2" class="text-end">TOTAL DE LA LIQUIDACIÓN</th>
+                        <th class="text-end" style="font-size:1.15rem;color:#c9a03c">
+                            ₡@Model.Total.ToString("N2")
+                        </th>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+</div>

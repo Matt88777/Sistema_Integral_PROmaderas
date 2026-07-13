@@ -79,6 +79,14 @@ namespace PROmaderas.AccesoADatos.Empleados
             // formulario ya trae el campo. Si mañana aparece otra pantalla o un endpoint que bindee
             // EmpleadoAD sin este campo, va a volver a borrar el dato en silencio.
 
+            // PLA-HU-017: FechaSalida y MotivoSalida las escribe la LIQUIDACIÓN, no esta pantalla.
+            // Empleados > Editar no tiene campos para ellas, así que el binder las trae siempre en
+            // null y el Update() detached las borraría: editar el teléfono de alguien ya liquidado
+            // le borraría la fecha de salida, dejando la liquidación huérfana de su causa. Nunca
+            // vienen del form: siempre se conservan las de la BD.
+            empleado.FechaSalida = existente.FechaSalida;
+            empleado.MotivoSalida = existente.MotivoSalida;
+
             // Estos tres SÍ tienen combo en el formulario, pero si el combo ofrece un valor que no
             // existe en la BD, el <select> no puede marcarlo, cae en la opción vacía y el POST manda
             // "" -> el binder lo convierte en null y el Update lo guarda encima del dato bueno. Así

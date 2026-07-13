@@ -29,6 +29,7 @@ namespace PROmaderas.AccesoADatos
         public DbSet<EmpleadoDeduccionAD> EmpleadoDeducciones { get; set; }
         public DbSet<ParametroPlanillaAD> ParametrosPlanilla { get; set; }
         public DbSet<VacacionAD> Vacaciones { get; set; }
+        public DbSet<LiquidacionAD> Liquidaciones { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -266,6 +267,13 @@ namespace PROmaderas.AccesoADatos
             {
                 e.ToTable("Vacacion");
                 e.HasKey(x => x.IdVacacion);
+            });
+
+            // PLA-HU-017: mismo mapeo mínimo. Las columnas coinciden por convención.
+            modelBuilder.Entity<LiquidacionAD>(e =>
+            {
+                e.ToTable("Liquidacion");
+                e.HasKey(x => x.IdLiquidacion);
             });
 
         }
