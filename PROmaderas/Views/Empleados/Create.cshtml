@@ -31,16 +31,28 @@
                     <input asp-for="Puesto" class="form-control" />
                 </div>
 
+                @* Mismos literales que Edit.cshtml y que dbo.Departamento (sin tildes): si los dos
+                   formularios ofrecen listas distintas, los datos quedan inconsistentes. *@
                 <div class="mb-3">
                     <label asp-for="Departamento" class="form-label"></label>
                     <select asp-for="Departamento" class="form-control" required>
                         <option value="">-- Seleccione Departamento --</option>
-                        <option value="RRHH">RRHH</option>
-                        <option value="IT">IT</option>
+                        <option value="Administracion">Administracion</option>
+                        <option value="Contabilidad">Contabilidad</option>
+                        <option value="Produccion">Produccion</option>
                         <option value="Ventas">Ventas</option>
-                        <option value="Producción">Producción</option>
+                        <option value="Bodega">Bodega</option>
                     </select>
                     <span asp-validation-for="Departamento" class="text-danger"></span>
+                </div>
+
+                @* PLA-HU-012: la fecha de ingreso define los meses trabajados, y con ellos los días
+                   de vacaciones acumulados. Antes no se pedía y el repositorio la pisaba con la
+                   fecha de hoy, así que todo empleado nuevo arrancaba con 0 días acumulados. *@
+                <div class="mb-3">
+                    <label asp-for="FechaIngreso" class="form-label">Fecha de ingreso</label>
+                    <input asp-for="FechaIngreso" type="date" class="form-control" required />
+                    <span asp-validation-for="FechaIngreso" class="text-danger"></span>
                 </div>
 
                 <div class="mb-3">

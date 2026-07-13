@@ -46,16 +46,30 @@
         <span asp-validation-for="IdPuesto" class="text-danger small"></span>
     </div>
 
+    @* Los literales son EXACTAMENTE los de dbo.Departamento (sin tildes). Si una opción no
+       coincide con lo que hay en la BD, el <select> no la puede marcar como seleccionada, cae
+       en "-- Seleccione --" y al guardar manda "" -> el binder lo vuelve null y borra el dato.
+       Antes decía IT/RRHH/Producción (con tilde): ninguno existe en la BD. *@
     <div class="mb-3">
         <label asp-for="Departamento" class="form-label"></label>
         <select asp-for="Departamento" class="form-control">
             <option value="">-- Seleccione --</option>
-            <option value="IT">IT</option>
-            <option value="RRHH">RRHH</option>
+            <option value="Administracion">Administracion</option>
+            <option value="Contabilidad">Contabilidad</option>
+            <option value="Produccion">Produccion</option>
             <option value="Ventas">Ventas</option>
-            <option value="Producción">Producción</option>
+            <option value="Bodega">Bodega</option>
         </select>
         <span asp-validation-for="Departamento" class="text-danger small"></span>
+    </div>
+
+    @* PLA-HU-012: la fecha de ingreso define los meses trabajados, y con ellos los días de
+       vacaciones acumulados. Si un empleado la tiene vacía, este es el único lugar donde se
+       corrige (es adonde manda el mensaje de bloqueo de la pantalla de Vacaciones). *@
+    <div class="mb-3">
+        <label asp-for="FechaIngreso" class="form-label">Fecha de ingreso</label>
+        <input asp-for="FechaIngreso" type="date" class="form-control" />
+        <span asp-validation-for="FechaIngreso" class="text-danger small"></span>
     </div>
 
     <div class="mb-3">
@@ -87,16 +101,21 @@
                 <option value="Por hora">Por hora</option>
             </select>
         </div>
+        @* Las tres jornadas del Código de Trabajo (arts. 135-136), que es lo que guarda la BD
+           ('Diurna' en los 5 empleados del seed). Antes ofrecía Tiempo completo/Medio tiempo/
+           Por horas: eso son modalidades de contratación, no jornadas, y ninguna existe en la
+           BD, así que el combo salía en blanco y al guardar borraba la jornada del empleado. *@
         <div class="col-md-4">
             <label class="form-label">Jornada laboral</label>
             <select asp-for="JornadaLaboral" class="form-select">
                 <option value="">Seleccione...</option>
-                <option value="Tiempo completo">Tiempo completo</option>
-                <option value="Medio tiempo">Medio tiempo</option>
-                <option value="Por horas">Por horas</option>
+                <option value="Diurna">Diurna</option>
+                <option value="Nocturna">Nocturna</option>
+                <option value="Mixta">Mixta</option>
             </select>
         </div>
     </div>
+
     <div class="d-flex gap-2">
         <button type="submit" class="btn btn-primary">
             Guardar cambios

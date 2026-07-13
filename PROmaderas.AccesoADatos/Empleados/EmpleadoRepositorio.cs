@@ -30,7 +30,14 @@ namespace PROmaderas.AccesoADatos.Empleados
         {
             empleado.PrimerApellido = empleado.PrimerApellido ?? "General";
             empleado.SegundoApellido = empleado.SegundoApellido ?? "General";
-            empleado.FechaIngreso = DateTime.Now;
+
+            // PLA-HU-012: la FechaIngreso viene del formulario y se RESPETA. Antes se pisaba
+            // siempre con DateTime.Now, así que todo empleado creado desde la app arrancaba con
+            // 0 meses trabajados y por lo tanto 0 días de vacaciones acumulados, sin importar
+            // qué antigüedad tuviera de verdad. DateTime.Now queda solo como último recurso
+            // (formulario viejo que no manda el campo).
+            empleado.FechaIngreso ??= DateTime.Now;
+
             empleado.IdPuesto = 1;
             empleado.Estado = true;
             empleado.FechaCreacion = DateTime.Now;
@@ -50,13 +57,37 @@ namespace PROmaderas.AccesoADatos.Empleados
             if (existente == null)
                 throw new Exception($"No se encontró el empleado con ID {empleado.IdEmpleado}.");
 
-            empleado.FechaIngreso = existente.FechaIngreso;
+            // PLA-HU-012: la FechaIngreso que venga del formulario se RESPETA. Antes se pisaba
+            // siempre con la existente, así que un empleado con la fecha nula no había forma de
+            // corregirlo desde la app (y sin ella no se le pueden calcular vacaciones). Si el
+            // formulario no la manda, se conserva la que ya estaba: editar el teléfono no puede
+            // borrar la antigüedad de nadie.
+            empleado.FechaIngreso ??= existente.FechaIngreso;
+
             empleado.FechaCreacion = existente.FechaCreacion;
             empleado.Estado = existente.Estado;
             empleado.PrimerApellido = existente.PrimerApellido;
             empleado.SegundoApellido = existente.SegundoApellido;
 
-            // PLA-HU-002: registrar historial si el salario cambió
+            // Estos tres SÍ tienen combo en el formulario, pero si el combo ofrece un valor que no
+            // existe en la BD, el <select> no puede marcarlo, cae en la opción vacía y el POST manda
+            // "" -> el binder lo convierte en null y el Update lo guarda encima del dato bueno. Así
+            // se borró 'Diurna' de JornadaLaboral. Los combos ya se corrigieron, pero el repositorio
+            // no puede confiar en eso: un valor huérfano en la BD reproduce el problema. Vacío = "no
+            // me mandaron nada", no "borrámelo".
+            if (string.IsNullOrWhiteSpace(empleado.JornadaLaboral))
+                empleado.JornadaLaboral = existente.JornadaLaboral;
+
+            if (string.IsNullOrWhiteSpace(empleado.TipoPago))
+                empleado.TipoPago = existente.TipoPago;
+
+            if (string.IsNullOrWhiteSpace(empleado.Departamento))
+                empleado.Departamento = existente.Departamento;
+
+            // PLA-HU-002: registrar historial si el salario cambió.
+            // Va DESPUÉS de las restauraciones de arriba a propósito: si se comparara contra los
+            // nulls que venían del form, un simple cambio de teléfono se vería como un cambio de
+            // salario y metería una fila espuria en SalarioHistorial.
             bool salarioCambio =
                 existente.SalarioBase != empleado.SalarioBase ||
                 existente.TipoPago != empleado.TipoPago ||
@@ -84,11 +115,14 @@ namespace PROmaderas.AccesoADatos.Empleados
                 .Select(p => p.NombrePuesto)
                 .FirstOrDefaultAsync();
 
+            // FechaIngreso entra a la bitácora: ahora es editable, y mueve los días de vacaciones
+            // acumulados de todo el histórico del empleado. Un cambio así no puede quedar sin rastro.
             var valoresAnteriores = new
             {
                 existente.IdPuesto,
                 NombrePuesto = nombrePuestoAnterior,
                 existente.Departamento,
+                existente.FechaIngreso,
                 existente.SalarioBase,
                 existente.TipoPago,
                 existente.JornadaLaboral
@@ -99,6 +133,7 @@ namespace PROmaderas.AccesoADatos.Empleados
                 empleado.IdPuesto,
                 NombrePuesto = nombrePuestoNuevo,
                 empleado.Departamento,
+                empleado.FechaIngreso,
                 empleado.SalarioBase,
                 empleado.TipoPago,
                 empleado.JornadaLaboral
