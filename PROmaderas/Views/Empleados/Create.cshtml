@@ -55,6 +55,23 @@
                     <span asp-validation-for="FechaIngreso" class="text-danger"></span>
                 </div>
 
+                @* PLA-HU-012: va junto a la fecha de ingreso porque los dos alimentan el cálculo
+                   de vacaciones. Create no tiene sección salarial (le faltan SalarioBase, TipoPago
+                   y JornadaLaboral): eso es deuda aparte, no se toca acá. *@
+                <div class="mb-3">
+                    <label asp-for="SaldoVacacionesInicial" class="form-label">
+                        Saldo de vacaciones inicial (días)
+                    </label>
+                    <input asp-for="SaldoVacacionesInicial" type="number" step="0.01" min="0"
+                           class="form-control" />
+                    <span asp-validation-for="SaldoVacacionesInicial" class="text-danger"></span>
+                    <div class="form-text">
+                        Días de vacaciones que el empleado ya tenía acumulados al migrarse desde Excel.
+                        Este valor SUMA directamente al saldo disponible. No incluye los días que acumula
+                        el sistema desde su fecha de ingreso.
+                    </div>
+                </div>
+
                 <div class="mb-3">
                     <label asp-for="Telefono" class="form-label"></label>
                     <input asp-for="Telefono" class="form-control" />

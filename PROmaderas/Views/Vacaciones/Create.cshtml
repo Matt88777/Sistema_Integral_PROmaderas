@@ -1,0 +1,102 @@
+@model PROmaderas.UI.Models.RegistrarVacacionViewModel
+@{
+    ViewData["Title"] = "Registrar vacación";
+}
+
+<partial name="_TemaOscuro" />
+
+<div class="container mt-4" style="max-width:720px">
+    <h2 class="mb-4">
+        <i class="bi bi-calendar2-plus me-2" style="color:#c9a03c"></i>Registrar vacación
+    </h2>
+
+    <div class="alert alert-info">
+        <i class="bi bi-person-badge me-1"></i>
+        Empleado: <strong>@Model.NombreEmpleado</strong> —
+        saldo disponible: <strong>@Model.SaldoDisponible.ToString("N2") día(s)</strong>.
+        No se puede registrar una vacación que deje el saldo en negativo.
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body">
+            <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+            <form asp-action="Create" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="IdEmpleado" />
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label asp-for="FechaInicio" class="form-label fw-semibold"></label>
+                        <input asp-for="FechaInicio" type="date" class="form-control" id="fechaInicio" />
+                        <span asp-validation-for="FechaInicio" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="FechaFin" class="form-label fw-semibold"></label>
+                        <input asp-for="FechaFin" type="date" class="form-control" id="fechaFin" />
+                        <span asp-validation-for="FechaFin" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="mb-3 mt-3">
+                    <label asp-for="Dias" class="form-label fw-semibold"></label>
+                    <input asp-for="Dias" type="number" step="0.5" min="0.5" class="form-control" id="dias" />
+                    <span asp-validation-for="Dias" class="text-danger"></span>
+                    <div class="form-text">
+                        El rango de fechas solo <strong>sugiere</strong> un valor (días naturales).
+                        El que se guarda es este: ajústelo si el período trae feriados o fines de
+                        semana que no se rebajan. Admite medios días (0.5).
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label asp-for="Observacion" class="form-label fw-semibold"></label>
+                    <textarea asp-for="Observacion" class="form-control" rows="2"
+                              placeholder="Ej. Vacaciones de fin de año."></textarea>
+                    <span asp-validation-for="Observacion" class="text-danger"></span>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-warning fw-bold px-4">
+                        <i class="bi bi-floppy me-1"></i>Registrar
+                    </button>
+                    <a asp-action="Detalle" asp-route-idEmpleado="@Model.IdEmpleado"
+                       class="btn btn-outline-secondary">
+                        <i class="bi bi-x-lg me-1"></i>Cancelar
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Los días se DIGITAN: esto solo SUGIERE los días naturales del rango (ambos extremos
+    // incluidos). Se deja de sugerir en cuanto el usuario toca el campo a mano, para no
+    // pisarle lo que escribió. El servidor guarda lo que venga en el input, no este cálculo.
+    (function () {
+        var inicio = document.getElementById('fechaInicio');
+        var fin = document.getElementById('fechaFin');
+        var dias = document.getElementById('dias');
+        if (!inicio || !fin || !dias) return;
+
+        var editadoAMano = false;
+        dias.addEventListener('input', function () { editadoAMano = true; });
+
+        function sugerir() {
+            if (editadoAMano) return;
+            if (!inicio.value || !fin.value) return;
+
+            var d1 = new Date(inicio.value);
+            var d2 = new Date(fin.value);
+            if (isNaN(d1) || isNaN(d2) || d2 < d1) return;
+
+            var naturales = Math.round((d2 - d1) / 86400000) + 1;   // ambos extremos incluidos
+            dias.value = naturales;
+        }
+
+        inicio.addEventListener('change', sugerir);
+        fin.addEventListener('change', sugerir);
+    })();
+</script>

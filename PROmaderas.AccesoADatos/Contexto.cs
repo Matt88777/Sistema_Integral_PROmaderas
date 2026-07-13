@@ -28,6 +28,7 @@ namespace PROmaderas.AccesoADatos
         public DbSet<DeduccionInternaAD> DeduccionesInternas { get; set; }
         public DbSet<EmpleadoDeduccionAD> EmpleadoDeducciones { get; set; }
         public DbSet<ParametroPlanillaAD> ParametrosPlanilla { get; set; }
+        public DbSet<VacacionAD> Vacaciones { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -258,6 +259,13 @@ namespace PROmaderas.AccesoADatos
             {
                 e.ToTable("ParametroPlanilla");
                 e.HasKey(x => x.IdParametroPlanilla);
+            });
+
+            // PLA-HU-012: igual que ParametroPlanilla, el resto mapea por convención.
+            modelBuilder.Entity<VacacionAD>(e =>
+            {
+                e.ToTable("Vacacion");
+                e.HasKey(x => x.IdVacacion);
             });
 
         }

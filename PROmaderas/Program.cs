@@ -37,6 +37,8 @@ using PROmaderas.AccesoADatos.Deducciones;
 using PROmaderas.LogicaDeNegocio.Deducciones;
 using PROmaderas.AccesoADatos.Parametros;
 using PROmaderas.LogicaDeNegocio.Parametros;
+using PROmaderas.AccesoADatos.Vacaciones;
+using PROmaderas.LogicaDeNegocio.Vacaciones;
 
 
 
@@ -127,6 +129,10 @@ builder.Services.AddScoped<IPlanillaRepositorio, PlanillaRepositorio>();
 builder.Services.AddScoped<IPlanillaLogica, PlanillaLogica>();
 builder.Services.AddScoped<ILicenciaRepositorio, LicenciaRepositorio>();
 builder.Services.AddScoped<ILicenciaLogica, LicenciaLogica>();
+
+// PLA-HU-012: vacaciones.
+builder.Services.AddScoped<IVacacionRepositorio, VacacionRepositorio>();
+builder.Services.AddScoped<IVacacionLogica, VacacionLogica>();
 
 
 

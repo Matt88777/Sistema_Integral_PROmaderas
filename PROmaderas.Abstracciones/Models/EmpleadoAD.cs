@@ -31,4 +31,13 @@ public class EmpleadoAD
 
     [MaxLength(50)]
     public string? JornadaLaboral { get; set; }
+
+    // PLA-HU-012: días de vacaciones que el empleado ya traía al migrarse desde Excel.
+    // Es el punto de partida del acumulado; lo trabajado en el sistema se le suma encima.
+    // El tope es la capacidad real de la columna, decimal(10,2). Negativo no tiene sentido:
+    // un saldo inicial en contra no es algo que el negocio contemple.
+    [Column(TypeName = "decimal(10,2)")]
+    [Range(0, 99999999.99, ErrorMessage = "El saldo de vacaciones inicial no puede ser negativo.")]
+    [Display(Name = "Saldo de vacaciones inicial (días)")]
+    public decimal SaldoVacacionesInicial { get; set; }
 }

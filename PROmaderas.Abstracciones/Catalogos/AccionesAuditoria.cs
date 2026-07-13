@@ -13,5 +13,10 @@ namespace PROmaderas.Abstracciones.Catalogos
         public const string CrearParametro = "Creación de parámetro de planilla";
         public const string NuevaVersionParametro = "Nueva versión de parámetro";
         public const string AnularVersionParametro = "Anulación de versión de parámetro";
+
+        // PLA-HU-012: las 2 escrituras de vacaciones. No hay "edición": una vacación mal
+        // digitada se anula y se vuelve a registrar.
+        public const string RegistrarVacacion = "Registro de vacación";
+        public const string AnularVacacion = "Anulación de vacación";
     }
 }

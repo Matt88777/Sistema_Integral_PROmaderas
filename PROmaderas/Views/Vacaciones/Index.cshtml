@@ -1,0 +1,134 @@
+@model List<SaldoVacacionesAD>
+@{
+    ViewData["Title"] = "Vacaciones";
+    var errorParametro = ViewBag.ErrorParametro as string;
+}
+
+<partial name="_TemaOscuro" />
+
+<div class="container mt-4">
+    <div class="row mb-3 align-items-center">
+        <div class="col">
+            <h2><i class="bi bi-umbrella me-2" style="color:#c9a03c"></i>Vacaciones</h2>
+        </div>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            <i class="bi bi-check-circle me-1"></i>@TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-warning alert-dismissible fade show">
+            <i class="bi bi-exclamation-triangle me-1"></i>@TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @* Falta el parámetro 'DiasVacacionesPorMes': sin él no hay acumulado que calcular, así que
+       el listado viene vacío. Se dice por qué y dónde arreglarlo, en vez de una pantalla de error. *@
+    @if (errorParametro != null)
+    {
+        <div class="alert alert-danger">
+            <i class="bi bi-exclamation-octagon me-1"></i>
+            <strong>No se puede calcular el saldo de vacaciones.</strong>
+            @errorParametro
+        </div>
+    }
+
+    <div class="alert alert-secondary">
+        <i class="bi bi-info-circle me-1"></i>
+        Las <strong>acumuladas</strong> se calculan como el saldo inicial del empleado más los
+        <strong>meses completos</strong> trabajados desde su fecha de ingreso, por el parámetro
+        <code>DiasVacacionesPorMes</code>. Las <strong>disfrutadas</strong> son los días ya tomados
+        (las vacaciones anuladas no cuentan). El <strong>saldo</strong> es la resta de ambas.
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-striped table-hover align-middle">
+            <thead class="table-dark">
+                <tr>
+                    <th>Empleado</th>
+                    <th>Cédula</th>
+                    <th>Fecha de ingreso</th>
+                    <th class="text-end">Acumuladas</th>
+                    <th class="text-end">Disfrutadas</th>
+                    <th class="text-end">Saldo</th>
+                    <th class="text-center">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var s in Model)
+                {
+                    @* pm-fila-alerta: tinte dorado translúcido. El empleado sin fecha de ingreso
+                       NO revienta la pantalla: se lista con "—" y se marca la fila. *@
+                    <tr class="@(s.TieneFechaIngreso ? "" : "pm-fila-alerta")">
+                        <td class="fw-semibold" style="color:#c9a03c">@s.NombreCompleto</td>
+                        <td>@s.Cedula</td>
+                        <td>
+                            @if (s.TieneFechaIngreso)
+                            {
+                                @s.FechaIngreso!.Value.ToString("dd/MM/yyyy")
+                                <div class="small text-muted">@s.MesesTrabajados mes(es)</div>
+                            }
+                            else
+                            {
+                                @* <strong> y no <span>: el tema fuerza los span a blanco 0.72
+                                   con !important y se comería el color de advertencia. *@
+                                <strong style="color:#E2C97E" title="Corríjalo en Empleados > Editar">
+                                    <i class="bi bi-exclamation-triangle me-1"></i>Sin fecha de ingreso
+                                </strong>
+                            }
+                        </td>
+                        <td class="text-end">
+                            @if (s.TieneFechaIngreso)
+                            {
+                                <span class="fw-bold">@s.Acumuladas.ToString("N2")</span>
+                            }
+                            else
+                            {
+                                <strong style="color:#E2C97E">—</strong>
+                            }
+                        </td>
+                        <td class="text-end">@s.Disfrutadas.ToString("N2")</td>
+                        <td class="text-end">
+                            @if (s.TieneFechaIngreso)
+                            {
+                                <span class="badge" style="background:@(s.Saldo > 0 ? "#15803D" : "#64748B");color:#fff">
+                                    @s.Saldo.ToString("N2")
+                                </span>
+                            }
+                            else
+                            {
+                                <strong style="color:#E2C97E">—</strong>
+                            }
+                        </td>
+                        <td class="text-center">
+                            <div class="d-flex gap-2 justify-content-center">
+                                <a asp-action="Detalle" asp-route-idEmpleado="@s.IdEmpleado"
+                                   class="btn btn-sm btn-accion-ver" title="Ver detalle e historial">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <a asp-action="Create" asp-route-idEmpleado="@s.IdEmpleado"
+                                   class="btn btn-sm btn-outline-secondary" title="Registrar vacación">
+                                    <i class="bi bi-calendar2-plus"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                }
+                @if (!Model.Any())
+                {
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-4">
+                            <i class="bi bi-inbox me-1"></i>No hay empleados activos.
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

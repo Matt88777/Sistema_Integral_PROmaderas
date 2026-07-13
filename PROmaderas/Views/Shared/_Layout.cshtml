@@ -111,6 +111,8 @@
                                                 @if (User.IsInRole(Roles.Administrador))
                                                 {
                                                     <a class="dropdown-item" asp-controller="Parametros" asp-action="Index"><i class="bi bi-sliders me-2"></i>Parámetros de planilla</a>
+                                                    @* PLA-HU-012: la HU dice "Como Administrador"; el Contador no entra. *@
+                                                    <a class="dropdown-item" asp-controller="Vacaciones" asp-action="Index"><i class="bi bi-umbrella me-2"></i>Vacaciones</a>
                                                 }
                                             </li>
                                         }

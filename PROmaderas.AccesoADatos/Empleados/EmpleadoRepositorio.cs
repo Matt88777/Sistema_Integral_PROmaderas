@@ -69,6 +69,16 @@ namespace PROmaderas.AccesoADatos.Empleados
             empleado.PrimerApellido = existente.PrimerApellido;
             empleado.SegundoApellido = existente.SegundoApellido;
 
+            // PLA-HU-012: SaldoVacacionesInicial ahora SÍ tiene campo en Empleados > Editar, así que
+            // se respeta lo que venga del formulario (antes se restauraba a la fuerza desde la BD,
+            // porque ningún form lo mandaba y el binder lo traía en 0, borrando el saldo migrado).
+            //
+            // OJO: es decimal NO-NULLABLE. Un POST que no incluya el campo bindea a 0, y 0 es un
+            // valor legítimo, así que no hay forma de distinguir "no me lo mandaron" de "es cero".
+            // Hoy no hay riesgo: Actualizar se llama SOLO desde EmpleadosController.Edit, cuyo
+            // formulario ya trae el campo. Si mañana aparece otra pantalla o un endpoint que bindee
+            // EmpleadoAD sin este campo, va a volver a borrar el dato en silencio.
+
             // Estos tres SÍ tienen combo en el formulario, pero si el combo ofrece un valor que no
             // existe en la BD, el <select> no puede marcarlo, cae en la opción vacía y el POST manda
             // "" -> el binder lo convierte en null y el Update lo guarda encima del dato bueno. Así
@@ -115,14 +125,17 @@ namespace PROmaderas.AccesoADatos.Empleados
                 .Select(p => p.NombrePuesto)
                 .FirstOrDefaultAsync();
 
-            // FechaIngreso entra a la bitácora: ahora es editable, y mueve los días de vacaciones
-            // acumulados de todo el histórico del empleado. Un cambio así no puede quedar sin rastro.
+            // FechaIngreso y SaldoVacacionesInicial entran a la bitácora: los dos son editables y los
+            // dos mueven los días de vacaciones disponibles de todo el histórico del empleado (uno
+            // por los meses trabajados, el otro sumando directo al saldo). Un cambio así no puede
+            // quedar sin rastro.
             var valoresAnteriores = new
             {
                 existente.IdPuesto,
                 NombrePuesto = nombrePuestoAnterior,
                 existente.Departamento,
                 existente.FechaIngreso,
+                existente.SaldoVacacionesInicial,
                 existente.SalarioBase,
                 existente.TipoPago,
                 existente.JornadaLaboral
@@ -134,6 +147,7 @@ namespace PROmaderas.AccesoADatos.Empleados
                 NombrePuesto = nombrePuestoNuevo,
                 empleado.Departamento,
                 empleado.FechaIngreso,
+                empleado.SaldoVacacionesInicial,
                 empleado.SalarioBase,
                 empleado.TipoPago,
                 empleado.JornadaLaboral

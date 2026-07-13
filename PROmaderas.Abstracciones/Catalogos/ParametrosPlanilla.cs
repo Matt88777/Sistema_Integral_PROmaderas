@@ -27,6 +27,9 @@ namespace PROmaderas.Abstracciones.Catalogos
         public const string RentaTramo3Piso = "RentaTramo3Piso";
         public const string RentaTramo4Piso = "RentaTramo4Piso";
 
+        // Cantidad de días de vacaciones que acumula un empleado por mes trabajado. Se usa tal cual.
+        public const string DiasVacacionesPorMes = "DiasVacacionesPorMes";
+
         // Porcentajes de los tramos de renta (10/15/20/25). DIVIDIR ENTRE 100.
         public const string RentaTramo1Porc = "RentaTramo1Porc";
         public const string RentaTramo2Porc = "RentaTramo2Porc";

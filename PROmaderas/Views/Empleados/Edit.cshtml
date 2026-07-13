@@ -116,7 +116,25 @@
         </div>
     </div>
 
-    <div class="d-flex gap-2">
+    @* PLA-HU-012: hasta ahora este dato solo se podía cargar por SQL. .form-text (no <small>
+       ni <span>): es la clase que el tema oscuro ya sabe tintar. *@
+    <div class="row g-3 mt-1">
+        <div class="col-md-4">
+            <label asp-for="SaldoVacacionesInicial" class="form-label">
+                Saldo de vacaciones inicial (días)
+            </label>
+            <input asp-for="SaldoVacacionesInicial" type="number" step="0.01" min="0"
+                   class="form-control" />
+            <span asp-validation-for="SaldoVacacionesInicial" class="text-danger small"></span>
+            <div class="form-text">
+                Días de vacaciones que el empleado ya tenía acumulados al migrarse desde Excel.
+                Este valor SUMA directamente al saldo disponible. No incluye los días que acumula
+                el sistema desde su fecha de ingreso.
+            </div>
+        </div>
+    </div>
+
+    <div class="d-flex gap-2 mt-4">
         <button type="submit" class="btn btn-primary">
             Guardar cambios
         </button>
