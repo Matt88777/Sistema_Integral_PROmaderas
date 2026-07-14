@@ -30,6 +30,8 @@ namespace PROmaderas.AccesoADatos
         public DbSet<ParametroPlanillaAD> ParametrosPlanilla { get; set; }
         public DbSet<VacacionAD> Vacaciones { get; set; }
         public DbSet<LiquidacionAD> Liquidaciones { get; set; }
+        public DbSet<PolizaINSAD> PolizasINS { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -276,6 +278,55 @@ namespace PROmaderas.AccesoADatos
                 e.HasKey(x => x.IdLiquidacion);
             });
 
-        }
+
+			// PLA-HU-018: configuración de pólizas del INS.
+			modelBuilder.Entity<PolizaINSAD>(e =>
+			{
+				e.ToTable("PolizaINS");
+
+				e.HasKey(x => x.IdPolizaINS);
+
+				e.Property(x => x.NumeroPoliza)
+					.HasMaxLength(100)
+					.IsRequired();
+
+				e.Property(x => x.FechaInicio)
+					.HasColumnType("date")
+					.IsRequired();
+
+				e.Property(x => x.FechaVencimiento)
+					.HasColumnType("date")
+					.IsRequired();
+
+				e.Property(x => x.Cobertura)
+					.HasMaxLength(250)
+					.IsRequired();
+
+				e.Property(x => x.Observacion)
+					.HasMaxLength(500);
+
+				e.Property(x => x.Activa)
+					.HasDefaultValue(true);
+
+				e.Property(x => x.FechaRegistro)
+					.HasDefaultValueSql("GETDATE()");
+
+				e.HasOne(x => x.Empleado)
+					.WithMany()
+					.HasForeignKey(x => x.IdEmpleado)
+					.OnDelete(DeleteBehavior.Restrict);
+
+				e.HasIndex(x => x.NumeroPoliza)
+					.IsUnique();
+
+				e.HasIndex(x => new
+				{
+					x.IdEmpleado,
+					x.FechaVencimiento,
+					x.Activa
+				});
+			});
+
+		}
     }       
 }           

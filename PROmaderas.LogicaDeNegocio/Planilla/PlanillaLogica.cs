@@ -9,17 +9,22 @@ namespace PROmaderas.LogicaDeNegocio.Planilla
     {
         private readonly IPlanillaRepositorio _repo;
         private readonly IParametroPlanillaRepositorio _parametros;
+		private readonly IPolizaINSLogica _polizaINSLogica;
 
-        private static readonly string[] EstadosValidos =
+		private static readonly string[] EstadosValidos =
             { "Borrador", "Revisada", "Aprobada", "Pagada" };
 
-        public PlanillaLogica(IPlanillaRepositorio repo, IParametroPlanillaRepositorio parametros)
-        {
-            _repo = repo;
-            _parametros = parametros;
-        }
+		public PlanillaLogica(
+	IPlanillaRepositorio repo,
+	IParametroPlanillaRepositorio parametros,
+	IPolizaINSLogica polizaINSLogica)
+		{
+			_repo = repo;
+			_parametros = parametros;
+			_polizaINSLogica = polizaINSLogica;
+		}
 
-        public async Task<List<PlanillaPeriodoAD>> ObtenerPeriodos()
+		public async Task<List<PlanillaPeriodoAD>> ObtenerPeriodos()
             => await _repo.ObtenerPeriodos();
 
         public async Task<PlanillaPeriodoAD?> ObtenerPeriodoPorId(int id)
@@ -77,7 +82,30 @@ namespace PROmaderas.LogicaDeNegocio.Planilla
             var totalInternas = CalcularDeduccionesInternas(internas, bruto);
             totalDed += totalInternas;
 
-            var detalle = new PlanillaDetalleFinancieroAD
+			// PLA-HU-018: el empleado debe tener cobertura durante
+			// todo el período de planilla.
+			bool coberturaAlInicio =
+				await _polizaINSLogica.TieneCoberturaVigente(
+					vm.IdEmpleado,
+					periodo.FechaInicio);
+
+			bool coberturaAlFinal =
+				await _polizaINSLogica.TieneCoberturaVigente(
+					vm.IdEmpleado,
+					periodo.FechaFin);
+
+			bool tieneCoberturaVigente =
+				coberturaAlInicio && coberturaAlFinal;
+
+			string? advertenciaPoliza =
+				tieneCoberturaVigente
+					? null
+					: $"El empleado no cuenta con una póliza del INS vigente " +
+					  $"para todo el período del " +
+					  $"{periodo.FechaInicio:dd/MM/yyyy} al " +
+					  $"{periodo.FechaFin:dd/MM/yyyy}.";
+
+			var detalle = new PlanillaDetalleFinancieroAD
             {
                 IdPlanillaPeriodo = vm.IdPlanillaPeriodo,
                 IdEmpleado = vm.IdEmpleado,
@@ -90,8 +118,11 @@ namespace PROmaderas.LogicaDeNegocio.Planilla
                 DeduccionRenta = renta,
                 DeduccionesInternas = totalInternas,
                 TotalDeducciones = totalDed,
-                SalarioNeto = bruto - totalDed
-            };
+                SalarioNeto = bruto - totalDed,
+				TienePolizaINSVigente = tieneCoberturaVigente,
+				AdvertenciaPolizaINS = advertenciaPoliza
+
+			};
 
             await _repo.AgregarDetalle(detalle);
         }
@@ -116,7 +147,30 @@ namespace PROmaderas.LogicaDeNegocio.Planilla
             var totalInternas = CalcularDeduccionesInternas(internas, bruto);
             totalDed += totalInternas;
 
-            detalle.SalarioBase = salarioBase;
+			// PLA-HU-018: volver a evaluar la cobertura
+			// cuando el detalle de planilla se recalcula.
+			bool coberturaAlInicio =
+				await _polizaINSLogica.TieneCoberturaVigente(
+					detalle.IdEmpleado,
+					periodo.FechaInicio);
+
+			bool coberturaAlFinal =
+				await _polizaINSLogica.TieneCoberturaVigente(
+					detalle.IdEmpleado,
+					periodo.FechaFin);
+
+			bool tieneCoberturaVigente =
+				coberturaAlInicio && coberturaAlFinal;
+
+			string? advertenciaPoliza =
+				tieneCoberturaVigente
+					? null
+					: $"El empleado no cuenta con una póliza del INS vigente " +
+					  $"para todo el período del " +
+					  $"{periodo.FechaInicio:dd/MM/yyyy} al " +
+					  $"{periodo.FechaFin:dd/MM/yyyy}.";
+
+			detalle.SalarioBase = salarioBase;
             detalle.HorasOrdinarias = horasOrdinarias;
             detalle.HorasExtra = horasExtra;
             detalle.MontoHorasExtra = montoExtra;
@@ -127,7 +181,13 @@ namespace PROmaderas.LogicaDeNegocio.Planilla
             detalle.TotalDeducciones = totalDed;
             detalle.SalarioNeto = bruto - totalDed;
 
-            await _repo.ActualizarDetalle(detalle);
+			detalle.TienePolizaINSVigente =
+	tieneCoberturaVigente;
+
+			detalle.AdvertenciaPolizaINS =
+				advertenciaPoliza;
+
+			await _repo.ActualizarDetalle(detalle);
         }
 
         public async Task EliminarDetalle(int idDetalle)

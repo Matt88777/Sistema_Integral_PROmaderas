@@ -132,6 +132,48 @@
         </div>
     }
 
+
+    @{
+        var empleadosSinCobertura =
+            Model.Detalles?
+                .Where(d => !d.TienePolizaINSVigente)
+                .ToList()
+            ?? new List<PlanillaDetalleFinancieroAD>();
+    }
+
+    @if (empleadosSinCobertura.Any())
+    {
+        <div class="alert alert-danger mb-4">
+            <div class="d-flex align-items-center mb-2">
+                <i class="bi bi-shield-exclamation me-2"></i>
+
+                <strong>
+                    Empleados sin cobertura vigente del INS
+                </strong>
+            </div>
+
+            <p class="mb-2">
+                Se encontraron empleados que no tienen una póliza
+                vigente durante todo el periodo:
+            </p>
+
+            <ul class="mb-0">
+                @foreach (var detalle in empleadosSinCobertura)
+                {
+                    string empleado = detalle.Empleado != null
+                        ? $"{detalle.Empleado.Nombre} {detalle.Empleado.PrimerApellido}"
+                        : $"Empleado #{detalle.IdEmpleado}";
+
+                    <li>
+                        <strong>@empleado:</strong>
+                        @(detalle.AdvertenciaPolizaINS
+                            ?? "No cuenta con cobertura vigente.")
+                    </li>
+                }
+            </ul>
+        </div>
+    }
+
     <div class="table-responsive">
         <table class="table table-striped table-hover align-middle">
             <thead class="table-dark">
@@ -152,6 +194,7 @@
                     <th>Ded. internas</th>
                     <th>Total ded.</th>
                     <th>Salario neto</th>
+                    <th class="text-center">Póliza INS</th>
                     <th class="text-center">Acciones</th>
                 </tr>
             </thead>
@@ -172,6 +215,24 @@
                             <td class="text-danger">@d.DeduccionesInternas.ToString("C2")</td>
                             <td class="text-danger fw-semibold">@d.TotalDeducciones.ToString("C2")</td>
                             <td class="fw-bold" style="color:#c9a03c">@d.SalarioNeto.ToString("C2")</td>
+                            <td class="text-center">
+                                @if (d.TienePolizaINSVigente)
+                                {
+                                    <span class="badge bg-success"
+                                          title="El empleado cuenta con cobertura durante el período.">
+                                        <i class="bi bi-shield-check me-1"></i>
+                                        Vigente
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger"
+                                          title="@d.AdvertenciaPolizaINS">
+                                        <i class="bi bi-shield-exclamation me-1"></i>
+                                        Sin cobertura
+                                    </span>
+                                }
+                            </td>
                             <td class="text-center">
                                 @if (Model.Estado == "Borrador")
                                 {
@@ -244,7 +305,7 @@
                 @if (Model.Detalles == null || !Model.Detalles.Any())
                 {
                     <tr>
-                        <td colspan="12" class="text-center text-muted py-4">
+                        <td colspan="13" class="text-center text-muted py-4">
                             <i class="bi bi-inbox me-1"></i>Aún no hay horas registradas en este período.
                         </td>
                     </tr>

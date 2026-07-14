@@ -41,6 +41,8 @@ using PROmaderas.AccesoADatos.Vacaciones;
 using PROmaderas.LogicaDeNegocio.Vacaciones;
 using PROmaderas.AccesoADatos.Liquidaciones;
 using PROmaderas.LogicaDeNegocio.Liquidaciones;
+using PROmaderas.AccesoADatos.PolizasINS;
+using PROmaderas.LogicaDeNegocio.PolizasINS;
 
 
 
@@ -135,6 +137,10 @@ builder.Services.AddScoped<ILicenciaLogica, LicenciaLogica>();
 // PLA-HU-012: vacaciones.
 builder.Services.AddScoped<IVacacionRepositorio, VacacionRepositorio>();
 builder.Services.AddScoped<IVacacionLogica, VacacionLogica>();
+
+// PLA-HU-018: pólizas del INS.
+builder.Services.AddScoped<IPolizaINSRepositorio, PolizaINSRepositorio>();
+builder.Services.AddScoped<IPolizaINSLogica, PolizaINSLogica>();
 
 // PLA-HU-017: liquidacion.
 builder.Services.AddScoped<ILiquidacionRepositorio, LiquidacionRepositorio>();

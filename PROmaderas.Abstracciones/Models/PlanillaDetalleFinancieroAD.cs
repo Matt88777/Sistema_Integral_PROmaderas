@@ -15,7 +15,16 @@ namespace PROmaderas.Abstracciones.Models
         [Column(TypeName = "decimal(18,2)")]
         public decimal SalarioBase { get; set; }
 
-        [Column(TypeName = "decimal(18,2)")]
+		// PLA-HU-018: resultado de la validación de cobertura
+		// realizada al calcular la planilla.
+		[Display(Name = "Póliza INS vigente")]
+		public bool TienePolizaINSVigente { get; set; }
+
+		[StringLength(300)]
+		[Display(Name = "Advertencia de póliza INS")]
+		public string? AdvertenciaPolizaINS { get; set; }
+
+		[Column(TypeName = "decimal(18,2)")]
         public decimal HorasOrdinarias { get; set; }
 
         [Column(TypeName = "decimal(18,2)")]

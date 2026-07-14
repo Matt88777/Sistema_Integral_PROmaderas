@@ -117,6 +117,15 @@
                                                 @* PLA-HU-017: la HU dice "Como Contador", así que acá SÍ entra
                                                    (el bloque ya está limitado a Administrador o Contador). *@
                                                 <a class="dropdown-item" asp-controller="Liquidaciones" asp-action="Index"><i class="bi bi-file-earmark-text me-2"></i>Liquidaciones</a>
+
+                                                @* PLA-HU-018: control de pólizas laborales del INS. *@
+                                                <a class="dropdown-item"
+                                                   asp-controller="PolizasINS"
+                                                   asp-action="Index">
+                                                    <i class="bi bi-shield-check me-2"></i>
+                                                    Pólizas INS
+                                                </a>
+
                                             </li>
                                         }
 
