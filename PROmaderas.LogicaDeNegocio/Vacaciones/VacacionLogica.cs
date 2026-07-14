@@ -60,9 +60,98 @@ namespace PROmaderas.LogicaDeNegocio.Vacaciones
         public async Task<List<VacacionAD>> ObtenerHistorial(int idEmpleado)
             => await _repositorio.ObtenerPorEmpleado(idEmpleado);
 
-        // ── Escrituras ────────────────────────────────────────────────────────
+		// PLA-HU-013: vacaciones disfrutadas dentro
+		// de un periodo de planilla.
+		public async Task<List<VacacionAD>> ObtenerPorPeriodo(
+			int idEmpleado,
+			DateTime fechaInicio,
+			DateTime fechaFin)
+		{
+			if (idEmpleado <= 0)
+			{
+				throw new ArgumentException(
+					"El empleado seleccionado no es válido.");
+			}
 
-        public async Task Registrar(int idEmpleado, DateTime inicio, DateTime fin, decimal dias,
+			if (fechaInicio == default ||
+				fechaFin == default)
+			{
+				throw new ArgumentException(
+					"Las fechas del periodo son obligatorias.");
+			}
+
+			if (fechaFin.Date < fechaInicio.Date)
+			{
+				throw new ArgumentException(
+					"La fecha final del periodo no puede ser anterior a la fecha inicial.");
+			}
+
+			return await _repositorio.ObtenerPorPeriodo(
+				idEmpleado,
+				fechaInicio.Date,
+				fechaFin.Date);
+		}
+
+		public decimal CalcularDiasDentroPeriodo(
+			VacacionAD vacacion,
+			DateTime fechaInicio,
+			DateTime fechaFin)
+		{
+			if (vacacion == null)
+				throw new ArgumentNullException(
+					nameof(vacacion));
+
+			if (fechaFin.Date < fechaInicio.Date)
+			{
+				throw new ArgumentException(
+					"La fecha final del periodo no puede ser anterior a la fecha inicial.");
+			}
+
+			DateTime inicioReal =
+				vacacion.FechaInicio.Date >
+				fechaInicio.Date
+					? vacacion.FechaInicio.Date
+					: fechaInicio.Date;
+
+			DateTime finReal =
+				vacacion.FechaFin.Date <
+				fechaFin.Date
+					? vacacion.FechaFin.Date
+					: fechaFin.Date;
+
+			if (finReal < inicioReal)
+				return 0m;
+
+			int diasNaturalesTotales =
+				(vacacion.FechaFin.Date -
+				 vacacion.FechaInicio.Date).Days + 1;
+
+			int diasNaturalesCoincidentes =
+				(finReal - inicioReal).Days + 1;
+
+			if (diasNaturalesTotales <= 0)
+				return 0m;
+
+			// Si todo el registro está dentro del periodo,
+			// se conserva exactamente el valor digitado.
+			if (diasNaturalesCoincidentes ==
+				diasNaturalesTotales)
+			{
+				return vacacion.Dias;
+			}
+
+			decimal proporcion =
+				diasNaturalesCoincidentes /
+				(decimal)diasNaturalesTotales;
+
+			return Math.Round(
+				vacacion.Dias * proporcion,
+				2);
+		}
+
+		// ── Escrituras ────────────────────────────────────────────────────────
+
+		public async Task Registrar(int idEmpleado, DateTime inicio, DateTime fin, decimal dias,
                                     string observacion, ContextoAuditoria auditoria)
         {
             if (fin.Date < inicio.Date)

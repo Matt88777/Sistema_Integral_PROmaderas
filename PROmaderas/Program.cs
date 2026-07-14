@@ -41,8 +41,10 @@ using PROmaderas.AccesoADatos.Vacaciones;
 using PROmaderas.LogicaDeNegocio.Vacaciones;
 using PROmaderas.AccesoADatos.Liquidaciones;
 using PROmaderas.LogicaDeNegocio.Liquidaciones;
-using PROmaderas.AccesoADatos.PolizasINS;
-using PROmaderas.LogicaDeNegocio.PolizasINS;
+using PROmaderas.AccesoADatos.PolizaINS;
+using PROmaderas.LogicaDeNegocio.PolizaINS;
+using PROmaderas.AccesoADatos.Incapacidad;
+using PROmaderas.LogicaDeNegocio.Incapacidad;
 
 
 
@@ -141,6 +143,10 @@ builder.Services.AddScoped<IVacacionLogica, VacacionLogica>();
 // PLA-HU-018: pólizas del INS.
 builder.Services.AddScoped<IPolizaINSRepositorio, PolizaINSRepositorio>();
 builder.Services.AddScoped<IPolizaINSLogica, PolizaINSLogica>();
+
+// PLA-HU-014: registro y cálculo de incapacidades.
+builder.Services.AddScoped<IIncapacidadRepositorio, IncapacidadRepositorio>();
+builder.Services.AddScoped<IIncapacidadLogica, IncapacidadLogica>();
 
 // PLA-HU-017: liquidacion.
 builder.Services.AddScoped<ILiquidacionRepositorio, LiquidacionRepositorio>();

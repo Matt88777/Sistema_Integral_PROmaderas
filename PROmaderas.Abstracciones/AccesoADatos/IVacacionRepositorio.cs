@@ -13,8 +13,15 @@ namespace PROmaderas.Abstracciones.AccesoADatos
 
         Task<VacacionAD?> ObtenerPorId(int idVacacion);
 
-        // SUM(Dias) de un solo empleado, contando solo las 'Disfrutada'.
-        Task<decimal> ObtenerDiasDisfrutados(int idEmpleado);
+		// PLA-HU-013: vacaciones disfrutadas que coinciden
+		// total o parcialmente con un periodo de planilla.
+		Task<List<VacacionAD>> ObtenerPorPeriodo(
+			int idEmpleado,
+			DateTime fechaInicio,
+			DateTime fechaFin);
+
+		// SUM(Dias) de un solo empleado, contando solo las 'Disfrutada'.
+		Task<decimal> ObtenerDiasDisfrutados(int idEmpleado);
 
         Task<EmpleadoAD?> ObtenerEmpleadoPorId(int idEmpleado);
 

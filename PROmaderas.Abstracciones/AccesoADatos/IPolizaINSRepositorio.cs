@@ -6,9 +6,11 @@ namespace PROmaderas.Abstracciones.AccesoADatos
 	{
 		Task<List<PolizaINSAD>> ObtenerTodas();
 
-		Task<PolizaINSAD?> ObtenerPorId(int idPolizaINS);
+		Task<PolizaINSAD?> ObtenerPorId(
+			int idPoliza);
 
-		Task<List<PolizaINSAD>> ObtenerPorEmpleado(int idEmpleado);
+		Task<List<PolizaINSAD>> ObtenerPorEmpleado(
+			int idEmpleado);
 
 		Task<PolizaINSAD?> ObtenerPolizaVigente(
 			int idEmpleado,
@@ -22,12 +24,24 @@ namespace PROmaderas.Abstracciones.AccesoADatos
 			string numeroPoliza,
 			int? idPolizaExcluir = null);
 
-		Task Crear(PolizaINSAD poliza);
+		Task Crear(
+			PolizaINSAD poliza,
+			List<int> idsEmpleados);
 
-		Task Actualizar(PolizaINSAD poliza);
+		Task Actualizar(
+			PolizaINSAD poliza);
 
-		Task DesactivarPolizasDelEmpleado(
+		Task Desactivar(
+			int idPoliza);
+
+		Task AsignarEmpleado(
+			int idPoliza,
 			int idEmpleado,
-			int? idPolizaExcluir = null);
+			DateTime fechaAsignacion);
+
+		Task ExcluirEmpleado(
+			int idPoliza,
+			int idEmpleado,
+			DateTime fechaExclusion);
 	}
 }

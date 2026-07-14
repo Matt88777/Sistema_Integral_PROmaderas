@@ -51,5 +51,31 @@ namespace PROmaderas.Abstracciones.Catalogos
         public const string RentaTramo2Porc = "RentaTramo2Porc";
         public const string RentaTramo3Porc = "RentaTramo3Porc";
         public const string RentaTramo4Porc = "RentaTramo4Porc";
-    }
+
+		// PLA-HU-014: parámetros para calcular el pago patronal
+		// durante una incapacidad.
+		//
+		// *DiasPatrono*: cantidad máxima de días cubiertos
+		// directamente por la empresa.
+		//
+		// *PorcPatrono*: porcentaje del salario diario que paga
+		// la empresa. Se almacena de 0 a 100 y debe dividirse entre 100.
+		public const string IncapacidadCCSSDiasPatrono =
+			"IncapacidadCCSSDiasPatrono";
+
+		public const string IncapacidadCCSSPorcPatrono =
+			"IncapacidadCCSSPorcPatrono";
+
+		public const string IncapacidadINSDiasPatrono =
+			"IncapacidadINSDiasPatrono";
+
+		public const string IncapacidadINSPorcPatrono =
+			"IncapacidadINSPorcPatrono";
+
+		public const string IncapacidadMaternidadDiasPatrono =
+			"IncapacidadMaternidadDiasPatrono";
+
+		public const string IncapacidadMaternidadPorcPatrono =
+			"IncapacidadMaternidadPorcPatrono";
+	}
 }

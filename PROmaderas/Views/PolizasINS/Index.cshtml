@@ -4,26 +4,24 @@
 @{
     ViewData["Title"] = "Pólizas del INS";
 
-    List<PolizaINSAD> proximasAVencer =
-        ViewBag.PolizasProximasAVencer as List<PolizaINSAD>
+    var proximas =
+        ViewBag.PolizasProximasAVencer
+        as List<PolizaINSAD>
         ?? new List<PolizaINSAD>();
 }
 
 <div class="container py-4">
     <div class="d-flex flex-column flex-md-row
-        justify-content-between align-items-md-center
-        gap-3 mb-4">
-
+        justify-content-between
+        align-items-md-center gap-3 mb-4">
         <div>
             <h1 class="h3 mb-1">Pólizas del INS</h1>
-
             <p class="text-muted mb-0">
-                Registro y control de las pólizas asociadas a los empleados.
+                Control de pólizas y empleados cubiertos.
             </p>
         </div>
 
-        <a asp-controller="PolizasINS"
-           asp-action="Create"
+        <a asp-action="Create"
            class="btn btn-primary">
             <i class="bi bi-plus-circle me-1"></i>
             Registrar póliza
@@ -32,66 +30,41 @@
 
     @if (TempData["SuccessMessage"] != null)
     {
-        <div class="alert alert-success alert-dismissible fade show"
-             role="alert">
+        <div class="alert alert-success
+            alert-dismissible fade show">
             @TempData["SuccessMessage"]
-
             <button type="button"
                     class="btn-close"
-                    data-bs-dismiss="alert"
-                    aria-label="Cerrar">
+                    data-bs-dismiss="alert">
             </button>
         </div>
     }
 
     @if (TempData["ErrorMessage"] != null)
     {
-        <div class="alert alert-danger alert-dismissible fade show"
-             role="alert">
+        <div class="alert alert-danger
+            alert-dismissible fade show">
             @TempData["ErrorMessage"]
-
             <button type="button"
                     class="btn-close"
-                    data-bs-dismiss="alert"
-                    aria-label="Cerrar">
+                    data-bs-dismiss="alert">
             </button>
         </div>
     }
 
-    @if (proximasAVencer.Any())
+    @if (proximas.Any())
     {
-        <div class="alert alert-warning mb-4">
-            <div class="d-flex align-items-center mb-2">
-                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+        <div class="alert alert-warning">
+            <strong>
+                <i class="bi bi-exclamation-triangle me-1"></i>
+                Pólizas próximas a vencer
+            </strong>
 
-                <strong>
-                    Pólizas próximas a vencer
-                </strong>
-            </div>
-
-            <p class="mb-2">
-                Las siguientes pólizas vencen dentro de los próximos
-                30 días:
-            </p>
-
-            <ul class="mb-0">
-                @foreach (PolizaINSAD poliza in proximasAVencer)
+            <ul class="mb-0 mt-2">
+                @foreach (var poliza in proximas)
                 {
-                    string nombreEmpleado = string.Join(
-                        " ",
-                        new[]
-                        {
-                            poliza.Empleado?.Nombre,
-                            poliza.Empleado?.PrimerApellido,
-                            poliza.Empleado?.SegundoApellido
-                        }
-                        .Where(valor =>
-                            !string.IsNullOrWhiteSpace(valor)));
-
                     <li>
-                        <strong>@nombreEmpleado</strong>:
-                        póliza @poliza.NumeroPoliza,
-                        vence el
+                        @poliza.NumeroPoliza vence el
                         @poliza.FechaVencimiento.ToString("dd/MM/yyyy")
                         (@poliza.DiasParaVencer día(s)).
                     </li>
@@ -109,10 +82,8 @@
             @if (!Model.Any())
             {
                 <div class="text-center p-5">
-                    <i class="bi bi-shield-check fs-1 text-muted"></i>
-
-                    <p class="text-muted mt-3 mb-0">
-                        No existen pólizas del INS registradas.
+                    <p class="text-muted mb-0">
+                        No existen pólizas registradas.
                     </p>
                 </div>
             }
@@ -123,80 +94,100 @@
                         align-middle mb-0">
                         <thead class="table-light">
                             <tr>
-                                <th>Empleado</th>
                                 <th>Número</th>
-                                <th>Inicio</th>
-                                <th>Vencimiento</th>
-                                <th>Cobertura</th>
+                                <th>Tipo</th>
+                                <th>Aseguradora</th>
+                                <th>Vigencia</th>
+                                <th>Empleados cubiertos</th>
+                                <th>Monto asegurado</th>
                                 <th>Estado</th>
-                                <th class="text-end">Acciones</th>
+                                <th class="text-end">
+                                    Acciones
+                                </th>
                             </tr>
                         </thead>
 
                         <tbody>
-                            @foreach (PolizaINSAD poliza in Model)
+                            @foreach (var poliza in Model)
                             {
-                                string nombreEmpleado = string.Join(
-                                    " ",
-                                    new[]
-                                    {
-                                        poliza.Empleado?.Nombre,
-                                        poliza.Empleado?.PrimerApellido,
-                                        poliza.Empleado?.SegundoApellido
-                                    }
-                                    .Where(valor =>
-                                        !string.IsNullOrWhiteSpace(valor)));
-
-                                bool vencida =
-                                    poliza.Activa &&
-                                    poliza.FechaVencimiento.Date <
-                                    DateTime.Today;
-
-                                bool proxima =
-                                    poliza.Activa &&
-                                    !vencida &&
-                                    poliza.FechaVencimiento.Date <=
-                                    DateTime.Today.AddDays(30);
+                                var asignacionesActivas =
+                                    poliza.EmpleadosAsignados
+                                        .Where(ep => ep.Activa)
+                                        .ToList();
 
                                 <tr>
-                                    <td>
-                                        <div class="fw-semibold">
-                                            @nombreEmpleado
-                                        </div>
+                                    <td class="fw-semibold">
+                                        @poliza.NumeroPoliza
+                                    </td>
 
-                                        <small class="text-muted">
-                                            @poliza.Empleado?.Cedula
+                                    <td>@poliza.TipoPoliza</td>
+
+                                    <td>@poliza.Aseguradora</td>
+
+                                    <td>
+                                        <small class="d-block">
+                                            @poliza.FechaInicio
+                                            .ToString("dd/MM/yyyy")
+                                        </small>
+                                        <small class="d-block text-muted">
+                                            hasta
+                                            @poliza.FechaVencimiento
+                                            .ToString("dd/MM/yyyy")
                                         </small>
                                     </td>
 
-                                    <td>@poliza.NumeroPoliza</td>
-
                                     <td>
-                                        @poliza.FechaInicio.ToString("dd/MM/yyyy")
+                                        @if (!asignacionesActivas.Any())
+                                        {
+                                            <span class="text-muted">
+                                                Sin empleados
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            @foreach (var asignacion
+                                                      in asignacionesActivas)
+                                            {
+                                                string nombre =
+                                                    asignacion.Empleado == null
+                                                        ? $"Empleado #{asignacion.IdEmpleado}"
+                                                        : $"{asignacion.Empleado.Nombre} " +
+                                                          $"{asignacion.Empleado.PrimerApellido}";
+
+                                                <div>
+                                                    <a asp-action="Historial"
+                                                       asp-route-idEmpleado="@asignacion.IdEmpleado">
+                                                        @nombre
+                                                    </a>
+                                                </div>
+                                            }
+                                        }
                                     </td>
 
                                     <td>
-                                        @poliza.FechaVencimiento.ToString("dd/MM/yyyy")
+                                        @(poliza.MontoAsegurado.HasValue
+                                            ? poliza.MontoAsegurado.Value
+                                                .ToString("C2")
+                                            : "No indicado")
                                     </td>
 
-                                    <td>@poliza.Cobertura</td>
-
                                     <td>
-                                        @if (!poliza.Activa)
+                                        @if (!poliza.Estado)
                                         {
                                             <span class="badge bg-secondary">
                                                 Inactiva
                                             </span>
                                         }
-                                        else if (vencida)
+                                        else if (poliza.EstaVencida)
                                         {
                                             <span class="badge bg-danger">
                                                 Vencida
                                             </span>
                                         }
-                                        else if (proxima)
+                                        else if (poliza.ProximaAVencer)
                                         {
-                                            <span class="badge bg-warning text-dark">
+                                            <span class="badge
+                                                bg-warning text-dark">
                                                 Próxima a vencer
                                             </span>
                                         }
@@ -209,28 +200,20 @@
                                     </td>
 
                                     <td class="text-end">
-                                        <a asp-controller="PolizasINS"
-                                           asp-action="Historial"
-                                           asp-route-idEmpleado="@poliza.IdEmpleado"
-                                           class="btn btn-sm btn-outline-info">
-                                            Historial
-                                        </a>
-
-                                        @if (poliza.Activa)
+                                        @if (poliza.Estado)
                                         {
-                                            <form asp-controller="PolizasINS"
-                                                  asp-action="Desactivar"
+                                            <form asp-action="Desactivar"
                                                   method="post"
                                                   class="d-inline">
-
                                                 @Html.AntiForgeryToken()
 
                                                 <input type="hidden"
-                                                       name="idPolizaINS"
-                                                       value="@poliza.IdPolizaINS" />
+                                                       name="idPoliza"
+                                                       value="@poliza.IdPoliza" />
 
                                                 <button type="submit"
-                                                        class="btn btn-sm btn-outline-danger"
+                                                        class="btn btn-sm
+                                                    btn-outline-danger"
                                                         onclick="return confirm('¿Desea desactivar esta póliza?');">
                                                     Desactivar
                                                 </button>

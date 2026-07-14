@@ -184,6 +184,8 @@
                     <th>Salario base</th>
                     <th>Monto horas extra</th>
                     <th>Salario bruto</th>
+                    <th>Incapacidad</th>
+                    <th>Vacaciones</th>
                     @* PLA-HU-019: el % sale del parámetro vigente para este período. Antes estaba
                        hardcodeado en 9.17% y desde que el cálculo lee de ParametroPlanilla, mentía. *@
                     @{
@@ -210,6 +212,75 @@
                             <td>@d.SalarioBase.ToString("C2")</td>
                             <td>@d.MontoHorasExtra.ToString("C2")</td>
                             <td class="fw-bold">@d.SalarioBruto.ToString("C2")</td>
+                            <td>
+                                @if (d.DiasIncapacidad > 0)
+                                {
+                                    <div>
+                                        <span class="badge bg-warning text-dark">
+                                            @d.DiasIncapacidad día(s)
+                                        </span>
+                                    </div>
+
+                                    <small class="d-block text-muted mt-1">
+                                        Valor de días:
+                                        @d.MontoDiasIncapacidad.ToString("C2")
+                                    </small>
+
+                                    <small class="d-block text-success">
+                                        Pago patronal:
+                                        @d.MontoPagoPatronalIncapacidad.ToString("C2")
+                                    </small>
+
+                                    <small class="d-block text-danger">
+                                        Rebajo:
+                                        @d.RebajoIncapacidad.ToString("C2")
+                                    </small>
+
+                                    @if (!string.IsNullOrWhiteSpace(
+                                        d.DetalleIncapacidad))
+                                    {
+                                        <small class="d-block text-muted mt-1">
+                                            @d.DetalleIncapacidad
+                                        </small>
+                                    }
+                                }
+                                else
+                                {
+                                    <span class="text-muted">
+                                        Sin incapacidad
+                                    </span>
+                                }
+                            </td>
+
+                            <td>
+                                @if (d.DiasVacaciones > 0)
+                                {
+                                    <div>
+                                        <span class="badge bg-info text-dark">
+                                            @d.DiasVacaciones.ToString("N2") día(s)
+                                        </span>
+                                    </div>
+
+                                    <small class="d-block text-success mt-1">
+                                        Incluido en salario:
+                                        @d.MontoVacaciones.ToString("C2")
+                                    </small>
+
+                                    @if (!string.IsNullOrWhiteSpace(
+                                        d.DetalleVacaciones))
+                                    {
+                                        <small class="d-block text-muted mt-1">
+                                            @d.DetalleVacaciones
+                                        </small>
+                                    }
+                                }
+                                else
+                                {
+                                    <span class="text-muted">
+                                        Sin vacaciones
+                                    </span>
+                                }
+                            </td>
                             <td class="text-danger">@d.DeduccionCCSS.ToString("C2")</td>
                             <td class="text-danger">@d.DeduccionRenta.ToString("C2")</td>
                             <td class="text-danger">@d.DeduccionesInternas.ToString("C2")</td>
@@ -305,7 +376,7 @@
                 @if (Model.Detalles == null || !Model.Detalles.Any())
                 {
                     <tr>
-                        <td colspan="13" class="text-center text-muted py-4">
+                        <td colspan="15" class="text-center text-muted py-4">
                             <i class="bi bi-inbox me-1"></i>Aún no hay horas registradas en este período.
                         </td>
                     </tr>

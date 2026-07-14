@@ -8,7 +8,9 @@ using PROmaderas.UI.Seguridad;
 
 namespace PROmaderas.UI.Controllers
 {
-	[Authorize(Roles = Roles.Administrador + "," + Roles.Contador)]
+	[Authorize(
+		Roles = Roles.Administrador + "," +
+				Roles.Contador)]
 	public class PolizasINSController : Controller
 	{
 		private readonly IPolizaINSLogica _polizaLogica;
@@ -24,25 +26,18 @@ namespace PROmaderas.UI.Controllers
 
 		public async Task<IActionResult> Index()
 		{
-			List<PolizaINSAD> polizas =
-				await _polizaLogica.ObtenerTodas();
-
 			ViewBag.PolizasProximasAVencer =
-				await _polizaLogica.ObtenerProximasAVencer(30);
+				await _polizaLogica
+					.ObtenerProximasAVencer(30);
 
-			return View(polizas);
+			return View(
+				await _polizaLogica.ObtenerTodas());
 		}
 
 		public async Task<IActionResult> Create()
 		{
-			RegistrarPolizaINSViewModel vm = new()
-			{
-				FechaInicio = DateTime.Today,
-				FechaVencimiento = DateTime.Today.AddYears(1)
-			};
-
+			RegistrarPolizaINSViewModel vm = new();
 			await CargarEmpleados(vm);
-
 			return View(vm);
 		}
 
@@ -51,11 +46,20 @@ namespace PROmaderas.UI.Controllers
 		public async Task<IActionResult> Create(
 			RegistrarPolizaINSViewModel vm)
 		{
-			if (vm.FechaVencimiento < vm.FechaInicio)
+			if (vm.FechaVencimiento <
+				vm.FechaInicio)
 			{
 				ModelState.AddModelError(
 					nameof(vm.FechaVencimiento),
-					"La fecha de vencimiento no puede ser anterior a la fecha de inicio.");
+					"La fecha de vencimiento no puede ser anterior al inicio.");
+			}
+
+			if (vm.IdsEmpleados == null ||
+				vm.IdsEmpleados.Count == 0)
+			{
+				ModelState.AddModelError(
+					nameof(vm.IdsEmpleados),
+					"Debe seleccionar al menos un empleado.");
 			}
 
 			if (!ModelState.IsValid)
@@ -68,49 +72,63 @@ namespace PROmaderas.UI.Controllers
 			{
 				PolizaINSAD poliza = new()
 				{
-					IdEmpleado = vm.IdEmpleado,
 					NumeroPoliza = vm.NumeroPoliza,
+					TipoPoliza = vm.TipoPoliza,
+					Aseguradora = vm.Aseguradora,
 					FechaInicio = vm.FechaInicio,
-					FechaVencimiento = vm.FechaVencimiento,
-					Cobertura = vm.Cobertura,
+					FechaVencimiento =
+						vm.FechaVencimiento,
+					MontoAsegurado =
+						vm.MontoAsegurado,
+					Prima = vm.Prima,
 					Observacion = vm.Observacion
 				};
 
-				await _polizaLogica.Registrar(poliza);
+				await _polizaLogica.Registrar(
+	poliza,
+	vm.IdsEmpleados ?? new List<int>());
 
 				TempData["SuccessMessage"] =
-					"La póliza del INS fue registrada correctamente y quedó activa.";
+					"La póliza se registró y se asignó a los empleados seleccionados.";
 
-				return RedirectToAction(nameof(Index));
+				return RedirectToAction(
+					nameof(Index));
 			}
 			catch (ArgumentException ex)
 			{
-				ModelState.AddModelError(string.Empty, ex.Message);
+				ModelState.AddModelError(
+					string.Empty,
+					ex.Message);
 			}
 			catch (InvalidOperationException ex)
 			{
-				ModelState.AddModelError(string.Empty, ex.Message);
+				ModelState.AddModelError(
+					string.Empty,
+					ex.Message);
 			}
 
 			await CargarEmpleados(vm);
 			return View(vm);
 		}
 
-		public async Task<IActionResult> Historial(int idEmpleado)
+		public async Task<IActionResult> Historial(
+			int idEmpleado)
 		{
 			if (idEmpleado <= 0)
 				return BadRequest();
 
 			List<PolizaINSAD> polizas =
-				await _polizaLogica.ObtenerHistorialEmpleado(
-					idEmpleado);
+				await _polizaLogica
+					.ObtenerHistorialEmpleado(
+						idEmpleado);
 
 			if (polizas.Count == 0)
 			{
 				TempData["ErrorMessage"] =
-					"El empleado no tiene pólizas registradas.";
+					"El empleado no tiene pólizas asignadas.";
 
-				return RedirectToAction(nameof(Index));
+				return RedirectToAction(
+					nameof(Index));
 			}
 
 			ViewBag.IdEmpleado = idEmpleado;
@@ -121,22 +139,25 @@ namespace PROmaderas.UI.Controllers
 		[HttpPost]
 		[ValidateAntiForgeryToken]
 		public async Task<IActionResult> Desactivar(
-			int idPolizaINS)
+			int idPoliza)
 		{
 			try
 			{
-				await _polizaLogica.Desactivar(idPolizaINS);
+				await _polizaLogica.Desactivar(
+					idPoliza);
 
 				TempData["SuccessMessage"] =
 					"La póliza fue desactivada correctamente.";
 			}
 			catch (ArgumentException ex)
 			{
-				TempData["ErrorMessage"] = ex.Message;
+				TempData["ErrorMessage"] =
+					ex.Message;
 			}
 			catch (InvalidOperationException ex)
 			{
-				TempData["ErrorMessage"] = ex.Message;
+				TempData["ErrorMessage"] =
+					ex.Message;
 			}
 
 			return RedirectToAction(nameof(Index));
@@ -148,6 +169,8 @@ namespace PROmaderas.UI.Controllers
 			List<EmpleadoAD> empleados =
 				await _empleadoLogica.ObtenerTodos();
 
+			vm.IdsEmpleados ??= new List<int>();
+
 			vm.Empleados = empleados
 				.Where(e =>
 					e.IdEmpleado.HasValue &&
@@ -156,10 +179,15 @@ namespace PROmaderas.UI.Controllers
 				.ThenBy(e => e.PrimerApellido)
 				.Select(e => new SelectListItem
 				{
-					Value = e.IdEmpleado!.Value.ToString(),
-					Text = ConstruirNombreEmpleado(e),
+					Value =
+						e.IdEmpleado!.Value.ToString(),
+
+					Text =
+						ConstruirNombreEmpleado(e),
+
 					Selected =
-						e.IdEmpleado.Value == vm.IdEmpleado
+						vm.IdsEmpleados.Contains(
+							e.IdEmpleado.Value)
 				})
 				.ToList();
 		}
@@ -167,7 +195,7 @@ namespace PROmaderas.UI.Controllers
 		private static string ConstruirNombreEmpleado(
 			EmpleadoAD empleado)
 		{
-			string nombreCompleto = string.Join(
+			string nombre = string.Join(
 				" ",
 				new[]
 				{
@@ -176,15 +204,16 @@ namespace PROmaderas.UI.Controllers
 					empleado.SegundoApellido
 				}
 				.Where(valor =>
-					!string.IsNullOrWhiteSpace(valor)));
+					!string.IsNullOrWhiteSpace(
+						valor)));
 
-			if (!string.IsNullOrWhiteSpace(empleado.Cedula))
+			if (!string.IsNullOrWhiteSpace(
+				empleado.Cedula))
 			{
-				nombreCompleto +=
-					$" - {empleado.Cedula}";
+				nombre += $" - {empleado.Cedula}";
 			}
 
-			return nombreCompleto;
+			return nombre;
 		}
 	}
 }

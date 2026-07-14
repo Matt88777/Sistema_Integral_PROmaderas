@@ -31,8 +31,29 @@ namespace PROmaderas.AccesoADatos.Vacaciones
             => await _contexto.Vacaciones
                 .FirstOrDefaultAsync(v => v.IdVacacion == idVacacion);
 
-        // Solo las 'Disfrutada': una anulada no consumió saldo.
-        public async Task<decimal> ObtenerDiasDisfrutados(int idEmpleado)
+		// PLA-HU-013: vacaciones disfrutadas que coinciden
+		// con el periodo de planilla.
+		public async Task<List<VacacionAD>> ObtenerPorPeriodo(
+			int idEmpleado,
+			DateTime fechaInicio,
+			DateTime fechaFin)
+		{
+			DateTime inicio = fechaInicio.Date;
+			DateTime fin = fechaFin.Date;
+
+			return await _contexto.Vacaciones
+				.AsNoTracking()
+				.Where(v =>
+					v.IdEmpleado == idEmpleado &&
+					v.Estado == EstadosVacacion.Disfrutada &&
+					v.FechaInicio <= fin &&
+					v.FechaFin >= inicio)
+				.OrderBy(v => v.FechaInicio)
+				.ToListAsync();
+		}
+
+		// Solo las 'Disfrutada': una anulada no consumió saldo.
+		public async Task<decimal> ObtenerDiasDisfrutados(int idEmpleado)
             => await _contexto.Vacaciones
                 .Where(v => v.IdEmpleado == idEmpleado && v.Estado == EstadosVacacion.Disfrutada)
                 .SumAsync(v => (decimal?)v.Dias) ?? 0m;

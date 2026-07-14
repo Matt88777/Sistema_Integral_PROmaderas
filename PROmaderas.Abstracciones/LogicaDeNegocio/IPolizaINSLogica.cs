@@ -6,14 +6,29 @@ namespace PROmaderas.Abstracciones.LogicaDeNegocio
 	{
 		Task<List<PolizaINSAD>> ObtenerTodas();
 
-		Task<PolizaINSAD?> ObtenerPorId(int idPolizaINS);
+		Task<PolizaINSAD?> ObtenerPorId(
+			int idPoliza);
 
-		Task<List<PolizaINSAD>> ObtenerHistorialEmpleado(
-			int idEmpleado);
+		Task<List<PolizaINSAD>>
+			ObtenerHistorialEmpleado(
+				int idEmpleado);
 
-		Task Registrar(PolizaINSAD poliza);
+		Task Registrar(
+			PolizaINSAD poliza,
+			List<int> idsEmpleados);
 
-		Task Desactivar(int idPolizaINS);
+		Task Desactivar(
+			int idPoliza);
+
+		Task AsignarEmpleado(
+			int idPoliza,
+			int idEmpleado,
+			DateTime fechaAsignacion);
+
+		Task ExcluirEmpleado(
+			int idPoliza,
+			int idEmpleado,
+			DateTime fechaExclusion);
 
 		Task<PolizaINSAD?> ObtenerPolizaVigente(
 			int idEmpleado,
@@ -23,7 +38,8 @@ namespace PROmaderas.Abstracciones.LogicaDeNegocio
 			int idEmpleado,
 			DateTime fechaEvaluacion);
 
-		Task<List<PolizaINSAD>> ObtenerProximasAVencer(
-			int diasAnticipacion = 30);
+		Task<List<PolizaINSAD>>
+			ObtenerProximasAVencer(
+				int diasAnticipacion = 30);
 	}
 }

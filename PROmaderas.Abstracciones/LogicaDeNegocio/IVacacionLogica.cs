@@ -24,11 +24,25 @@ namespace PROmaderas.Abstracciones.LogicaDeNegocio
         // Todas las vacaciones del empleado, incluidas las anuladas.
         Task<List<VacacionAD>> ObtenerHistorial(int idEmpleado);
 
-        // ── Escrituras (las 2 se auditan) ─────────────────────────────────────
+		// PLA-HU-013: vacaciones que coinciden con
+		// un periodo de planilla.
+		Task<List<VacacionAD>> ObtenerPorPeriodo(
+			int idEmpleado,
+			DateTime fechaInicio,
+			DateTime fechaFin);
 
-        // 'dias' se DIGITA: no se deriva del rango de fechas. Se bloquea si dejaría el
-        // saldo en negativo, o si el empleado no tiene fecha de ingreso registrada.
-        Task Registrar(int idEmpleado, DateTime inicio, DateTime fin, decimal dias,
+		// Calcula la cantidad proporcional de días digitados
+		// que corresponden al periodo evaluado.
+		decimal CalcularDiasDentroPeriodo(
+			VacacionAD vacacion,
+			DateTime fechaInicio,
+			DateTime fechaFin);
+
+		// ── Escrituras (las 2 se auditan) ─────────────────────────────────────
+
+		// 'dias' se DIGITA: no se deriva del rango de fechas. Se bloquea si dejaría el
+		// saldo en negativo, o si el empleado no tiene fecha de ingreso registrada.
+		Task Registrar(int idEmpleado, DateTime inicio, DateTime fin, decimal dias,
                        string observacion, ContextoAuditoria auditoria);
 
         // Motivo obligatorio: queda en la bitácora.

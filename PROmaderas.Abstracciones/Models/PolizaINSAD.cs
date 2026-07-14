@@ -7,46 +7,60 @@ namespace PROmaderas.Abstracciones.Models
 	public class PolizaINSAD
 	{
 		[Key]
-		public int IdPolizaINS { get; set; }
+		public int IdPoliza { get; set; }
 
-		[Required(ErrorMessage = "Debe seleccionar un empleado.")]
-		public int IdEmpleado { get; set; }
-
-		[Required(ErrorMessage = "El número de póliza es obligatorio.")]
-		[StringLength(100, ErrorMessage = "El número de póliza no puede superar los 100 caracteres.")]
+		[Required]
+		[StringLength(50)]
 		[Display(Name = "Número de póliza")]
-		public string NumeroPoliza { get; set; } = string.Empty;
+		public string NumeroPoliza { get; set; } =
+			string.Empty;
 
-		[Required(ErrorMessage = "La fecha de inicio es obligatoria.")]
-		[DataType(DataType.Date)]
+		[Required]
+		[StringLength(100)]
+		[Display(Name = "Tipo de póliza")]
+		public string TipoPoliza { get; set; } =
+			"Riesgos del Trabajo";
+
+		[Required]
+		[StringLength(100)]
+		public string Aseguradora { get; set; } =
+			"INS";
+
 		[Column(TypeName = "date")]
+		[DataType(DataType.Date)]
 		[Display(Name = "Inicio de vigencia")]
 		public DateTime FechaInicio { get; set; }
 
-		[Required(ErrorMessage = "La fecha de vencimiento es obligatoria.")]
-		[DataType(DataType.Date)]
 		[Column(TypeName = "date")]
+		[DataType(DataType.Date)]
 		[Display(Name = "Fin de vigencia")]
 		public DateTime FechaVencimiento { get; set; }
 
-		[Required(ErrorMessage = "La cobertura de la póliza es obligatoria.")]
-		[StringLength(250, ErrorMessage = "La cobertura no puede superar los 250 caracteres.")]
-		[Display(Name = "Cobertura")]
-		public string Cobertura { get; set; } = string.Empty;
+		[Column(TypeName = "decimal(18,2)")]
+		[Display(Name = "Monto asegurado")]
+		public decimal? MontoAsegurado { get; set; }
 
-		[StringLength(500, ErrorMessage = "La observación no puede superar los 500 caracteres.")]
+		[Column(TypeName = "decimal(18,2)")]
+		public decimal? Prima { get; set; }
+
+		public bool Estado { get; set; } = true;
+
+		[StringLength(250)]
 		[Display(Name = "Observaciones")]
 		public string? Observacion { get; set; }
 
-		public bool Activa { get; set; } = true;
+		public DateTime FechaCreacion { get; set; } =
+			DateTime.Now;
 
-		public DateTime FechaRegistro { get; set; } = DateTime.Now;
-
-		[ForeignKey(nameof(IdEmpleado))]
-		public virtual EmpleadoAD? Empleado { get; set; }
+		public virtual ICollection<EmpleadoPolizaAD>
+			EmpleadosAsignados
+		{ get; set; } =
+				new List<EmpleadoPolizaAD>();
 
 		[NotMapped]
-		public bool EstaVencida => Activa && FechaVencimiento.Date < DateTime.Today;
+		public bool EstaVencida =>
+			Estado &&
+			FechaVencimiento.Date < DateTime.Today;
 
 		[NotMapped]
 		public int DiasParaVencer =>
@@ -54,6 +68,8 @@ namespace PROmaderas.Abstracciones.Models
 
 		[NotMapped]
 		public bool ProximaAVencer =>
-			Activa && !EstaVencida && DiasParaVencer <= 30;
+			Estado &&
+			!EstaVencida &&
+			DiasParaVencer <= 30;
 	}
 }
