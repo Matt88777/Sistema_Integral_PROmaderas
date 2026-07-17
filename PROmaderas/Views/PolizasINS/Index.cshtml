@@ -126,13 +126,11 @@
 
                                     <td>
                                         <small class="d-block">
-                                            @poliza.FechaInicio
-                                            .ToString("dd/MM/yyyy")
+                                            @(poliza.FechaInicio.ToString("dd/MM/yyyy"))
                                         </small>
                                         <small class="d-block text-muted">
                                             hasta
-                                            @poliza.FechaVencimiento
-                                            .ToString("dd/MM/yyyy")
+                                            @(poliza.FechaVencimiento.ToString("dd/MM/yyyy"))
                                         </small>
                                     </td>
 

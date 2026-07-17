@@ -1,7 +1,10 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PROmaderas.Abstracciones.LogicaDeNegocio;
+using PROmaderas.UI.Models;
 using PROmaderas.UI.Seguridad;
+using PROmaderas.Abstracciones.Catalogos;
+
 
 namespace PROmaderas.UI.Controllers
 {
@@ -9,10 +12,12 @@ namespace PROmaderas.UI.Controllers
     public class ReportesController : Controller
     {
         private readonly IReportesExportLogica _reportesExportLogica;
+        private readonly IReportesLogica _reportesLogica;
 
-        public ReportesController(IReportesExportLogica reportesExportLogica)
+        public ReportesController(IReportesExportLogica reportesExportLogica, IReportesLogica reportesLogica)
         {
             _reportesExportLogica = reportesExportLogica;
+            _reportesLogica = reportesLogica;
         }
 
         public IActionResult Index()
@@ -54,6 +59,49 @@ namespace PROmaderas.UI.Controllers
         {
             var bytes = await _reportesExportLogica.GenerarPlanillaPdf();
             return File(bytes, "application/pdf", $"Planilla_{DateTime.Now:yyyyMMdd}.pdf");
+        }
+
+        public async Task<IActionResult> Ventas(string? tipoPeriodo, DateTime? fechaInicio, DateTime? fechaFin)
+        {
+            var modelo = new ReporteVentasViewModel
+            {
+                TipoPeriodo = PeriodosReporteVentas.EsValido(tipoPeriodo) ? tipoPeriodo! : PeriodosReporteVentas.Mensual,
+                FechaInicio = fechaInicio,
+                FechaFin = fechaFin
+            };
+
+            try
+            {
+                modelo.Resultado = await _reportesLogica.GenerarReporteVentas(tipoPeriodo, fechaInicio, fechaFin);
+                modelo.TipoPeriodo = modelo.Resultado.TipoPeriodo;
+                modelo.FechaInicio = modelo.Resultado.FechaInicio;
+                modelo.FechaFin = modelo.Resultado.FechaFin;
+                modelo.ConsultaRealizada = true;
+            }
+            catch (ArgumentException ex)
+            {
+                modelo.MensajeError = ex.Message;
+            }
+
+            return View(modelo);
+        }
+
+        public async Task<IActionResult> ExportarVentasExcel(string? tipoPeriodo, DateTime? fechaInicio, DateTime? fechaFin)
+        {
+            string periodo = PeriodosReporteVentas.EsValido(tipoPeriodo) ? tipoPeriodo! : PeriodosReporteVentas.Mensual;
+            DateTime inicio = fechaInicio ?? DateTime.Today.AddMonths(-12);
+            DateTime fin = fechaFin ?? DateTime.Today;
+            var bytes = await _reportesExportLogica.GenerarVentasExcel(periodo, inicio, fin);
+            return File(bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"Ventas_{DateTime.Now:yyyyMMdd}.xlsx");
+        }
+
+        public async Task<IActionResult> ExportarVentasPdf(string? tipoPeriodo, DateTime? fechaInicio, DateTime? fechaFin)
+        {
+            string periodo = PeriodosReporteVentas.EsValido(tipoPeriodo) ? tipoPeriodo! : PeriodosReporteVentas.Mensual;
+            DateTime inicio = fechaInicio ?? DateTime.Today.AddMonths(-12);
+            DateTime fin = fechaFin ?? DateTime.Today;
+            var bytes = await _reportesExportLogica.GenerarVentasPdf(periodo, inicio, fin);
+            return File(bytes, "application/pdf", $"Ventas_{DateTime.Now:yyyyMMdd}.pdf");
         }
     }
 }

@@ -84,6 +84,10 @@ builder.Services.AddScoped<ICategoriaLogica, CategoriaLogica>();
 builder.Services.AddScoped<IProductoLogica, ProductoLogica>();
 builder.Services.AddScoped<PROmaderas.AccesoADatos.Empleados.EmpleadoRepositorio>();
 builder.Services.AddSingleton<IMailStore, InMemoryMailStore>();
+builder.Services.AddScoped<IReportesLogica, ReportesLogica>();
+builder.Services.AddScoped<IReportesRepositorio, ReportesRepositorio>();
+builder.Services.AddScoped<IReportesExportLogica, ReportesExportLogica>();
+
 
 builder.Services.AddScoped<IClienteRepositorio, PROmaderas.AccesoADatos.Clientes.EmpleadoRepositorio>();
 

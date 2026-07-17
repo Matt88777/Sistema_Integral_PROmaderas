@@ -1,244 +1,90 @@
-﻿@model PROmaderas.UI.Models.RegistrarIncapacidadViewModel
+﻿@model List<PROmaderas.Abstracciones.Models.IncapacidadAD>
 
 @{
-    ViewData["Title"] = "Registrar incapacidad";
+    ViewData["Title"] = "Historial de incapacidades";
+    string nombreEmpleado = Model.FirstOrDefault()?.Empleado is { } emp
+        ? $"{emp.Nombre} {emp.PrimerApellido} {emp.SegundoApellido}".Trim()
+        : "Empleado";
 }
 
 <div class="container py-4">
-    <div class="row justify-content-center">
-        <div class="col-lg-8 col-xl-7">
-            <div class="d-flex align-items-center mb-4">
-                <a asp-controller="Incapacidades"
-                   asp-action="Index"
-                   class="btn btn-outline-secondary me-3">
-                    <i class="bi bi-arrow-left"></i>
-                    Volver
-                </a>
+    <div class="d-flex align-items-center mb-4">
+        <a asp-controller="Incapacidades"
+           asp-action="Index"
+           class="btn btn-outline-secondary me-3">
+            <i class="bi bi-arrow-left"></i>
+            Volver
+        </a>
 
-                <div>
-                    <h1 class="h3 mb-1">
-                        Registrar incapacidad
-                    </h1>
+        <div>
+            <h1 class="h3 mb-1">Historial de incapacidades</h1>
+            <p class="text-muted mb-0">@nombreEmpleado</p>
+        </div>
+    </div>
 
-                    <p class="text-muted mb-0">
-                        Ingrese la información del certificado
-                        y su duración.
-                    </p>
-                </div>
-            </div>
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
 
-            <div class="card shadow-sm">
-                <div class="card-header bg-dark text-white">
-                    <strong>Información de la incapacidad</strong>
-                </div>
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show">
+            @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
 
-                <div class="card-body p-4">
-                    <form asp-controller="Incapacidades"
-                          asp-action="Create"
-                          method="post">
+    <div class="card shadow-sm">
+        <div class="card-header bg-dark text-white">
+            <strong>Incapacidades registradas</strong>
+            <span class="badge bg-secondary ms-2">@Model.Count</span>
+        </div>
 
-                        @Html.AntiForgeryToken()
-
-                        <div asp-validation-summary="ModelOnly"
-                             class="alert alert-danger">
-                        </div>
-
-                        <div class="mb-3">
-                            <label asp-for="IdEmpleado"
-                                   class="form-label">
-                            </label>
-
-                            <select asp-for="IdEmpleado"
-                                    asp-items="Model.Empleados"
-                                    class="form-select">
-                                <option value="">
-                                    Seleccione un empleado
-                                </option>
-                            </select>
-
-                            <span asp-validation-for="IdEmpleado"
-                                  class="text-danger">
-                            </span>
-                        </div>
-
-                        <div class="mb-3">
-                            <label asp-for="TipoIncapacidad"
-                                   class="form-label">
-                            </label>
-
-                            <select asp-for="TipoIncapacidad"
-                                    asp-items="Model.TiposIncapacidad"
-                                    class="form-select">
-                                <option value="">
-                                    Seleccione el tipo
-                                </option>
-                            </select>
-
-                            <span asp-validation-for="TipoIncapacidad"
-                                  class="text-danger">
-                            </span>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label asp-for="FechaInicio"
-                                       class="form-label">
-                                </label>
-
-                                <input asp-for="FechaInicio"
-                                       type="date"
-                                       class="form-control" />
-
-                                <span asp-validation-for="FechaInicio"
-                                      class="text-danger">
-                                </span>
-                            </div>
-
-                            <div class="col-md-6 mb-3">
-                                <label asp-for="FechaFin"
-                                       class="form-label">
-                                </label>
-
-                                <input asp-for="FechaFin"
-                                       type="date"
-                                       class="form-control" />
-
-                                <span asp-validation-for="FechaFin"
-                                      class="text-danger">
-                                </span>
-                            </div>
-                        </div>
-
-                        <div class="alert alert-info py-2">
-                            Duración:
-                            <strong id="cantidadDias">1 día</strong>
-                        </div>
-
-                        <div class="mb-3">
-                            <label asp-for="NumeroCertificado"
-                                   class="form-label">
-                            </label>
-
-                            <input asp-for="NumeroCertificado"
-                                   class="form-control"
-                                   placeholder="Número indicado en el certificado" />
-
-                            <span asp-validation-for="NumeroCertificado"
-                                  class="text-danger">
-                            </span>
-                        </div>
-
-                        <div class="mb-3">
-                            <label asp-for="EntidadEmisora"
-                                   class="form-label">
-                            </label>
-
-                            <select asp-for="EntidadEmisora"
-                                    asp-items="Model.EntidadesEmisoras"
-                                    class="form-select">
-                                <option value="">
-                                    Seleccione la entidad
-                                </option>
-                            </select>
-
-                            <span asp-validation-for="EntidadEmisora"
-                                  class="text-danger">
-                            </span>
-                        </div>
-
-                        <div class="mb-4">
-                            <label asp-for="Observacion"
-                                   class="form-label">
-                            </label>
-
-                            <textarea asp-for="Observacion"
-                                      class="form-control"
-                                      rows="3"
-                                      placeholder="Información adicional opcional"></textarea>
-
-                            <span asp-validation-for="Observacion"
-                                  class="text-danger">
-                            </span>
-                        </div>
-
-                        <div class="d-flex justify-content-end gap-2">
-                            <a asp-controller="Incapacidades"
-                               asp-action="Index"
-                               class="btn btn-outline-secondary">
-                                Cancelar
-                            </a>
-
-                            <button type="submit"
-                                    class="btn btn-primary">
-                                <i class="bi bi-save me-1"></i>
-                                Guardar incapacidad
-                            </button>
-                        </div>
-                    </form>
-                </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Tipo</th>
+                            <th>Entidad</th>
+                            <th>Certificado</th>
+                            <th>Fecha inicio</th>
+                            <th>Fecha fin</th>
+                            <th class="text-center">Días</th>
+                            <th class="text-center">Estado</th>
+                            <th>Observación</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>@item.TipoIncapacidad</td>
+                                <td>@item.EntidadEmisora</td>
+                                <td>@item.NumeroCertificado</td>
+                                <td>@item.FechaInicio.ToString("dd/MM/yyyy")</td>
+                                <td>@item.FechaFin.ToString("dd/MM/yyyy")</td>
+                                <td class="text-center">@item.Dias</td>
+                                <td class="text-center">
+                                    @if (item.Activa)
+                                    {
+                                        <span class="badge bg-success">Activa</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">Anulada</span>
+                                    }
+                                </td>
+                                <td>@(item.Observacion ?? "—")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
 </div>
-
-@section Scripts {
-    <partial name="_ValidationScriptsPartial" />
-
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            const inicio =
-                document.getElementById("FechaInicio");
-
-            const fin =
-                document.getElementById("FechaFin");
-
-            const textoDias =
-                document.getElementById("cantidadDias");
-
-            function calcularDias() {
-                if (!inicio.value || !fin.value) {
-                    textoDias.textContent = "Sin calcular";
-                    return;
-                }
-
-                fin.min = inicio.value;
-
-                const fechaInicio =
-                    new Date(inicio.value + "T00:00:00");
-
-                const fechaFin =
-                    new Date(fin.value + "T00:00:00");
-
-                if (fechaFin < fechaInicio) {
-                    textoDias.textContent =
-                        "Fechas inválidas";
-                    return;
-                }
-
-                const milisegundosDia =
-                    1000 * 60 * 60 * 24;
-
-                const dias =
-                    Math.round(
-                        (fechaFin - fechaInicio) /
-                        milisegundosDia
-                    ) + 1;
-
-                textoDias.textContent =
-                    dias === 1
-                        ? "1 día"
-                        : dias + " días";
-            }
-
-            inicio.addEventListener(
-                "change",
-                calcularDias);
-
-            fin.addEventListener(
-                "change",
-                calcularDias);
-
-            calcularDias();
-        });
-    </script>
-}
