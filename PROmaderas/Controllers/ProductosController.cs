@@ -20,24 +20,6 @@ namespace PROmaderas.UI.Controllers
             _env = env;
         }
 
-        private async Task<List<CategoriaAD>> ObtenerCategoriasParaEdicion(int categoriaIdActual)
-        {
-            var categorias = await _productoLogica.ObtenerCategorias();
-            if (categorias.Any(c => c.Id == categoriaIdActual))
-            {
-                return categorias;
-            }
-
-            var categoriaActual = await _productoLogica.ObtenerCategoriaPorId(categoriaIdActual);
-            if (categoriaActual != null)
-            {
-                categorias.Add(categoriaActual);
-                categorias = categorias.OrderBy(c => c.Nombre).ToList();
-            }
-
-            return categorias;
-        }
-
         public async Task<IActionResult> Index(string? filtroNombre, int? categoriaId, bool? filtroEstado, int pagina = 1)
         {
             int registrosPorPagina = 10;
@@ -56,7 +38,7 @@ namespace PROmaderas.UI.Controllers
 
             return View(productos);
         }
-       
+
         public async Task<IActionResult> Inventario(int? idTipoTarima)
         {
             var modelo = new InventarioConsultaViewModel
@@ -70,21 +52,6 @@ namespace PROmaderas.UI.Controllers
 
             return View(modelo);
         }
-
-        // public async Task<IActionResult> Inventario(int? idTipoTarima)
-        //{
-        //     var modelo = new InventarioConsultaViewModel
-        //     {
-        //         IdTipoTarima = idTipoTarima,
-        //         TiposTarima = await _productoLogica.ObtenerTodos(),
-        //         Existencias = await _productoLogica.ObtenerExistenciasActuales(idTipoTarima),
-        //         Movimientos = await _productoLogica.ObtenerHistorialMovimientos(idTipoTarima),
-        //         ConsultaRealizada = true
-        //     };
-        //
-        //     return View(modelo);
-        // }
-
 
         [Authorize(Roles = Roles.Administrador + "," + Roles.Gerente + "," + Roles.OperadorDePlanta)]
         public async Task<IActionResult> AjustesInventario()
@@ -130,7 +97,6 @@ namespace PROmaderas.UI.Controllers
             }
         }
 
-
         [HttpPost, ValidateAntiForgeryToken]
         [Authorize(Roles = Roles.Administrador)]
         public async Task<IActionResult> CambiarEstado(int id)
@@ -160,19 +126,6 @@ namespace PROmaderas.UI.Controllers
                 return NotFound();
 
             return View(producto);
-        }
-
-        // Sprint 0 PROMADERAS: la tabla TipoTarima exige Codigo (UNIQUE), Medida y
-        // otros campos NOT NULL que el modelo ProductoAD no tiene. Stock se
-        // gestiona en una tabla aparte (InventarioMovimiento). Por eso
-        // Create/Edit/Delete/AjustarStock quedan en construcción y se reemplazarán
-        // cuando se conecte el flujo completo. Index/Details siguen funcionando.
-
-        private IActionResult ProductoEnConstruccion()
-        {
-            ViewBag.Modulo = "La creación, edición, eliminación y ajuste de stock de productos";
-            ViewBag.Detalle = "PROMADERAS gestiona productos en la tabla TipoTarima (Codigo, Medida, etc.) y el stock vía InventarioMovimiento. Estará disponible en el próximo sprint.";
-            return View("EnConstruccion");
         }
 
         [Authorize(Roles = Roles.Administrador)]
@@ -205,8 +158,6 @@ namespace PROmaderas.UI.Controllers
                     StockMinimo = modelo.StockMinimo,
                     Activo = modelo.Activo,
                     FechaCreacion = DateTime.Now,
-
-                    // Campos ignorados por el mapeo actual, pero se asignan para evitar validaciones antiguas.
                     CategoriaId = 0,
                     ImpuestoPorc = 0,
                     Stock = 0,
@@ -225,21 +176,88 @@ namespace PROmaderas.UI.Controllers
             }
         }
 
-        public IActionResult Edit(int? id) => ProductoEnConstruccion();
+        [Authorize(Roles = Roles.Administrador)]
+        public async Task<IActionResult> Edit(int? id)
+        {
+            if (id == null) return NotFound();
+
+            var producto = await _productoLogica.ObtenerPorId(id.Value);
+            if (producto == null) return NotFound();
+
+            var modelo = new TipoTarimaCrearDTO
+            {
+                Codigo = producto.Codigo,
+                Nombre = producto.Nombre,
+                Medida = producto.Medida,
+                Descripcion = producto.Descripcion,
+                PrecioUnitario = producto.Precio,
+                StockMinimo = producto.StockMinimo,
+                Activo = producto.Activo
+            };
+
+            ViewBag.ProductoId = producto.Id;
+            return View(modelo);
+        }
 
         [HttpPost, ValidateAntiForgeryToken]
-        public IActionResult Edit(int id, ProductoAD producto, IFormFile? imagen) => ProductoEnConstruccion();
+        [Authorize(Roles = Roles.Administrador)]
+        public async Task<IActionResult> Edit(int id, TipoTarimaCrearDTO modelo)
+        {
+            ViewBag.ProductoId = id;
 
-        public IActionResult Delete(int? id) => ProductoEnConstruccion();
+            if (!ModelState.IsValid) return View(modelo);
+
+            try
+            {
+                var existente = await _productoLogica.ObtenerPorId(id);
+                if (existente == null) return NotFound();
+
+                existente.Codigo = modelo.Codigo;
+                existente.Nombre = modelo.Nombre;
+                existente.Medida = modelo.Medida;
+                existente.Descripcion = modelo.Descripcion;
+                existente.Precio = modelo.PrecioUnitario;
+                existente.StockMinimo = modelo.StockMinimo;
+                existente.Activo = modelo.Activo;
+
+                await _productoLogica.Actualizar(existente);
+
+                TempData["Mensaje"] = "Tipo de tarima actualizado correctamente.";
+                return RedirectToAction(nameof(Index));
+            }
+            catch (ArgumentException ex)
+            {
+                ModelState.AddModelError(string.Empty, ex.Message);
+                return View(modelo);
+            }
+        }
+
+        [Authorize(Roles = Roles.Administrador + "," + Roles.OperadorDePlanta)]
+        public IActionResult AjustarStock(int? id)
+        {
+            return RedirectToAction(nameof(AjustesInventario));
+        }
+
+        [HttpPost, ValidateAntiForgeryToken]
+        [Authorize(Roles = Roles.Administrador + "," + Roles.OperadorDePlanta)]
+        public IActionResult AjustarStock(int id, int cantidad)
+        {
+            return RedirectToAction(nameof(AjustesInventario));
+        }
+
+        public IActionResult Delete(int? id)
+        {
+            ViewBag.Modulo = "La eliminación de productos";
+            ViewBag.Detalle = "La eliminación de tipos de tarima no está disponible en este módulo.";
+            return View("EnConstruccion");
+        }
 
         [HttpPost, ActionName("Delete"), ValidateAntiForgeryToken]
-        public IActionResult DeleteConfirmed(int id) => ProductoEnConstruccion();
-
-        [Authorize(Roles = Roles.Administrador + "," + Roles.OperadorDePlanta)]
-        public IActionResult AjustarStock(int? id) => ProductoEnConstruccion();
-
-        [HttpPost, ValidateAntiForgeryToken]
-        [Authorize(Roles = Roles.Administrador + "," + Roles.OperadorDePlanta)]
-        public IActionResult AjustarStock(int id, int cantidad) => ProductoEnConstruccion();
+        public IActionResult DeleteConfirmed(int id)
+        {
+            ViewBag.Modulo = "La eliminación de productos";
+            ViewBag.Detalle = "La eliminación de tipos de tarima no está disponible en este módulo.";
+            return View("EnConstruccion");
+        }
     }
 }

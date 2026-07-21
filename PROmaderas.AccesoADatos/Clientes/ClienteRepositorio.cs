@@ -5,24 +5,24 @@ using PROmaderas.AccesoADatos.Auditoria;
 
 namespace PROmaderas.AccesoADatos.Clientes
 {
-	public class EmpleadoRepositorio : IClienteRepositorio
-	{
-		private readonly Contexto _contexto;
+    public class EmpleadoRepositorio : IClienteRepositorio
+    {
+        private readonly Contexto _contexto;
 
-		public EmpleadoRepositorio(Contexto contexto)
-		{
-			_contexto = contexto;
-		}
+        public EmpleadoRepositorio(Contexto contexto)
+        {
+            _contexto = contexto;
+        }
 
-		public async Task<List<ClienteAD>> ObtenerTodos()
-		{
-			return await _contexto.Clientes.ToListAsync();
-		}
+        public async Task<List<ClienteAD>> ObtenerTodos()
+        {
+            return await _contexto.Clientes.ToListAsync();
+        }
 
-		public async Task<ClienteAD?> ObtenerPorId(int id)
-		{
-			return await _contexto.Clientes.FindAsync(id);
-		}
+        public async Task<ClienteAD?> ObtenerPorId(int id)
+        {
+            return await _contexto.Clientes.FindAsync(id);
+        }
 
         public async Task<ClienteAD> Crear(ClienteAD cliente)
         {
@@ -32,121 +32,123 @@ namespace PROmaderas.AccesoADatos.Clientes
         }
 
         public async Task<ClienteAD> Actualizar(ClienteAD cliente, ContextoAuditoria auditoria)
-		{
-			var existente = await _contexto.Clientes.AsNoTracking()
-				.FirstOrDefaultAsync(c => c.Id == cliente.Id);
+        {
+            var existente = await _contexto.Clientes.AsNoTracking()
+                .FirstOrDefaultAsync(c => c.Id == cliente.Id);
 
-			object valoresAnteriores = existente is null
-				? new { }
-				: new
-				{
-					existente.Nombre,
-					existente.Telefono,
-					existente.Correo,
-					existente.Direccion,
-					existente.CondicionPago,
-					existente.Exonerado,
-					existente.PorcentajeExoneracion
-				};
+            object valoresAnteriores = existente is null
+                ? new { }
+                : new
+                {
+                    existente.Nombre,
+                    existente.Telefono,
+                    existente.Correo,
+                    existente.Direccion,
+                    existente.CondicionPago,
+                    existente.Exonerado,
+                    existente.PorcentajeExoneracion
+                };
 
-			var valoresNuevos = new
-			{
-				cliente.Nombre,
-				cliente.Telefono,
-				cliente.Correo,
-				cliente.Direccion,
-				cliente.CondicionPago,
-				cliente.Exonerado,
-				cliente.PorcentajeExoneracion
-			};
+            var valoresNuevos = new
+            {
+                cliente.Nombre,
+                cliente.Telefono,
+                cliente.Correo,
+                cliente.Direccion,
+                cliente.CondicionPago,
+                cliente.Exonerado,
+                cliente.PorcentajeExoneracion
+            };
 
-			_contexto.Clientes.Update(cliente);
-			_contexto.Bitacoras.Add(ConstructorBitacora.Construir(
-				"Cliente",
-				cliente.Id,
-				auditoria,
-				valoresAnteriores,
-				valoresNuevos));
-			await _contexto.SaveChangesAsync();
-			return cliente;
-		}
+            _contexto.Clientes.Update(cliente);
+            _contexto.Bitacoras.Add(ConstructorBitacora.Construir(
+                "Cliente",
+                cliente.Id,
+                auditoria,
+                valoresAnteriores,
+                valoresNuevos));
+            await _contexto.SaveChangesAsync();
+            return cliente;
+        }
 
-		public async Task CambiarEstado(int id, ContextoAuditoria auditoria)
-		{
-			var cliente = await _contexto.Clientes
-				.FirstOrDefaultAsync(c => c.Id == id);
+        public async Task CambiarEstado(int id, ContextoAuditoria auditoria)
+        {
+            var cliente = await _contexto.Clientes
+                .FirstOrDefaultAsync(c => c.Id == id);
 
-			if (cliente == null)
-			{
-				throw new Exception($"No se encontró el cliente con ID {id}.");
-			}
+            if (cliente == null)
+            {
+                throw new Exception($"No se encontró el cliente con ID {id}.");
+            }
 
-			var estadoAnterior = cliente.Estado;
-			var estadoNuevo = !estadoAnterior;
+            var estadoAnterior = cliente.Estado;
+            var estadoNuevo = !estadoAnterior;
 
-			cliente.Estado = estadoNuevo;
+            cliente.Estado = estadoNuevo;
 
-			var valoresAnteriores = new
-			{
-				Estado = estadoAnterior ? "Activo" : "Inactivo"
-			};
+            var valoresAnteriores = new
+            {
+                Estado = estadoAnterior ? "Activo" : "Inactivo"
+            };
 
-			var valoresNuevos = new
-			{
-				Estado = estadoNuevo ? "Activo" : "Inactivo"
-			};
+            var valoresNuevos = new
+            {
+                Estado = estadoNuevo ? "Activo" : "Inactivo"
+            };
 
-			_contexto.Clientes.Update(cliente);
+            _contexto.Clientes.Update(cliente);
 
-			_contexto.Bitacoras.Add(ConstructorBitacora.Construir(
-				"Cliente",
-				cliente.Id,
-				auditoria,
-				valoresAnteriores,
-				valoresNuevos));
+            _contexto.Bitacoras.Add(ConstructorBitacora.Construir(
+                "Cliente",
+                cliente.Id,
+                auditoria,
+                valoresAnteriores,
+                valoresNuevos));
 
-			await _contexto.SaveChangesAsync();
-		}
+            await _contexto.SaveChangesAsync();
+        }
 
-		public async Task<bool> Eliminar(int id)
-		{
-			var cliente = await _contexto.Clientes.FindAsync(id);
-			if (cliente == null)
-				return false;
+        public async Task<bool> Eliminar(int id)
+        {
+            var cliente = await _contexto.Clientes.FindAsync(id);
+            if (cliente == null)
+                return false;
 
-			bool tienePedidos = await _contexto.Pedidos.AnyAsync(p => p.ClienteId == id);
-			if (tienePedidos)
-				throw new InvalidOperationException(
-					"No se puede eliminar el cliente porque tiene pedidos asociados.");
+            bool tienePedidos = await _contexto.Pedidos.AnyAsync(p => p.ClienteId == id);
+            if (tienePedidos)
+                throw new InvalidOperationException(
+                    "No se puede eliminar el cliente porque tiene pedidos asociados.");
 
-			_contexto.Clientes.Remove(cliente);
-			await _contexto.SaveChangesAsync();
-			return true;
-		}
+            _contexto.Clientes.Remove(cliente);
+            await _contexto.SaveChangesAsync();
+            return true;
+        }
 
-		public async Task<bool> Existe(int id)
-		{
-			return await _contexto.Clientes.AnyAsync(c => c.Id == id);
-		}
+        public async Task<bool> Existe(int id)
+        {
+            return await _contexto.Clientes.AnyAsync(c => c.Id == id);
+        }
 
-		public async Task<List<ClienteAD>> BuscarPorNombre(string nombre)
-		{
-			return await _contexto.Clientes
-				.Where(c => c.Nombre.Contains(nombre))
-				.ToListAsync();
-		}
+        public async Task<List<ClienteAD>> BuscarPorNombre(string nombre)
+        {
+            return await _contexto.Clientes
+                .Where(c => c.Nombre.Contains(nombre))
+                .ToListAsync();
+        }
 
 
         public async Task<(List<ClienteAD> clientes, int totalRegistros)> ObtenerPaginado(
-    int pagina,
-    int registrosPorPagina,
-    string? filtroNombre,
-    bool? filtroEstado)
+        int pagina,
+        int registrosPorPagina,
+        string? filtro,
+        bool? filtroEstado)
         {
             var query = _contexto.Clientes.AsQueryable();
 
-            if (!string.IsNullOrWhiteSpace(filtroNombre))
-                query = query.Where(c => c.Nombre.Contains(filtroNombre));
+            if (!string.IsNullOrWhiteSpace(filtro))
+                query = query.Where(c => c.Nombre.Contains(filtro)
+                                      || c.Cedula.Contains(filtro)
+                                      || (c.Correo != null && c.Correo.Contains(filtro)));
 
             if (filtroEstado.HasValue)
                 query = query.Where(c => c.Estado == filtroEstado.Value);
