@@ -53,6 +53,11 @@ namespace PROmaderas.UI.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(ClienteAD cliente)
         {
+            if (!cliente.Exonerado)
+                cliente.PorcentajeExoneracion = 0;
+
+            ModelState.Remove(nameof(ClienteAD.PorcentajeExoneracion));
+
             if (ModelState.IsValid)
             {
                 try
@@ -69,7 +74,6 @@ namespace PROmaderas.UI.Controllers
 
             return View(cliente);
         }
-
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -86,10 +90,11 @@ namespace PROmaderas.UI.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, ClienteAD cliente)
         {
-            if (id != cliente.Id)
-                return NotFound();
 
-            if (ModelState.IsValid)
+            if (!cliente.Exonerado)
+                cliente.PorcentajeExoneracion = 0;
+
+            ModelState.Remove(nameof(ClienteAD.PorcentajeExoneracion));
             {
                 try
                 {
