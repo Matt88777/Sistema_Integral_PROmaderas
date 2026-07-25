@@ -511,52 +511,50 @@ namespace PROmaderas.UI.Controllers
 			return RedirectToAction(nameof(Details), new { id });
 		}
 
-		// ── REGISTRAR HISTORIAL DE ESTADO ──────────────────────────────────
-		private async Task RegistrarHistorialEstadoOrdenAsync(
-			int idOrdenCompra,
-			string? estadoAnterior,
-			string estadoNuevo,
-			string? observacion)
-		{
-			var emailActual = User.Identity?.Name ?? string.Empty;
+        // ── REGISTRAR HISTORIAL DE ESTADO ──────────────────────────────────
+        private async Task RegistrarHistorialEstadoOrdenAsync(
+    int idOrdenCompra,
+    string? estadoAnterior,
+    string estadoNuevo,
+    string? observacion)
+        {
+            var emailActual = User.Identity?.Name ?? string.Empty;
 
-			int? idUsuarioCambio = await _contexto.Usuarios
-				.Where(u => u.Correo == emailActual)
-				.Select(u => (int?)u.IdUsuario)
-				.FirstOrDefaultAsync();
+            int? idUsuarioCambio = await _contexto.Usuarios
+                .Where(u => u.Correo == emailActual)
+                .Select(u => (int?)u.IdUsuario)
+                .FirstOrDefaultAsync();
 
-			var observacionFinal = observacion;
+            var observacionFinal = observacion;
 
-			if (!idUsuarioCambio.HasValue)
-			{
-				idUsuarioCambio = await _contexto.Usuarios
-					.OrderBy(u => u.IdUsuario)
-					.Select(u => (int?)u.IdUsuario)
-					.FirstOrDefaultAsync();
+            if (!idUsuarioCambio.HasValue)
+            {
+                idUsuarioCambio = await _contexto.Usuarios
+                    .OrderBy(u => u.IdUsuario)
+                    .Select(u => (int?)u.IdUsuario)
+                    .FirstOrDefaultAsync();
 
-				observacionFinal = string.IsNullOrWhiteSpace(observacionFinal)
-					? $"Cambio realizado por usuario Identity: {emailActual}"
-					: $"{observacionFinal} | Usuario Identity: {emailActual}";
-			}
+                observacionFinal = string.IsNullOrWhiteSpace(observacionFinal)
+                    ? $"Cambio realizado por usuario Identity: {emailActual}"
+                    : $"{observacionFinal} | Usuario Identity: {emailActual}";
+            }
 
-			if (!idUsuarioCambio.HasValue)
-			{
-				return;
-			}
+            if (!idUsuarioCambio.HasValue)
+                return;
 
-			await _contexto.Database.ExecuteSqlRawAsync(
-				@"INSERT INTO HistorialEstadoOrden
+            await _contexto.Database.ExecuteSqlRawAsync(
+                @"INSERT INTO HistorialEstadoOrden
             (IdOrdenCompra, EstadoAnterior, EstadoNuevo, IdUsuarioCambio, FechaCambio, Observacion)
           VALUES ({0}, {1}, {2}, {3}, GETDATE(), {4})",
-				idOrdenCompra,
-				(object?)estadoAnterior ?? DBNull.Value,
-				estadoNuevo,
-				idUsuarioCambio.Value,
-				(object?)observacionFinal ?? DBNull.Value);
-		}
+                idOrdenCompra,
+                estadoAnterior ?? string.Empty,
+                estadoNuevo,
+                idUsuarioCambio.Value,
+                observacionFinal ?? string.Empty);
+        }
 
-		// ── EXPORTAR PDF ───────────────────────────────────────────────────
-		public async Task<IActionResult> ExportarPdf(int id)
+        // ── EXPORTAR PDF ───────────────────────────────────────────────────
+        public async Task<IActionResult> ExportarPdf(int id)
         {
             var pedido = await ObtenerPedidoCompleto(id);
             if (pedido == null) return NotFound();

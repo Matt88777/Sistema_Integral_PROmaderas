@@ -11,7 +11,7 @@
     bool puedeCancelarOrdenes = User.IsInRole("Administrador") || User.IsInRole("Gerente");
 }
 
-<div class="container mt-4">
+<div class="container-xxl mt-4">
     <div class="row mb-3 align-items-center">
         <div class="col">
             <h2>
@@ -45,52 +45,57 @@
         </div>
     }
 
-    <form method="get" asp-action="Index" class="row g-2 mb-4">
-        <div class="col-md-3">
-            <input type="text"
-                   name="filtroCliente"
-                   value="@ViewBag.FiltroCliente"
-                   class="form-control"
-                   placeholder="Buscar por cliente..." />
-        </div>
+    <form method="get" asp-action="Index" class="card card-body border-0 shadow-sm mb-4"
+          style="background:rgba(255,255,255,0.05);border:1px solid rgba(201,168,76,0.2)!important;">
+        <div class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label fw-semibold text-white mb-1">Cliente</label>
+                <input type="text"
+                       name="filtroCliente"
+                       value="@ViewBag.FiltroCliente"
+                       class="form-control"
+                       placeholder="Buscar por cliente..." />
+            </div>
 
-        <div class="col-md-2">
-            <select name="filtroEstado" class="form-select">
-                <option value="">Todos los estados</option>
+            <div class="col-md-2">
+                <label class="form-label fw-semibold text-white mb-1">Estado</label>
+                <select name="filtroEstado" class="form-select">
+                    <option value="">Todos los estados</option>
+                    @foreach (var e in estados)
+                    {
+                        <option value="@e" selected="@(ViewBag.FiltroEstado == e ? "selected" : null)">
+                            @e
+                        </option>
+                    }
+                </select>
+            </div>
 
-                @foreach (var e in estados)
-                {
-                    <option value="@e" selected="@(ViewBag.FiltroEstado == e ? "selected" : null)">
-                        @e
-                    </option>
-                }
-            </select>
-        </div>
+            <div class="col-md-2">
+                <label class="form-label fw-semibold text-white mb-1">Desde</label>
+                <input type="date"
+                       name="fechaDesde"
+                       value="@ViewBag.FechaDesde"
+                       class="form-control" />
+            </div>
 
-        <div class="col-md-2">
-            <input type="date"
-                   name="fechaDesde"
-                   value="@ViewBag.FechaDesde"
-                   class="form-control"
-                   title="Fecha desde" />
-        </div>
+            <div class="col-md-2">
+                <label class="form-label fw-semibold text-white mb-1">Hasta</label>
+                <input type="date"
+                       name="fechaHasta"
+                       value="@ViewBag.FechaHasta"
+                       class="form-control" />
+            </div>
 
-        <div class="col-md-2">
-            <input type="date"
-                   name="fechaHasta"
-                   value="@ViewBag.FechaHasta"
-                   class="form-control"
-                   title="Fecha hasta" />
-        </div>
-
-        <div class="col-auto d-flex gap-2">
-            <button type="submit" class="btn btn-secondary">
-                <i class="bi bi-search me-1"></i>Filtrar
-            </button>
-
-            <a asp-action="Index" class="btn btn-outline-secondary">
-                Limpiar
-            </a>
+            <div class="col-md-3 d-flex gap-2">
+                <button type="submit" class="btn btn-warning fw-bold flex-fill">
+                    <i class="bi bi-search me-1"></i>Filtrar
+                </button>
+                <a asp-action="Index" class="btn btn-warning fw-bold">
+                    Limpiar
+                </a>
+                <i class="bi bi-x-lg"></i>
+                </a>
+            </div>
         </div>
     </form>
 

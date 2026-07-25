@@ -21,12 +21,16 @@ namespace PROmaderas.UI.Controllers
         }
 
         public async Task<IActionResult> Index(int? clienteId, DateTime? fechaDesde,
-                                               DateTime? fechaHasta, string? numeroFactura,
-                                               bool incluirInactivas = false)
+                                        DateTime? fechaHasta, string? numeroFactura,
+                                        bool incluirInactivas = false, int pagina = 1)
         {
-            // FAC-HU-005: ver las inactivas es privilegio del Administrador. No alcanza con
-            // ocultar el checkbox: cualquiera podría mandar ?incluirInactivas=true a mano.
             var incluir = incluirInactivas && User.IsInRole(Roles.Administrador);
+
+            var todas = await _logica.BuscarConFiltros(clienteId, fechaDesde, fechaHasta,
+                                                       numeroFactura, incluir);
+            const int porPagina = 10;
+            int totalPaginas = (int)Math.Ceiling(todas.Count / (double)porPagina);
+            pagina = Math.Max(1, Math.Min(pagina, Math.Max(1, totalPaginas)));
 
             var vm = new ConsultaFacturasViewModel
             {
@@ -35,13 +39,13 @@ namespace PROmaderas.UI.Controllers
                 FechaHasta = fechaHasta,
                 NumeroFactura = numeroFactura,
                 IncluirInactivas = incluir,
-                Facturas = await _logica.BuscarConFiltros(clienteId, fechaDesde, fechaHasta,
-                                                          numeroFactura, incluir),
+                Facturas = todas.Skip((pagina - 1) * porPagina).Take(porPagina).ToList(),
                 Clientes = await _clienteLogica.ObtenerTodos()
             };
+            ViewBag.PaginaActual = pagina;
+            ViewBag.TotalPaginas = totalPaginas;
             return View(vm);
         }
-
         [Authorize(Roles = Roles.Administrador + "," + Roles.Contador)]
         public async Task<IActionResult> Create(int? pedidoId)
         {

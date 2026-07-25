@@ -11,7 +11,7 @@ namespace PROmaderas.Abstracciones.LogicaDeNegocio
         Task Eliminar(int id);
 
         Task<List<EmpleadoDeduccionAD>> ObtenerAsignacionesPorEmpleado(int idEmpleado);
-        Task AsignarAEmpleado(int idEmpleado, int idDeduccion);
+        Task AsignarAEmpleado(int idEmpleado, int idDeduccion, int? numeroCuotas, decimal? montoTotal);
         Task DesasignarDeEmpleado(int idEmpleadoDeduccion);
     }
 }

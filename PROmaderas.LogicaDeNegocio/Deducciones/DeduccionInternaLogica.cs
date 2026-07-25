@@ -20,13 +20,10 @@ namespace PROmaderas.LogicaDeNegocio.Deducciones
         {
             if (string.IsNullOrWhiteSpace(deduccion.Nombre))
                 throw new ArgumentException("El nombre es requerido.");
-
             if (deduccion.EsPorcentaje && (deduccion.Porcentaje == null || deduccion.Porcentaje <= 0))
                 throw new ArgumentException("Ingrese un porcentaje válido.");
-
             if (!deduccion.EsPorcentaje && (deduccion.Monto == null || deduccion.Monto <= 0))
                 throw new ArgumentException("Ingrese un monto válido.");
-
             return _repo.Crear(deduccion);
         }
 
@@ -36,8 +33,8 @@ namespace PROmaderas.LogicaDeNegocio.Deducciones
         public Task<List<EmpleadoDeduccionAD>> ObtenerAsignacionesPorEmpleado(int idEmpleado)
             => _repo.ObtenerAsignacionesPorEmpleado(idEmpleado);
 
-        public Task AsignarAEmpleado(int idEmpleado, int idDeduccion)
-            => _repo.AsignarAEmpleado(idEmpleado, idDeduccion);
+        public Task AsignarAEmpleado(int idEmpleado, int idDeduccion, int? numeroCuotas, decimal? montoTotal)
+            => _repo.AsignarAEmpleado(idEmpleado, idDeduccion, numeroCuotas, montoTotal);
 
         public Task DesasignarDeEmpleado(int idEmpleadoDeduccion)
             => _repo.DesasignarDeEmpleado(idEmpleadoDeduccion);

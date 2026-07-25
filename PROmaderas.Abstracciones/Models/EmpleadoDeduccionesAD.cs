@@ -12,6 +12,9 @@ namespace PROmaderas.Abstracciones.Models
         public int IdEmpleado { get; set; }
         public int IdDeduccion { get; set; }
 
+        public int? NumeroCuotas { get; set; }
+        public decimal? MontoTotal { get; set; }
+
         public EmpleadoAD? Empleado { get; set; }
         public DeduccionInternaAD? Deduccion { get; set; }
     }

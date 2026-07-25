@@ -28,10 +28,11 @@
         </div>
     }
 
-    <form method="get" asp-action="Index" class="card card-body bg-light border-0 shadow-sm mb-4">
+    <form method="get" asp-action="Index" class="card card-body border-0 shadow-sm mb-4"
+          style="background:rgba(255,255,255,0.05);border:1px solid rgba(201,168,76,0.2)!important;">
         <div class="row g-3 align-items-end">
             <div class="col-md-3">
-                <label class="form-label fw-semibold mb-1">Cliente</label>
+                <label class="form-label fw-semibold text-white mb-1">Cliente</label>
                 <select name="clienteId" class="form-select">
                     <option value="">Todos los clientes</option>
                     @foreach (var c in Model.Clientes)
@@ -41,31 +42,28 @@
                 </select>
             </div>
             <div class="col-md-2">
-                <label class="form-label fw-semibold mb-1">Desde</label>
+                <label class="form-label fw-semibold text-white mb-1">Desde</label>
                 <input type="date" name="fechaDesde" class="form-control"
                        value="@(Model.FechaDesde?.ToString("yyyy-MM-dd"))" />
             </div>
             <div class="col-md-2">
-                <label class="form-label fw-semibold mb-1">Hasta</label>
+                <label class="form-label fw-semibold text-white mb-1">Hasta</label>
                 <input type="date" name="fechaHasta" class="form-control"
                        value="@(Model.FechaHasta?.ToString("yyyy-MM-dd"))" />
             </div>
-            <div class="col-md-3">
-                <label class="form-label fw-semibold mb-1">N° Factura</label>
+            <div class="col-md-2">
+                <label class="form-label fw-semibold text-white mb-1">N° Factura</label>
                 <input type="text" name="numeroFactura" class="form-control"
                        placeholder="Ej. FAC-2024..." value="@Model.NumeroFactura" />
             </div>
-            <div class="col-md-2 d-flex gap-2">
+            <div class="col-md-3 d-flex gap-2">
                 <button type="submit" class="btn btn-warning fw-bold flex-fill">
                     <i class="bi bi-search me-1"></i>Filtrar
                 </button>
-                <a asp-action="Index" class="btn btn-outline-secondary" title="Limpiar filtros">
-                    <i class="bi bi-x-lg"></i>
+                <a asp-action="Index" class="btn btn-warning fw-bold flex-fill">
+                    Limpiar
                 </a>
             </div>
-
-            @* FAC-HU-005: solo el Administrador puede ver las facturas anuladas.
-               Va dentro del mismo form para que conviva con los filtros de FAC-HU-002. *@
             @if (User.IsInRole(Roles.Administrador))
             {
                 <div class="col-12">
@@ -73,7 +71,7 @@
                         <input class="form-check-input" type="checkbox" value="true"
                                name="incluirInactivas" id="incluirInactivas"
                                checked="@Model.IncluirInactivas" />
-                        <label class="form-check-label" for="incluirInactivas">
+                        <label class="form-check-label text-white" for="incluirInactivas">
                             Incluir facturas inactivas (anuladas)
                         </label>
                     </div>
@@ -81,6 +79,7 @@
             }
         </div>
     </form>
+
 
     @if (!Model.Facturas.Any())
     {
@@ -138,29 +137,35 @@
                                 {
                                     <span class="badge" style="background:#374151;color:#fff">@f.Estado</span>
                                 }
-                            </td>
-                            <td class="text-center">
-                                <a asp-action="Details" asp-route-id="@f.Id"
-                                   class="btn btn-sm btn-accion-ver" title="Ver detalles">
-                                    <i class="bi bi-eye"></i>
-                                </a>
-                                @if (f.Activa && (User.IsInRole(Roles.Administrador) || User.IsInRole(Roles.Contador)))
-                                {
-                                    <a asp-action="CambiarEstado" asp-route-id="@f.Id"
-                                       class="btn btn-sm btn-outline-secondary" title="Cambiar estado">
-                                        <i class="bi bi-arrow-repeat"></i>
-                                    </a>
-                                }
-                                @* FAC-HU-005: inactivar/reactivar es exclusivo del Administrador. *@
-                                @if (User.IsInRole(Roles.Administrador))
-                                {
-                                    <a asp-action="CambiarActiva" asp-route-id="@f.Id"
-                                       class="btn btn-sm @(f.Activa ? "btn-outline-danger" : "btn-outline-success")"
-                                       title="@(f.Activa ? "Inactivar factura" : "Reactivar factura")">
-                                        <i class="bi @(f.Activa ? "bi-slash-circle" : "bi-arrow-counterclockwise")"></i>
-                                    </a>
-                                }
-                            </td>
+                               <td class="text-center" style="white-space:nowrap;">
+                                
+                                   <a asp-action="Details" asp-route-id="@f.Id"
+       class="btn btn-sm btn-accion-ver" title="Ver detalles">
+        <i class="bi bi-eye"></i>
+    </a>
+    @if (f.Activa && (User.IsInRole(Roles.Administrador) || User.IsInRole(Roles.Contador)))
+    {
+        <a asp-action="CambiarEstado" asp-route-id="@f.Id"
+           class="btn btn-sm btn-accion-historial" title="Cambiar estado">
+            <i class="bi bi-arrow-repeat"></i>
+        </a>
+    }
+    @if (User.IsInRole(Roles.Administrador))
+    {
+        <a asp-action="CambiarActiva" asp-route-id="@f.Id"
+           class="btn btn-sm @(f.Activa ? "btn-accion-inactivar" : "btn-accion-activar")"
+           title="@(f.Activa ? "Inactivar factura" : "Reactivar factura")">
+            <i class="bi @(f.Activa ? "bi-slash-circle" : "bi-arrow-counterclockwise")"></i>
+        </a>
+    }
+</td>
+
+
+
+
+
+
+
                         </tr>
                     }
                 </tbody>

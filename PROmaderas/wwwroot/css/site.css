@@ -146,7 +146,7 @@ h4, h5, h6, .h4, .h5, .h6 {
     }
 
 .app-content-wrap {
-    max-width: 1240px;
+    max-width: 1500px;
     padding-top: 36px;
     padding-bottom: 48px;
 }
@@ -979,9 +979,9 @@ button.btn-danger {
    PAGINACIÓN
 ========================= */
 .pagination .page-link {
-    color: var(--pm-navy) !important;
-    background: #fff;
-    border-color: rgba(201,168,76,0.25);
+    color: rgba(255,255,255,0.85) !important;
+    background: rgba(11,27,58,0.8);
+    border-color: rgba(201,168,76,0.3);
     font-weight: 600;
     font-size: 13px;
     border-radius: 8px !important;
@@ -989,23 +989,22 @@ button.btn-danger {
 }
 
     .pagination .page-link:hover {
-        color: #fff !important;
-        background: var(--pm-navy);
-        border-color: var(--pm-navy);
+        color: #1a1a1a !important;
+        background: #c9a03c;
+        border-color: #c9a03c;
     }
 
 .pagination .page-item.active .page-link {
-    background: var(--pm-navy);
-    border-color: var(--pm-navy);
-    color: #fff !important;
+    background: #c9a03c;
+    border-color: #c9a03c;
+    color: #1a1a1a !important;
 }
 
 .pagination .page-item.disabled .page-link {
-    color: #adb5bd !important;
-    background: #fff;
-    border-color: rgba(201,168,76,0.15);
+    color: rgba(255,255,255,0.3) !important;
+    background: rgba(11,27,58,0.4);
+    border-color: rgba(201,168,76,0.1);
 }
-
 /* =========================
    BADGE / ESTADO
 ========================= */

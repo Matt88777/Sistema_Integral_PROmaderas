@@ -136,26 +136,26 @@
                         </div>
 
                         <div class="mb-3">
-                            <label asp-for="IdsEmpleados"
-                                   class="form-label">
-                            </label>
-
-                            <select asp-for="IdsEmpleados"
-                                    asp-items="Model.Empleados"
-                                    class="form-select"
-                                    multiple
-                                    size="8">
-                            </select>
-
-                            <span asp-validation-for="IdsEmpleados"
-                                  class="text-danger">
-                            </span>
-
-                            <div class="form-text">
-                                Mantené presionada la tecla Ctrl para
-                                seleccionar varios empleados.
+                            <label asp-for="IdsEmpleados" class="form-label"></label>
+                            <div style="max-height:230px;overflow-y:auto;background:rgba(255,255,255,0.04);border:1px solid rgba(201,168,76,0.25);border-radius:10px;padding:0.4rem 0;">
+                                @foreach (var emp in Model.Empleados)
+                                {
+                                    <label for="emp_@emp.Value"
+                                           style="display:flex;align-items:center;gap:10px;padding:7px 14px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.05);transition:background 0.15s;"
+                                           onmouseover="this.style.background='rgba(201,168,76,0.1)'"
+                                           onmouseout="this.style.background='transparent'">
+                                        <input type="checkbox"
+                                               name="IdsEmpleados"
+                                               value="@emp.Value"
+                                               id="emp_@emp.Value"
+                                               style="width:16px;height:16px;accent-color:#c9a84c;flex-shrink:0;cursor:pointer;" />
+                                        <span style="font-size:0.92rem;">@emp.Text</span>
+                                    </label>
+                                }
                             </div>
+                            <span asp-validation-for="IdsEmpleados" class="text-danger"></span>
                         </div>
+
 
                         <div class="mb-4">
                             <label asp-for="Observacion"

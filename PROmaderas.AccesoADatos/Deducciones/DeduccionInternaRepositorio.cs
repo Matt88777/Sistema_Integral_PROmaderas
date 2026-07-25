@@ -34,6 +34,13 @@ namespace PROmaderas.AccesoADatos.Deducciones
 
         public async Task Eliminar(int id)
         {
+            var asignaciones = await _contexto.EmpleadoDeducciones
+                .Where(e => e.IdDeduccion == id)
+                .ToListAsync();
+
+            if (asignaciones.Any())
+                _contexto.EmpleadoDeducciones.RemoveRange(asignaciones);
+
             var d = await _contexto.DeduccionesInternas.FindAsync(id);
             if (d != null)
             {
@@ -49,7 +56,7 @@ namespace PROmaderas.AccesoADatos.Deducciones
                 .Where(e => e.IdEmpleado == idEmpleado)
                 .ToListAsync();
 
-        public async Task AsignarAEmpleado(int idEmpleado, int idDeduccion)
+        public async Task AsignarAEmpleado(int idEmpleado, int idDeduccion, int? numeroCuotas, decimal? montoTotal)
         {
             var yaExiste = await _contexto.EmpleadoDeducciones
                 .AnyAsync(e => e.IdEmpleado == idEmpleado && e.IdDeduccion == idDeduccion);
@@ -59,7 +66,9 @@ namespace PROmaderas.AccesoADatos.Deducciones
                 _contexto.EmpleadoDeducciones.Add(new EmpleadoDeduccionAD
                 {
                     IdEmpleado = idEmpleado,
-                    IdDeduccion = idDeduccion
+                    IdDeduccion = idDeduccion,
+                    NumeroCuotas = numeroCuotas > 0 ? numeroCuotas : null,
+                    MontoTotal = montoTotal > 0 ? montoTotal : null
                 });
                 await _contexto.SaveChangesAsync();
             }

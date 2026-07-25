@@ -171,7 +171,9 @@
                     </div>
 
                     <div class="col-md-3">
-                        <button type="submit" class="btn btn-warning w-100" onclick="return confirm('¿Confirma el cambio de estado?')">
+                        <button type="button"
+                                class="btn btn-warning w-100"
+                                onclick="mostrarConfirm('¿Confirma el cambio de estado?', this.closest('form'))">
                             <i class="bi bi-check-circle me-1"></i>
                             Confirmar cambio
                         </button>
@@ -201,7 +203,9 @@
                     </div>
 
                     <div class="col-md-3 d-flex align-items-end">
-                        <button type="submit" class="btn btn-danger w-100" onclick="return confirm('¿Seguro que desea cancelar esta orden? Esta acción no eliminará el registro, pero marcará la orden como cancelada.')">
+                        <button type="button"
+                                class="btn btn-danger w-100"
+                                onclick="mostrarConfirm('¿Seguro que desea cancelar esta orden? Esta acción no eliminará el registro, pero marcará la orden como cancelada.', this.closest('form'))">
                             <i class="bi bi-x-circle me-1"></i>
                             Cancelar orden
                         </button>
@@ -347,4 +351,37 @@
             </table>
         </div>
     }
+    <div class="modal fade" id="modalConfirm" tabindex="-1">
+        <div class="modal-dialog" style="margin-top:15vh;">
+            <div class="modal-content" style="background:#0B1B3A;border:1px solid rgba(201,168,76,0.4);border-radius:10px;">
+                <div class="modal-header" style="border-bottom:1px solid rgba(201,168,76,0.3);">
+                    <h5 class="modal-title" style="color:#c9a03c;">
+                        <i class="bi bi-exclamation-triangle me-2"></i>Confirmar acción
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-white" id="modalConfirmTexto"></div>
+                <div class="modal-footer" style="border-top:1px solid rgba(201,168,76,0.3);">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-warning fw-bold" id="btnConfirmAceptar">Aceptar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+@section Scripts {
+    <script>
+        let _formPendiente = null;
+        function mostrarConfirm(texto, form) {
+            _formPendiente = form;
+            document.getElementById('modalConfirmTexto').textContent = texto;
+            new bootstrap.Modal(document.getElementById('modalConfirm')).show();
+        }
+        document.getElementById('btnConfirmAceptar').addEventListener('click', function () {
+            if (_formPendiente) _formPendiente.submit();
+        });
+    </script>
+}
 </div>

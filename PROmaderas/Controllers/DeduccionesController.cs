@@ -91,9 +91,13 @@ namespace PROmaderas.UI.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> AsignarDeduccion(int idEmpleado, int idDeduccion)
+        public async Task<IActionResult> AsignarDeduccion(int idEmpleado, int idDeduccion, int? numeroCuotas, decimal? montoTotal)
         {
-            await _logica.AsignarAEmpleado(idEmpleado, idDeduccion);
+            await _logica.AsignarAEmpleado(idEmpleado, idDeduccion, numeroCuotas, montoTotal);
+
+
+
+            TempData["SuccessMessage"] = "Deducción asignada correctamente.";
             return RedirectToAction(nameof(Asignar), new { idEmpleado });
         }
 

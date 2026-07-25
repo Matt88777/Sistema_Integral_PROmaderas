@@ -29,9 +29,9 @@
         }
         <div id="divErrores" class="alert alert-danger mb-3" style="display:none"></div>
 
-        <div class="card mb-4">
+        <div class="card mb-4" style="overflow:visible;position:relative;z-index:10;">
             <div class="card-header"><strong>Datos generales</strong></div>
-            <div class="card-body">
+            <div class="card-body" style="overflow:visible;">
                 <div class="row g-3">
                     <div class="col-md-6">
                         <label class="form-label">Cliente <span class="text-danger">*</span></label>
@@ -41,8 +41,9 @@
                                    autocomplete="off" />
                             <input type="hidden" asp-for="ClienteId" id="ClienteId" />
                             <ul id="clienteDropdown"
-                                class="list-group position-absolute w-100 shadow"
-                                style="display:none;max-height:220px;overflow-y:auto;z-index:999;
+                                class="list-group shadow"
+                                style="display:none;position:absolute;top:100%;left:0;right:0;
+                                max-height:350px;overflow-y:auto;z-index:9999;
                                 background:#0B1B3A;border:1px solid rgba(201,160,60,0.25);border-radius:6px;">
                             </ul>
                         </div>
@@ -73,7 +74,7 @@
             </div>
         </div>
 
-        <div class="card mb-4">
+        <div class="card mb-4" style="position:relative;z-index:1;">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <strong>Productos del pedido</strong>
                 <button type="button" class="btn btn-sm btn-warning fw-semibold" id="btnAgregarLinea">
@@ -139,7 +140,7 @@
 
         function fmt(n){ return '₡' + parseFloat(n).toLocaleString('es-CR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
 
-        (function(){
+         (function(){
             const inp = document.getElementById('clienteBuscar');
             const hid = document.getElementById('ClienteId');
             const ul  = document.getElementById('clienteDropdown');
@@ -171,21 +172,31 @@
                 hid.value = '';
                 const q = this.value.trim().toLowerCase();
                 if(q.length < 1){ ul.style.display='none'; return; }
-                const res = CLIENTES.filter(c => c.nombre.toLowerCase().includes(q)).slice(0, 10);
+                const res = CLIENTES.filter(c => c.nombre.toLowerCase().includes(q)).slice(0, 20);
                 mostrar(res);
             });
 
+            let mouseOnDropdown = false;
+            ul.addEventListener('mouseenter', () => { mouseOnDropdown = true; });
+            ul.addEventListener('mouseleave', () => { mouseOnDropdown = false; });
+
             inp.addEventListener('blur', function(){
-                setTimeout(()=>{ ul.style.display='none'; }, 150);
-                if(!hid.value && inp.value.trim()){
-                    err.textContent = 'Seleccione un cliente de la lista.';
-                }
+                setTimeout(()=>{
+                    if(!mouseOnDropdown) ul.style.display='none';
+                    if(!hid.value && inp.value.trim()){
+                        err.textContent = 'Seleccione un cliente de la lista.';
+                    }
+                }, 200);
             });
 
             inp.addEventListener('focus', function(){
                 if(inp.value.trim().length >= 1) inp.dispatchEvent(new Event('input'));
             });
         })();
+
+
+
+
 
         function recalcular(){
             let sub = 0;
