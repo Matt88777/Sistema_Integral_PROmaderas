@@ -19,7 +19,32 @@
     --pm-accent: #2E7D52;
     --pm-accent-h: #235F3E;
     --pm-danger: #B03A2E;
+    /* =========================
+       PALETA SEMÁNTICA DE ESTADOS
+       (solo variantes de: fondo/navy, amarillo/gold, verde, rojo)
+    ========================= */
+    /* Verde — positivo: facturado, activo, aprobado, pagado */
+    --pm-green: #2E7D52;
+    --pm-green-dark: #235F3E;
+    --pm-green-light: #4CA372;
+    --pm-green-bg: rgba(46,125,82,0.15);
+    /* Rojo — negativo: cancelado, anulado, eliminado, rechazado */
+    --pm-red: #B03A2E;
+    --pm-red-dark: #8C2E24;
+    --pm-red-light: #D3564A;
+    --pm-red-bg: rgba(176,58,46,0.15);
+    /* Azul (navy del proyecto) — informativo/neutro: ver, editar, historial */
+    --pm-blue: #1A3A6B;
+    --pm-blue-dark: var(--pm-navy);
+    --pm-blue-light: var(--pm-navy-light);
+    --pm-blue-bg: rgba(26,58,107,0.15);
+    /* Amarillo (gold del proyecto) — advertencia/pendiente: inactivar, ajustar, pendiente */
+    --pm-yellow: var(--pm-gold);
+    --pm-yellow-dark: #A06B2E;
+    --pm-yellow-light: var(--pm-gold-light);
+    --pm-yellow-bg: rgba(201,168,76,0.15);
 }
+
 .btn {
     border-radius: 6px !important;
 }
@@ -441,16 +466,16 @@ header .navbar-brand, header .nav-link {
     }
 
 .btn-success {
-    background: #2E7D52;
-    border-color: #2E7D52;
+    background: var(--pm-green);
+    border-color: var(--pm-green);
     color: #FFFFFF;
     font-weight: 600;
     box-shadow: 0 4px 14px rgba(46,125,82,0.30);
 }
 
     .btn-success:hover {
-        background: #235F3E;
-        border-color: #235F3E;
+        background: var(--pm-green-dark);
+        border-color: var(--pm-green-dark);
         color: #FFFFFF;
         transform: translateY(-1px);
         box-shadow: 0 6px 20px rgba(46,125,82,0.40);
@@ -533,54 +558,54 @@ header .navbar-brand, header .nav-link {
 
 /* ── Variantes outline ── */
 .btn-outline-success {
-    color: #2E7D52;
-    border-color: #2E7D52;
+    color: var(--pm-green);
+    border-color: var(--pm-green);
     background: transparent;
     font-weight: 600;
 }
 
     .btn-outline-success:hover {
-        background: #2E7D52;
-        border-color: #2E7D52;
+        background: var(--pm-green);
+        border-color: var(--pm-green);
         color: #FFFFFF;
     }
 
 .btn-outline-warning {
-    color: #A06B2E;
-    border-color: #A06B2E;
+    color: var(--pm-yellow-dark);
+    border-color: var(--pm-yellow-dark);
     background: transparent;
     font-weight: 600;
 }
 
     .btn-outline-warning:hover {
-        background: #A06B2E;
-        border-color: #A06B2E;
+        background: var(--pm-yellow-dark);
+        border-color: var(--pm-yellow-dark);
         color: #FFFFFF;
     }
 
 .btn-outline-danger {
-    color: var(--pm-danger);
-    border-color: var(--pm-danger);
+    color: var(--pm-red);
+    border-color: var(--pm-red);
     background: transparent;
     font-weight: 600;
 }
 
     .btn-outline-danger:hover {
-        background: var(--pm-danger);
-        border-color: var(--pm-danger);
+        background: var(--pm-red);
+        border-color: var(--pm-red);
         color: #FFFFFF;
     }
 
 .btn-outline-info {
-    color: var(--pm-navy-light);
-    border-color: var(--pm-navy-light);
+    color: var(--pm-blue-light);
+    border-color: var(--pm-blue-light);
     background: transparent;
     font-weight: 600;
 }
 
     .btn-outline-info:hover {
-        background: var(--pm-navy-light);
-        border-color: var(--pm-navy-light);
+        background: var(--pm-blue-light);
+        border-color: var(--pm-blue-light);
         color: #FFFFFF;
     }
 
@@ -618,8 +643,8 @@ header .navbar-brand, header .nav-link {
 }
 
 .btn-warning {
-    background: #A06B2E;
-    border-color: #A06B2E;
+    background: var(--pm-yellow-dark);
+    border-color: var(--pm-yellow-dark);
     color: #FFFFFF;
     font-weight: 600;
     box-shadow: 0 4px 14px rgba(160,107,46,0.30);
@@ -636,33 +661,33 @@ header .navbar-brand, header .nav-link {
 .btn-danger,
 a.btn-danger,
 button.btn-danger {
-    background: #C2511F !important;
-    border-color: #C2511F !important;
+    background: var(--pm-red) !important;
+    border-color: var(--pm-red) !important;
     color: #FFFFFF !important;
     font-weight: 600;
-    box-shadow: 0 4px 12px rgba(194,81,31,0.30);
+    box-shadow: 0 4px 12px rgba(176,58,46,0.30);
 }
 
     .btn-danger:hover,
     a.btn-danger:hover,
     button.btn-danger:hover {
-        background: #A84318 !important;
-        border-color: #A84318 !important;
+        background: var(--pm-red-dark) !important;
+        border-color: var(--pm-red-dark) !important;
         color: #FFFFFF !important;
     }
 
-/* El rojo solo se usa para alertas y advertencias del sistema, NO para botones de acción */
+/* El rojo se usa para acciones destructivas/negativas (eliminar, cancelar, anular) */
 
 .btn-info {
-    background: var(--pm-navy-mid);
-    border-color: var(--pm-navy-mid);
-    color: rgba(255,255,255,0.90);
+    background: var(--pm-blue-light);
+    border-color: var(--pm-blue-light);
+    color: #FFFFFF;
     box-shadow: 0 4px 12px rgba(0,0,0,0.25);
 }
 
     .btn-info:hover {
-        background: var(--pm-navy-light);
-        border-color: var(--pm-navy-light);
+        background: var(--pm-navy-mid);
+        border-color: var(--pm-navy-mid);
         color: #FFFFFF;
         transform: translateY(-1px);
     }
@@ -1313,12 +1338,12 @@ footer {
    FIXES v22 — Panel oscuro: badges, botones, detalles
 ══════════════════════════════════════════════════════ */
 
-/* ── 1. Badge "Agotado" / Stock — ámbar en vez de rojo ── */
+/* ── 1. Badge "Agotado" / Stock — amarillo en vez de rojo ── */
 .app-content-panel .badge.bg-danger,
 .app-content-panel .badge.text-bg-danger,
 .app-content-panel span.badge[class*="danger"] {
-    /* "Agotado" — naranja ámbar, NO rojo */
-    background-color: #D4780A !important;
+    /* "Agotado" — amarillo oscuro, NO rojo (rojo se reserva para cancelado/anulado) */
+    background-color: var(--pm-yellow-dark) !important;
     color: #FFFFFF !important;
 }
 
@@ -1326,22 +1351,22 @@ footer {
 .app-content-panel .badge.bg-warning,
 .app-content-panel .badge.text-bg-warning,
 .app-content-panel span.badge[class*="warning"] {
-    background-color: #E2B200 !important;
-    color: #0F2340 !important; /* texto oscuro para contraste */
+    background-color: var(--pm-yellow) !important;
+    color: var(--pm-navy) !important; /* texto oscuro para contraste */
 }
 
 /* Si usan bg-success para stock disponible, lo mantenemos verde claro */
 /* Si quieren amarillo en "Activo" también, usar este bloque */
 
-/* ── 2. Badge rol "Administrador" — azul corporativo ── */
+/* ── 2. Badge rol "Administrador" — azul (navy del proyecto) ── */
 .app-content-panel .badge.bg-danger[class*="administrador"],
 .app-content-panel .badge-administrador {
-    background-color: #1A3A6B !important;
+    background-color: var(--pm-blue) !important;
     color: #FFFFFF !important;
 }
 /* Regla amplia: primer badge rojo en tabla de usuarios = rol */
 .app-content-panel table .badge.bg-danger:not(.stock-badge) {
-    background-color: #1B3E7A !important;
+    background-color: var(--pm-blue) !important;
     color: #FFFFFF !important;
 }
 
@@ -1445,13 +1470,13 @@ footer {
 /* ── 9. Badge "Activo" / "Inactivo" / "Vendedor" — preservar colores ── */
 .app-content-panel .badge.bg-success,
 .app-content-panel .badge.text-bg-success {
-    background-color: #1A6B3A !important;
+    background-color: var(--pm-green-dark) !important;
     color: #FFFFFF !important;
 }
 
 .app-content-panel .badge.bg-info,
 .app-content-panel .badge.text-bg-info {
-    background-color: #0E5A7A !important;
+    background-color: var(--pm-blue) !important;
     color: #FFFFFF !important;
 }
 
@@ -1482,7 +1507,7 @@ footer {
 
     .app-content-panel .alert-info .bi,
     .app-content-panel .alert-info i {
-        color: #5B9BD5 !important;
+        color: var(--pm-blue-light) !important;
     }
 
 /* alert-warning */
@@ -1624,17 +1649,17 @@ footer {
     min-width: 160px;
 }
 
-/* Solo botones icono dentro de columnas de acciones */
-.td-acciones .btn-sm,
-td .btn-sm {
-    border-radius: 5px !important;
-    min-width: 34px;
-    min-height: 30px;
-    display: inline-flex !important;
-    align-items: center;
-    justify-content: center;
-    padding: 4px 7px;
-}
+    /* Solo botones icono dentro de columnas de acciones */
+    .td-acciones .btn-sm,
+    td .btn-sm {
+        border-radius: 5px !important;
+        min-width: 34px;
+        min-height: 30px;
+        display: inline-flex !important;
+        align-items: center;
+        justify-content: center;
+        padding: 4px 7px;
+    }
 
 /* ══ Dashboard cards mejoradas ══ */
 .pm-dash-card {
@@ -1728,116 +1753,122 @@ td .btn-sm {
         color: #c9a03c;
     }
 
-/* ── Botones de acción uniformes ─────────────────────────── */
+/* ── Botones de acción uniformes (solo verde/rojo/azul/amarillo) ── */
+
+/* Ver = azul informativo, discreto */
 .btn-accion-ver {
     background: rgba(255,255,255,0.08);
-    border: 1px solid rgba(255,255,255,0.35);
+    border: 1px solid var(--pm-blue-light);
     color: rgba(255,255,255,0.85);
 }
 
     .btn-accion-ver:hover {
-        background: rgba(255,255,255,0.18);
+        background: var(--pm-blue-light);
+        border-color: var(--pm-blue-light);
         color: #fff;
     }
 
+/* Editar = azul (navy del proyecto) */
 .btn-accion-editar {
-    background: #2563EB;
-    border-color: #2563EB;
+    background: var(--pm-blue);
+    border-color: var(--pm-blue);
     color: #fff;
 }
 
     .btn-accion-editar:hover {
-        background: #1D4ED8;
-        border-color: #1D4ED8;
+        background: var(--pm-blue-dark);
+        border-color: var(--pm-blue-dark);
         color: #fff;
     }
 
+/* Ajustar (stock) = amarillo, es una acción de precaución, no positiva ni negativa */
 .btn-accion-ajustar {
-    background: #0891B2;
-    border-color: #0891B2;
+    background: var(--pm-yellow-dark);
+    border-color: var(--pm-yellow-dark);
     color: #fff;
 }
 
     .btn-accion-ajustar:hover {
-        background: #0E7490;
-        border-color: #0E7490;
+        background: #875A25;
+        border-color: #875A25;
         color: #fff;
     }
 
+/* Eliminar = rojo (acción destructiva) */
 .btn-accion-eliminar {
-    background: #C2511F !important;
-    border-color: #C2511F !important;
+    background: var(--pm-red) !important;
+    border-color: var(--pm-red) !important;
     color: #fff !important;
 }
 
     .btn-accion-eliminar:hover {
-        background: #A8431A !important;
-        border-color: #A8431A !important;
+        background: var(--pm-red-dark) !important;
+        border-color: var(--pm-red-dark) !important;
         color: #fff !important;
     }
 
-/* Activar = verde */
+/* Activar = verde (positivo) */
 .btn-accion-activar {
-    background: #1A6B3A;
-    border-color: #1A6B3A;
+    background: var(--pm-text-soft);
+    border-color: var(--pm-text-soft);
     color: #fff;
 }
 
     .btn-accion-activar:hover {
-        background: #155C30;
-        border-color: #155C30;
+        background: #474C59;
+        border-color: #474C59;
         color: #fff;
     }
 
-/* Inactivar = ámbar */
+/* Inactivar = amarillo (advertencia, no es tan severo como eliminar) */
 .btn-accion-inactivar {
-    background: #D97706;
-    border-color: #D97706;
+    background: var(--pm-green);
+    border-color: var(--pm-green);
     color: #fff;
 }
 
     .btn-accion-inactivar:hover {
-        background: #B45309;
-        border-color: #B45309;
+        background: var(--pm-green-dark);
+        border-color: var(--pm-green-dark);
         color: #fff;
     }
 
-/* Historial = rosa oscuro */
+/* Historial = azul (consulta informativa, distinto tono al de editar) */
 .btn-accion-historial {
-    background: #BE185D;
-    border-color: #BE185D;
+    background: var(--pm-blue-light);
+    border-color: var(--pm-blue-light);
     color: #fff;
 }
 
     .btn-accion-historial:hover {
-        background: #9D174D;
-        border-color: #9D174D;
+        background: var(--pm-navy-mid);
+        border-color: var(--pm-navy-mid);
         color: #fff;
     }
 
-/* ── btn-warning override (Nuevo / botones principales) ─── */
+/* ── btn-warning (Nuevo / botones principales / pendiente) ─── */
 .btn-warning {
-    background-color: #c9a03c !important;
-    border-color: #c9a03c !important;
-    color: #000 !important;
+    background-color: var(--pm-yellow) !important;
+    border-color: var(--pm-yellow) !important;
+    color: var(--pm-navy) !important;
 }
 
     .btn-warning:hover {
-        background-color: #b08932 !important;
-        border-color: #b08932 !important;
-        color: #000 !important;
+        background-color: var(--pm-yellow-light) !important;
+        border-color: var(--pm-yellow-light) !important;
+        color: var(--pm-navy) !important;
     }
 
-/* ── btn-danger override ─────────────────────────────────── */
+/* ── btn-danger (cancelado / anulado / eliminar) ─────────── */
 .btn-danger {
-    background-color: #C2511F !important;
-    border-color: #C2511F !important;
+    background-color: var(--pm-red) !important;
+    border-color: var(--pm-red) !important;
     color: #fff !important;
 }
 
     .btn-danger:hover {
-        background-color: #A8431A !important;
-        border-color: #A8431A !important;
+        background-color: var(--pm-red-dark) !important;
+        border-color: var(--pm-red-dark) !important;
         color: #fff !important;
     }
 
@@ -1894,22 +1925,26 @@ td .btn-sm {
     font-weight: 600;
 }
 
+/* Borrador = azul claro (estado neutro, en progreso) */
 .badge-estado-borrador {
-    background: #78716C;
+    background: var(--pm-blue-light);
     color: #fff;
 }
 
+/* Revisada = azul (estado neutro/informativo, aún no es aprobación) */
 .badge-estado-revisada {
-    background: #9333EA;
+    background: var(--pm-blue);
     color: #fff;
 }
 
+/* Aprobada = verde (positivo) */
 .badge-estado-aprobada {
-    background: #0D9488;
+    background: var(--pm-green);
     color: #fff;
 }
 
+/* Pagada = verde oscuro (positivo, estado final) */
 .badge-estado-pagada {
-    background: #4D7C0F;
+    background: var(--pm-green-dark);
     color: #fff;
 }
