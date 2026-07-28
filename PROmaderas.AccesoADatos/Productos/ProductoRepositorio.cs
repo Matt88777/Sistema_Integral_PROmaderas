@@ -34,6 +34,7 @@ namespace PROmaderas.AccesoADatos.Productos
         public async Task<ProductoAD?> ObtenerPorId(int id)
         {
             var producto = await _contexto.Productos
+                .Include(p => p.Categoria)
                 .FirstOrDefaultAsync(p => p.Id == id);
 
             if (producto != null)
@@ -149,12 +150,15 @@ namespace PROmaderas.AccesoADatos.Productos
     int? categoriaId,
     bool? filtroEstado)
         {
-            _ = categoriaId;
-
-            var query = _contexto.Productos.AsQueryable();
+            var query = _contexto.Productos
+    .Include(p => p.Categoria)
+    .AsQueryable();
 
             if (!string.IsNullOrEmpty(filtroNombre))
                 query = query.Where(p => p.Nombre.Contains(filtroNombre));
+
+            if (categoriaId.HasValue)
+                query = query.Where(p => p.CategoriaId == categoriaId.Value);
 
             if (filtroEstado.HasValue)
                 query = query.Where(p => p.Activo == filtroEstado.Value);

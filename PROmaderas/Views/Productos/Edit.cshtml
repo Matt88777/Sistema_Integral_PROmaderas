@@ -28,6 +28,17 @@
                             <input asp-for="Medida" class="form-control" style="background:rgba(255,255,255,0.07);border:1px solid rgba(201,168,76,0.3);color:#fff;" />
                             <span asp-validation-for="Medida" class="text-danger small"></span>
                         </div>
+                        <div class="col-md-6">
+                            <label asp-for="CategoriaId" class="form-label" style="color:rgba(255,255,255,0.75)"></label>
+                            <select asp-for="CategoriaId" class="form-select" style="background:rgba(255,255,255,0.07);border:1px solid rgba(201,168,76,0.3);color:#fff;">
+                                <option value="">— Seleccionar —</option>
+                                @foreach (var cat in (List<PROmaderas.Abstracciones.Models.CategoriaAD>)ViewBag.Categorias)
+                                {
+                                    <option value="@cat.Id">@cat.Nombre</option>
+                                }
+                            </select>
+                            <span asp-validation-for="CategoriaId" class="text-danger small"></span>
+                        </div>
 
                         <div class="col-12">
                             <label asp-for="Nombre" class="form-label" style="color:rgba(255,255,255,0.75)"></label>

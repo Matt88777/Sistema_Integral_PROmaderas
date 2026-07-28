@@ -33,11 +33,12 @@ namespace PROmaderas.AccesoADatos
 		public DbSet<PolizaINSAD> PolizasINS { get; set; }
 		public DbSet<EmpleadoPolizaAD> EmpleadosPolizas { get; set; }
 		public DbSet<IncapacidadAD> Incapacidades { get; set; }
-		protected override void OnModelCreating(ModelBuilder modelBuilder)
+        public DbSet<CategoriaAD> Categorias { get; set; }
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{
 			base.OnModelCreating(modelBuilder);
 
-			modelBuilder.Ignore<CategoriaAD>();
+			//modelBuilder.Ignore<CategoriaAD>();
 			modelBuilder.Ignore<PlanillaAD>();
 
 			modelBuilder.Entity<ProductoAD>(e =>
@@ -53,11 +54,15 @@ namespace PROmaderas.AccesoADatos
 				e.Property(x => x.StockMinimo).HasColumnName("StockMinimo");
 				e.Property(x => x.Activo).HasColumnName("Estado");
 				e.Property(x => x.FechaCreacion).HasColumnName("FechaCreacion");
-				e.Ignore(x => x.CategoriaId);
-				e.Ignore(x => x.ImpuestoPorc);
+                e.Property(x => x.CategoriaId).HasColumnName("IdCategoria");
+                e.HasOne(x => x.Categoria)
+                    .WithMany(c => c.Productos)
+                    .HasForeignKey(x => x.CategoriaId);
+                //e.Ignore(x => x.CategoriaId);
+                e.Ignore(x => x.ImpuestoPorc);
 				e.Ignore(x => x.Stock);
 				e.Ignore(x => x.ImagenUrl);
-				e.Ignore(x => x.Categoria);
+				//e.Ignore(x => x.Categoria);
 			});
 
 			modelBuilder.Entity<ClienteAD>(e =>
@@ -339,7 +344,15 @@ namespace PROmaderas.AccesoADatos
 				e.HasIndex(x => x.NumeroCertificado).IsUnique();
 				e.HasIndex(x => new { x.IdEmpleado, x.FechaInicio, x.FechaFin, x.Activa });
 			});
+            modelBuilder.Entity<CategoriaAD>(e =>
+            {
+                e.ToTable("Categoria");
+                e.HasKey(x => x.Id);
+                e.Property(x => x.Id).HasColumnName("IdCategoria");
+                e.Property(x => x.Nombre).HasColumnName("Nombre");
+                e.Property(x => x.Activo).HasColumnName("Estado");
+            });
 
-		}
+        }
 	}
 }

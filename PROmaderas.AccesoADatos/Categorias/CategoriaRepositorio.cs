@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using PROmaderas.Abstracciones.AccesoADatos;
 using PROmaderas.Abstracciones.Models;
 
@@ -5,47 +6,54 @@ namespace PROmaderas.AccesoADatos.Categorias
 {
     public class CategoriaRepositorio : ICategoriaRepositorio
     {
-        private static readonly List<CategoriaAD> CategoriasDummy = new()
-        {
-            new CategoriaAD { Id = 1, Nombre = "Tarimas", Activo = true }
-        };
+        private readonly Contexto _contexto;
 
         public CategoriaRepositorio(Contexto contexto)
         {
-            _ = contexto;
+            _contexto = contexto;
         }
 
         public Task<List<CategoriaAD>> ObtenerTodas()
         {
-            return Task.FromResult(CategoriasDummy.ToList());
+            return _contexto.Categorias
+                .Where(c => c.Activo)
+                .OrderBy(c => c.Nombre)
+                .ToListAsync();
         }
 
         public Task<CategoriaAD?> ObtenerPorId(int id)
         {
-            return Task.FromResult(CategoriasDummy.FirstOrDefault(c => c.Id == id));
+            return _contexto.Categorias
+                .FirstOrDefaultAsync(c => c.Id == id);
         }
 
-        public Task<CategoriaAD> Crear(CategoriaAD categoria)
+        public async Task<CategoriaAD> Crear(CategoriaAD categoria)
         {
-            throw new InvalidOperationException(
-                "Crear categorías está deshabilitado en Sprint 0 (la BD nueva no usa el concepto de Categoria).");
+            _contexto.Categorias.Add(categoria);
+            await _contexto.SaveChangesAsync();
+            return categoria;
         }
 
-        public Task<CategoriaAD> Actualizar(CategoriaAD categoria)
+        public async Task<CategoriaAD> Actualizar(CategoriaAD categoria)
         {
-            throw new InvalidOperationException(
-                "Actualizar categorías está deshabilitado en Sprint 0.");
+            _contexto.Categorias.Update(categoria);
+            await _contexto.SaveChangesAsync();
+            return categoria;
         }
 
-        public Task<bool> Eliminar(int id)
+        public async Task<bool> Eliminar(int id)
         {
-            throw new InvalidOperationException(
-                "Eliminar categorías está deshabilitado en Sprint 0.");
+            var categoria = await ObtenerPorId(id);
+            if (categoria == null) return false;
+
+            categoria.Activo = false;
+            await Actualizar(categoria);
+            return true;
         }
 
         public Task<bool> Existe(int id)
         {
-            return Task.FromResult(CategoriasDummy.Any(c => c.Id == id));
+            return _contexto.Categorias.AnyAsync(c => c.Id == id);
         }
     }
 }

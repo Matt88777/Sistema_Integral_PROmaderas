@@ -51,6 +51,17 @@
                            placeholder="Ejemplo: 40x48" />
                     <span asp-validation-for="Medida" class="text-danger"></span>
                 </div>
+                <div class="col-md-6">
+                    <label asp-for="CategoriaId" class="form-label fw-semibold text-white"></label>
+                    <select asp-for="CategoriaId" class="form-select">
+                        <option value="">— Seleccionar —</option>
+                        @foreach (var cat in (List<PROmaderas.Abstracciones.Models.CategoriaAD>)ViewBag.Categorias)
+                        {
+                            <option value="@cat.Id">@cat.Nombre</option>
+                        }
+                    </select>
+                    <span asp-validation-for="CategoriaId" class="text-danger"></span>
+                </div>
 
                 <div class="col-md-6">
                     <label asp-for="PrecioUnitario" class="form-label fw-semibold text-white"></label>

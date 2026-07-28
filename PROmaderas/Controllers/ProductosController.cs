@@ -129,8 +129,10 @@ namespace PROmaderas.UI.Controllers
         }
 
         [Authorize(Roles = Roles.Administrador)]
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
+            ViewBag.Categorias = await _productoLogica.ObtenerCategorias();
+
             return View(new TipoTarimaCrearDTO
             {
                 Activo = true
@@ -143,6 +145,7 @@ namespace PROmaderas.UI.Controllers
         {
             if (!ModelState.IsValid)
             {
+                ViewBag.Categorias = await _productoLogica.ObtenerCategorias();
                 return View(modelo);
             }
 
@@ -158,7 +161,7 @@ namespace PROmaderas.UI.Controllers
                     StockMinimo = modelo.StockMinimo,
                     Activo = modelo.Activo,
                     FechaCreacion = DateTime.Now,
-                    CategoriaId = 0,
+                    CategoriaId = modelo.CategoriaId,
                     ImpuestoPorc = 0,
                     Stock = 0,
                     ImagenUrl = "-"
@@ -172,6 +175,7 @@ namespace PROmaderas.UI.Controllers
             catch (ArgumentException ex)
             {
                 ModelState.AddModelError(string.Empty, ex.Message);
+                ViewBag.Categorias = await _productoLogica.ObtenerCategorias();
                 return View(modelo);
             }
         }
@@ -192,10 +196,12 @@ namespace PROmaderas.UI.Controllers
                 Descripcion = producto.Descripcion,
                 PrecioUnitario = producto.Precio,
                 StockMinimo = producto.StockMinimo,
-                Activo = producto.Activo
+                Activo = producto.Activo,
+                CategoriaId = producto.CategoriaId
             };
 
             ViewBag.ProductoId = producto.Id;
+            ViewBag.Categorias = await _productoLogica.ObtenerCategorias();
             return View(modelo);
         }
 
@@ -205,7 +211,11 @@ namespace PROmaderas.UI.Controllers
         {
             ViewBag.ProductoId = id;
 
-            if (!ModelState.IsValid) return View(modelo);
+            if (!ModelState.IsValid)
+            {
+                ViewBag.Categorias = await _productoLogica.ObtenerCategorias();
+                return View(modelo);
+            }
 
             try
             {
@@ -219,6 +229,7 @@ namespace PROmaderas.UI.Controllers
                 existente.Precio = modelo.PrecioUnitario;
                 existente.StockMinimo = modelo.StockMinimo;
                 existente.Activo = modelo.Activo;
+                existente.CategoriaId = modelo.CategoriaId;
 
                 await _productoLogica.Actualizar(existente);
 
@@ -228,6 +239,7 @@ namespace PROmaderas.UI.Controllers
             catch (ArgumentException ex)
             {
                 ModelState.AddModelError(string.Empty, ex.Message);
+                ViewBag.Categorias = await _productoLogica.ObtenerCategorias();
                 return View(modelo);
             }
         }
@@ -259,5 +271,6 @@ namespace PROmaderas.UI.Controllers
             ViewBag.Detalle = "La eliminación de tipos de tarima no está disponible en este módulo.";
             return View("EnConstruccion");
         }
+        
     }
 }

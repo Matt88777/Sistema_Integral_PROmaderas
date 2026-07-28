@@ -27,8 +27,12 @@ namespace PROmaderas.Abstracciones.Models
 		[Range(0.01, double.MaxValue, ErrorMessage = "El precio unitario debe ser mayor a 0")]
 		[Display(Name = "Precio unitario")]
 		public decimal PrecioUnitario { get; set; }
+		//Categoria
+        [Required(ErrorMessage = "La categoría es requerida")]
+        [Display(Name = "Categoría")]
+        public int CategoriaId { get; set; }
 
-		[Range(0, int.MaxValue, ErrorMessage = "El stock mínimo no puede ser negativo")]
+        [Range(0, int.MaxValue, ErrorMessage = "El stock mínimo no puede ser negativo")]
 		[Display(Name = "Stock mínimo")]
 		public int StockMinimo { get; set; }
 
