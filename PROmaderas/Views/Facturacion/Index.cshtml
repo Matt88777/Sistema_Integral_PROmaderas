@@ -143,22 +143,31 @@
        class="btn btn-sm btn-accion-ver" title="Ver detalles">
         <i class="bi bi-eye"></i>
     </a>
-    @if (f.Activa && (User.IsInRole(Roles.Administrador) || User.IsInRole(Roles.Contador)))
-    {
-        <a asp-action="CambiarEstado" asp-route-id="@f.Id"
-           class="btn btn-sm btn-accion-historial" title="Cambiar estado">
-            <i class="bi bi-arrow-repeat"></i>
-        </a>
-    }
-    @if (User.IsInRole(Roles.Administrador))
-    {
-        <a asp-action="CambiarActiva" asp-route-id="@f.Id"
-           class="btn btn-sm @(f.Activa ? "btn-accion-inactivar" : "btn-accion-activar")"
-           title="@(f.Activa ? "Inactivar factura" : "Reactivar factura")">
-            <i class="bi @(f.Activa ? "bi-slash-circle" : "bi-arrow-counterclockwise")"></i>
-        </a>
-    }
-</td>
+                                    @if (f.Activa && (User.IsInRole(Roles.Administrador) || User.IsInRole(Roles.Contador)))
+                                    {
+                                        <a asp-action="CambiarEstado" asp-route-id="@f.Id"
+                                           class="btn btn-sm btn-accion-historial" title="Cambiar estado">
+                                            <i class="bi bi-arrow-repeat"></i>
+                                        </a>
+                                    }
+                                    @if (f.Activa
+                                         && (f.Estado == EstadosFactura.PendienteDePago || f.Estado == EstadosFactura.Emitida)
+                                         && (User.IsInRole(Roles.Administrador) || User.IsInRole(Roles.Contador)))
+                                    {
+                                        <a asp-action="RegistrarPago" asp-route-id="@f.Id"
+                                           class="btn btn-sm btn-accion-activar" title="Registrar pago">
+                                            <i class="bi bi-cash-coin"></i>
+                                        </a>
+                                    }
+                                    @if (User.IsInRole(Roles.Administrador))
+                                    {
+                                        <a asp-action="CambiarActiva" asp-route-id="@f.Id"
+                                           class="btn btn-sm @(f.Activa ? "btn-accion-inactivar" : "btn-accion-activar")"
+                                           title="@(f.Activa ? "Inactivar factura" : "Reactivar factura")">
+                                            <i class="bi @(f.Activa ? "bi-slash-circle" : "bi-arrow-counterclockwise")"></i>
+                                        </a>
+                                    }
+                                </td>
 
 
 

@@ -466,3 +466,54 @@ WHERE TABLE_NAME = 'Empleado';
 
 ALTER TABLE Empleado
 ADD Departamento NVARCHAR(100) NULL;
+
+SELECT * FROM sys.tables WHERE name = 'Categoria';
+SELECT * FROM Categoria;
+
+--Migracion de categoria
+-- ============================================================
+-- Migración: Categoría de Tipo de Tarima
+-- Crea la tabla Categoria, la relaciona con TipoTarima
+-- y clasifica los productos existentes según su nombre.
+-- ============================================================
+
+-- 1. Crear la tabla Categoria
+CREATE TABLE Categoria (
+    IdCategoria INT IDENTITY(1,1) PRIMARY KEY,
+    Nombre NVARCHAR(100) NOT NULL,
+    Estado BIT NOT NULL DEFAULT 1
+);
+
+-- 2. Insertar las categorías base
+INSERT INTO Categoria (Nombre, Estado) VALUES
+    (N'Estadounidense', 1),
+    (N'Europea', 1);
+
+-- 3. Agregar la columna de relación en TipoTarima (nullable primero,
+--    para poder clasificar los registros existentes antes de exigirla)
+ALTER TABLE TipoTarima
+ADD IdCategoria INT NULL;
+
+-- 4. Clasificar los productos existentes según el texto de su Nombre
+UPDATE TipoTarima
+SET IdCategoria = (SELECT IdCategoria FROM Categoria WHERE Nombre = N'Estadounidense')
+WHERE Nombre LIKE '%USA%';
+
+UPDATE TipoTarima
+SET IdCategoria = (SELECT IdCategoria FROM Categoria WHERE Nombre = N'Europea')
+WHERE Nombre LIKE '%EUR%';
+
+-- 5. Verificar que no haya quedado ningún producto sin clasificar
+--    (revisa el resultado antes de continuar con el paso 6)
+SELECT IdTipoTarima, Nombre, IdCategoria
+FROM TipoTarima
+WHERE IdCategoria IS NULL;
+
+-- 6. Una vez confirmado que todos quedaron clasificados,
+--    hacer la columna obligatoria y agregar la llave foránea
+ALTER TABLE TipoTarima
+ALTER COLUMN IdCategoria INT NOT NULL;
+
+ALTER TABLE TipoTarima
+ADD CONSTRAINT FK_TipoTarima_Categoria
+    FOREIGN KEY (IdCategoria) REFERENCES Categoria(IdCategoria);
