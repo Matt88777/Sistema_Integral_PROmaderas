@@ -209,10 +209,10 @@
                                                        name="idPoliza"
                                                        value="@poliza.IdPoliza" />
 
-                                                <button type="submit"
+                                                <button type="button"
                                                         class="btn btn-sm
                                                     btn-outline-danger"
-                                                        onclick="return confirm('¿Desea desactivar esta póliza?');">
+                                                        onclick="mostrarConfirm('¿Desea desactivar esta póliza?', this.closest('form'))">
                                                     Desactivar
                                                 </button>
                                             </form>
@@ -226,4 +226,36 @@
             }
         </div>
     </div>
+
+    <div class="modal fade" id="modalConfirm" tabindex="-1">
+        <div class="modal-dialog" style="margin-top:15vh;">
+            <div class="modal-content" style="background:#0B1B3A;border:1px solid rgba(201,168,76,0.4);border-radius:10px;">
+                <div class="modal-header" style="border-bottom:1px solid rgba(201,168,76,0.3);">
+                    <h5 class="modal-title" style="color:#c9a03c;">
+                        <i class="bi bi-exclamation-triangle me-2"></i>Confirmar acción
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-white" id="modalConfirmTexto"></div>
+                <div class="modal-footer" style="border-top:1px solid rgba(201,168,76,0.3);">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-warning fw-bold" id="btnConfirmAceptar">Aceptar</button>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
+@section Scripts {
+    <script>
+        let _formPendiente = null;
+        function mostrarConfirm(texto, form) {
+            _formPendiente = form;
+            document.getElementById('modalConfirmTexto').textContent = texto;
+            new bootstrap.Modal(document.getElementById('modalConfirm')).show();
+        }
+        document.getElementById('btnConfirmAceptar').addEventListener('click', function() {
+            if (_formPendiente) _formPendiente.submit();
+        });
+    </script>
+}
