@@ -1948,3 +1948,30 @@ footer {
     background: var(--pm-green-dark);
     color: #fff;
 }
+
+.pm-confirm-modal {
+    background: #0F2340;
+    border: 1px solid rgba(201,168,76,0.28);
+    border-radius: var(--pm-radius);
+    color: #fff;
+}
+
+    .pm-confirm-modal .modal-header {
+        border-bottom: 1px solid rgba(201,168,76,0.20);
+    }
+
+    .pm-confirm-modal .modal-title {
+        font-family: 'DM Sans', sans-serif;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+        .pm-confirm-modal .modal-title .bi {
+            color: var(--pm-yellow);
+        }
+
+    .pm-confirm-modal .modal-footer {
+        border-top: 1px solid rgba(201,168,76,0.15);
+    }

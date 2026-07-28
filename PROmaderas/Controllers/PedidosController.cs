@@ -274,8 +274,6 @@ namespace PROmaderas.UI.Controllers
         }
 
 		// ── CAMBIAR ESTADO (OC-HU-004) ─────────────────────────────────────
-
-		// ── CAMBIAR ESTADO (OC-HU-004) ─────────────────────────────────────
 		[HttpPost, ValidateAntiForgeryToken]
 		[Authorize(Roles = Roles.Administrador + "," + Roles.OperadorDePlanta)]
 		public async Task<IActionResult> CambiarEstado(

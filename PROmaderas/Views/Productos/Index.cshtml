@@ -45,7 +45,7 @@
             overflow:auto;width:100%;background:#0B1B3A;
             border:1px solid rgba(201,168,76,0.25);border-radius:6px;"></ul>
         </div>
-                <div class="col-md-3">
+        <div class="col-md-3">
             <select name="categoriaId" class="form-select">
                 <option value="">Todas las categorías</option>
                 @foreach (var cat in ViewBag.Categorias)
@@ -54,7 +54,9 @@
                 }
             </select>
         </div>
-                @{ bool? filtroEstadoVal = ViewBag.FiltroEstado as bool?; }
+        @{
+            bool? filtroEstadoVal = ViewBag.FiltroEstado as bool?;
+        }
         <div class="col-md-2">
             <select name="filtroEstado" class="form-select">
                 <option value="">Todos los estados</option>
@@ -143,12 +145,12 @@
                                 }
                                 @if (User.IsInRole("Administrador"))
                                 {
-                                    <form asp-action="CambiarEstado" asp-route-id="@item.Id" method="post" class="d-inline"
-                                          onsubmit="return confirm('@(item.Activo ? "¿Desea inactivar este tipo de tarima? El historial de movimientos se conservará." : "¿Desea reactivar este tipo de tarima?")');">
+                                    <form asp-action="CambiarEstado" asp-route-id="@item.Id" method="post" class="d-inline">
                                         @Html.AntiForgeryToken()
-                                        <button type="submit"
+                                        <button type="button"
                                                 class="btn btn-sm @(item.Activo ? "btn-outline-secondary" : "btn-outline-success")"
-                                                title="@(item.Activo ? "Inactivar" : "Reactivar")">
+                                                title="@(item.Activo ? "Inactivar" : "Reactivar")"
+                                                onclick="mostrarConfirm('@(item.Activo ? "¿Desea inactivar este tipo de tarima? El historial de movimientos se conservará." : "¿Desea reactivar este tipo de tarima?")', this.closest('form'))">
                                             <i class="bi @(item.Activo ? "bi-pause-circle" : "bi-play-circle")"></i>
                                         </button>
                                     </form>
@@ -180,7 +182,7 @@
                     <li class="page-item @(paginaActual == 1 ? "disabled" : "")">
                         <a class="page-link" asp-action="Index"
                            asp-route-pagina="@(paginaActual - 1)"
-                               asp-route-filtroEstado="@ViewBag.FiltroEstado"
+                           asp-route-filtroEstado="@ViewBag.FiltroEstado"
                            asp-route-filtroNombre="@ViewBag.FiltroNombre"
                            asp-route-categoriaId="@ViewBag.CategoriaId">
                             <i class="bi bi-chevron-left"></i>
@@ -191,7 +193,7 @@
                         <li class="page-item @(i == paginaActual ? "active" : "")">
                             <a class="page-link" asp-action="Index"
                                asp-route-pagina="@i"
-                                   asp-route-filtroEstado="@ViewBag.FiltroEstado"
+                               asp-route-filtroEstado="@ViewBag.FiltroEstado"
                                asp-route-filtroNombre="@ViewBag.FiltroNombre"
                                asp-route-categoriaId="@ViewBag.CategoriaId">@i</a>
                         </li>
@@ -199,7 +201,7 @@
                     <li class="page-item @(paginaActual == totalPaginas ? "disabled" : "")">
                         <a class="page-link" asp-action="Index"
                            asp-route-pagina="@(paginaActual + 1)"
-                               asp-route-filtroEstado="@ViewBag.FiltroEstado"
+                           asp-route-filtroEstado="@ViewBag.FiltroEstado"
                            asp-route-filtroNombre="@ViewBag.FiltroNombre"
                            asp-route-categoriaId="@ViewBag.CategoriaId">
                             <i class="bi bi-chevron-right"></i>
@@ -209,27 +211,45 @@
             </nav>
         }
     </div>
+
+    <div class="modal fade" id="modalConfirm" tabindex="-1">
+        <div class="modal-dialog" style="margin-top:15vh;">
+            <div class="modal-content" style="background:#0B1B3A;border:1px solid rgba(201,168,76,0.4);border-radius:10px;">
+                <div class="modal-header" style="border-bottom:1px solid rgba(201,168,76,0.3);">
+                    <h5 class="modal-title" style="color:#c9a03c;">
+                        <i class="bi bi-exclamation-triangle me-2"></i>Confirmar acción
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-white" id="modalConfirmTexto"></div>
+                <div class="modal-footer" style="border-top:1px solid rgba(201,168,76,0.3);">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-warning fw-bold" id="btnConfirmAceptar">Aceptar</button>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 @section Scripts {
     <script>
-        $(function () {
+        $(function() {
             var debounceTimer = null;
             var $input = $('#filtroNombreInput');
             var $sugerencias = $('#sugerenciasProductos');
             var $form = $input.closest('form');
 
-            $input.on('input', function () {
+            $input.on('input', function() {
                 var q = $(this).val().trim();
                 clearTimeout(debounceTimer);
                 if (q.length < 2) { $sugerencias.hide().empty(); return; }
-                debounceTimer = setTimeout(function () {
-                    $.get('/api/productos/buscar', { q: q }, function (data) {
+                debounceTimer = setTimeout(function() {
+                    $.get('/api/productos/buscar', { q: q }, function(data) {
                         $sugerencias.empty();
                         if (!data || data.length === 0) { $sugerencias.hide(); return; }
-                        data.forEach(function (p) {
+                        data.forEach(function(p) {
                             var $li = $('<li class="list-group-item list-group-item-action" style="background:#0B1B3A;color:rgba(255,255,255,0.85);border-color:rgba(201,168,76,0.15);cursor:pointer;"></li>').text(p.nombre);
-                            $li.on('click', function () {
+                            $li.on('click', function() {
                                 $input.val(p.nombre);
                                 $sugerencias.hide().empty();
                                 $form.submit();
@@ -237,15 +257,25 @@
                             $sugerencias.append($li);
                         });
                         $sugerencias.show();
-                    }).fail(function () { $sugerencias.hide(); });
+                    }).fail(function() { $sugerencias.hide(); });
                 }, 250);
             });
 
-            $(document).on('click', function (e) {
+            $(document).on('click', function(e) {
                 if (!$(e.target).closest('#sugerenciasProductos, #filtroNombreInput').length) {
                     $sugerencias.hide();
                 }
             });
+        });
+
+        let _formPendiente = null;
+        function mostrarConfirm(texto, form) {
+            _formPendiente = form;
+            document.getElementById('modalConfirmTexto').textContent = texto;
+            new bootstrap.Modal(document.getElementById('modalConfirm')).show();
+        }
+        document.getElementById('btnConfirmAceptar').addEventListener('click', function() {
+            if (_formPendiente) _formPendiente.submit();
         });
     </script>
 }

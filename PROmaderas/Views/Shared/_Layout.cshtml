@@ -320,5 +320,51 @@
     </script>
 
     @await RenderSectionAsync("Scripts", required: false)
+
+    @* Alertas para quitar alerta localhost*@
+    <!-- Modal de confirmación personalizado -->
+    <div class="modal fade" id="modalConfirmarAccion" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content pm-confirm-modal">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                        Confirmar acción
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body">
+                    <p id="pmConfirmMensaje" class="mb-0">¿Confirma el cambio de estado?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-warning" id="pmConfirmAceptar">Aceptar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+            function confirmarAccion(mensaje) {
+                return new Promise((resolve) => {
+                    const modalEl = document.getElementById('modalConfirmarAccion');
+                    const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+                    document.getElementById('pmConfirmMensaje').textContent = mensaje;
+
+                    const btnAceptar = document.getElementById('pmConfirmAceptar');
+                    const nuevoBtn = btnAceptar.cloneNode(true); // limpia listeners previos
+                    btnAceptar.parentNode.replaceChild(nuevoBtn, btnAceptar);
+
+                    let confirmado = false;
+                    nuevoBtn.addEventListener('click', () => {
+                        confirmado = true;
+                        modal.hide();
+                    });
+                    modalEl.addEventListener('hidden.bs.modal', () => resolve(confirmado), { once: true });
+
+                    modal.show();
+                });
+            }
+    </script>
 </body>
 </html>
