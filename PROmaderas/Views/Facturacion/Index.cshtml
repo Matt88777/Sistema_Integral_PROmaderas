@@ -107,7 +107,7 @@
                     @foreach (var f in Model.Facturas)
                     {
                         @* Las inactivas se ven atenuadas; el badge "Anulada" lo pinta la columna Estado. *@
-                        <tr class="@(f.Activa ? "" : "table-secondary opacity-75")">
+                        <tr>
                             <td class="fw-semibold" style="color:#c9a03c">@f.NumeroFactura</td>
                             <td>@f.Pedido?.NumeroOrden</td>
                             <td>@f.Cliente?.Nombre</td>

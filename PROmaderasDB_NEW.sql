@@ -517,3 +517,96 @@ ALTER COLUMN IdCategoria INT NOT NULL;
 ALTER TABLE TipoTarima
 ADD CONSTRAINT FK_TipoTarima_Categoria
     FOREIGN KEY (IdCategoria) REFERENCES Categoria(IdCategoria);
+
+--Cambio de registrar pago en facturacion
+
+-- ============================================================
+-- Corrección: SaldoPendiente en facturas ya existentes
+-- Recalcula SaldoPendiente = Total - Suma de pagos ya registrados,
+-- solo para facturas activas que NO están en estado "Pagada".
+-- ============================================================
+
+-- 1. Revisar primero cuáles facturas están afectadas (saldo en 0
+--    pero el estado dice que aún deben plata)
+SELECT
+    f.IdFactura,
+    f.NumeroFactura,
+    f.Estado,
+    f.Total,
+    f.SaldoPendiente AS SaldoActual,
+    ISNULL(SUM(p.Monto), 0) AS TotalPagado,
+    f.Total - ISNULL(SUM(p.Monto), 0) AS SaldoCorrecto
+FROM Factura f
+LEFT JOIN PagoFactura p ON p.IdFactura = f.IdFactura
+WHERE f.Activa = 1
+  AND f.Estado <> 'Pagada'
+  AND f.SaldoPendiente <= 0
+GROUP BY f.IdFactura, f.NumeroFactura, f.Estado, f.Total, f.SaldoPendiente;
+
+-- 2. Si el resultado del SELECT anterior se ve correcto, aplicar la corrección
+UPDATE f
+SET f.SaldoPendiente = f.Total - ISNULL(pagos.TotalPagado, 0)
+FROM Factura f
+OUTER APPLY (
+    SELECT SUM(p.Monto) AS TotalPagado
+    FROM PagoFactura p
+    WHERE p.IdFactura = f.IdFactura
+) pagos
+WHERE f.Activa = 1
+  AND f.Estado <> 'Pagada'
+  AND f.SaldoPendiente <= 0;
+
+-- 3. Verificar que ya no queden facturas activas/no pagadas con saldo en 0
+SELECT IdFactura, NumeroFactura, Estado, Total, SaldoPendiente
+FROM Factura
+WHERE Activa = 1
+  AND Estado <> 'Pagada'
+  AND SaldoPendiente <= 0;
+  --Compracion de factura
+  SELECT
+    f.IdFactura,
+    f.NumeroFactura,
+    f.Estado,
+    f.Activa,
+    f.Total,
+    f.SaldoPendiente,
+    (SELECT ISNULL(SUM(p.Monto), 0) FROM PagoFactura p WHERE p.IdFactura = f.IdFactura) AS TotalPagado,
+    (SELECT COUNT(*) FROM PagoFactura p WHERE p.IdFactura = f.IdFactura) AS CantidadPagos
+FROM Factura f
+WHERE f.NumeroFactura = 'FAC-20260726-0011';
+
+--Correcion numero dos
+
+-- ============================================================
+-- Corrección complementaria: sincronizar Estado con SaldoPendiente
+-- Esto corrige las facturas que quedaron con saldo en 0 pero
+-- el estado todavía en "Pendiente de Pago" o "Emitida" tras el
+-- script anterior (que solo tocó SaldoPendiente, no Estado).
+-- ============================================================
+
+-- 1. Revisar cuáles facturas están desincronizadas
+SELECT
+    IdFactura,
+    NumeroFactura,
+    Estado,
+    Activa,
+    Total,
+    SaldoPendiente
+FROM Factura
+WHERE Activa = 1
+  AND SaldoPendiente = 0
+  AND Estado <> 'Pagada';
+
+-- 2. Si el resultado se ve correcto, aplicar la corrección
+UPDATE Factura
+SET Estado = 'Pagada'
+WHERE Activa = 1
+  AND SaldoPendiente = 0
+  AND Estado <> 'Pagada';
+
+-- 3. Verificar que ya no queden facturas desincronizadas
+SELECT IdFactura, NumeroFactura, Estado, Total, SaldoPendiente
+FROM Factura
+WHERE Activa = 1
+  AND SaldoPendiente = 0
+  AND Estado <> 'Pagada';
