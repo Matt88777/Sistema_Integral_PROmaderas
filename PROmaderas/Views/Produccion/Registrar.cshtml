@@ -32,7 +32,7 @@
                 @* Campo 1: Tipo de tarima (obligatorio — Escenario 2) *@
                 <div class="col-md-6">
                     <label asp-for="IdTipoTarima" class="form-label fw-semibold">
-                        <i class="bi bi-boxes me-1"></i>Tipo de Tarima <span class="text-danger">*</span>
+                        Tipo de Tarima <span class="text-danger"></span>
                     </label>
                     <select asp-for="IdTipoTarima"
                             asp-items="ViewBag.TiposTarima"
@@ -45,7 +45,7 @@
                 @* Campo 2: Cantidad (obligatorio, > 0 — Escenarios 2 y 3) *@
                 <div class="col-md-3">
                     <label asp-for="Cantidad" class="form-label fw-semibold">
-                        <i class="bi bi-123 me-1"></i>Cantidad Producida <span class="text-danger">*</span>
+                        Cantidad Producida <span class="text-danger"></span>
                     </label>
                     <input asp-for="Cantidad"
                            type="number"
@@ -59,7 +59,7 @@
                 @* Campo 3: Fecha de producción (obligatoria — Escenario 2) *@
                 <div class="col-md-3">
                     <label asp-for="FechaProduccion" class="form-label fw-semibold">
-                        <i class="bi bi-calendar-event me-1"></i>Fecha de Producción <span class="text-danger">*</span>
+                        Fecha de Producción <span class="text-danger"></span>
                     </label>
                     <input asp-for="FechaProduccion"
                            type="date"
@@ -71,7 +71,7 @@
                 @* Campo 4: Observación (opcional) *@
                 <div class="col-12">
                     <label asp-for="Motivo" class="form-label fw-semibold">
-                        <i class="bi bi-chat-left-text me-1"></i>Observación
+                        Observación
                         <span class="text-muted small fw-normal">(opcional)</span>
                     </label>
                     <textarea asp-for="Motivo"
