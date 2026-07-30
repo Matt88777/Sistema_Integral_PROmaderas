@@ -164,7 +164,7 @@ namespace PROmaderas.UI.Controllers
                     CategoriaId = modelo.CategoriaId,
                     ImpuestoPorc = 0,
                     Stock = 0,
-                    ImagenUrl = "-"
+                    ImagenUrl = "/imagenes/sin-imagen.jpg"
                 };
 
                 await _productoLogica.Crear(producto);

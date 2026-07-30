@@ -55,13 +55,14 @@ namespace PROmaderas.AccesoADatos
 				e.Property(x => x.Activo).HasColumnName("Estado");
 				e.Property(x => x.FechaCreacion).HasColumnName("FechaCreacion");
                 e.Property(x => x.CategoriaId).HasColumnName("IdCategoria");
+                e.Property(x => x.ImagenUrl).HasColumnName("ImagenUrl");
                 e.HasOne(x => x.Categoria)
                     .WithMany(c => c.Productos)
                     .HasForeignKey(x => x.CategoriaId);
                 //e.Ignore(x => x.CategoriaId);
                 e.Ignore(x => x.ImpuestoPorc);
 				e.Ignore(x => x.Stock);
-				e.Ignore(x => x.ImagenUrl);
+				//e.Ignore(x => x.ImagenUrl);
 				//e.Ignore(x => x.Categoria);
 			});
 
