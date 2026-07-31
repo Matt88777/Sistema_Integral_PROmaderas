@@ -1,116 +1,101 @@
-# PROMADERAS
+# PROMADERAS S.A. — Sistema Integral de Gestión
 
-Sistema Integral de Gestión Administrativa e Inventario
-Proyecto de Diseño y Desarrollo de Sistemas - Universidad Fidélitas 2026
+Sistema de gestión administrativa e inventario para **PROMADERAS S.A.**, fabricante de tarimas de madera. Reemplaza los procesos manuales (Excel y registros físicos) por una plataforma web integrada.
+
+**Curso:** SC-702 Diseño y Desarrollo de Sistemas — Universidad Fidélitas, 2026
+Continuación de SC-603 Análisis y Modelado de Requerimientos.
+
+**Cliente / patrocinador:** Olger Jiménez Berrocal
+
+---
+
+## Estado actual
+
+Sprint 5 en curso. Los módulos base están implementados y funcionando de punta a punta:
+
+| Módulo | Estado |
+|---|---|
+| Seguridad y acceso por rol | ✅ |
+| Empleados y usuarios | ✅ |
+| Clientes | ✅ |
+| Inventario y producción | ✅ |
+| Órdenes de compra | ✅ |
+| Facturación (emisión, pagos parciales, anulación) | ✅ |
+| Planilla, vacaciones, liquidaciones, pólizas INS | ✅ |
+| Reportes con exportación | ✅ |
+| Dashboard de ingresos y egresos | ✅ |
+
+Las operaciones sensibles (edición de clientes, cambios de estado de factura, liquidaciones) quedan registradas en la bitácora de auditoría.
 
 ---
 
 ## Requisitos previos
 
-| Herramienta                                     | Versión mínima |
-| ----------------------------------------------- | -------------- |
-| .NET SDK                                        | 8.0            |
-| SQL Server (Express o superior)                 | 2019 / 2022    |
-| Visual Studio 2022 **o** VS Code con C# Dev Kit | —              |
+| Herramienta | Versión mínima |
+|---|---|
+| .NET SDK | 8.0 |
+| SQL Server (Developer o Express) | 2019 / 2022 |
+| SQL Server Management Studio (SSMS) | — |
+| Visual Studio 2022 **o** VS Code con C# Dev Kit | — |
 
 ---
 
-## 1. Clonar el repositorio
+## Puesta en marcha
+
+### 1. Clonar el repositorio
 
 ```bash
 git clone <url-del-repo>
 cd Promaderas_Sistema
 ```
 
----
+### 2. Crear la base de datos
 
-## 2. Crear la base de datos
-
-Ejecuta el script SQL que viene en la raíz del repositorio:
+El procedimiento completo está en **[`scripts/README.md`](scripts/README.md)**. Son **cuatro** scripts que se corren en orden desde SSMS:
 
 ```text
-PROmaderasDB_NEW.sql
+1) scripts/PROmaderasDB_NEW2.0.sql    (esquema base)
+2) scripts/PROmaderasDB_SEED.sql      (datos base obligatorios)
+3) scripts/PROmaderasDB_SPRINT4.sql   (esquema del Sprint 4)
+4) scripts/PROmaderasDB_SPRINT5.sql   (esquema del Sprint 5)
 ```
 
-desde SQL Server Management Studio (SSMS) o Azure Data Studio, conectado a tu instancia local de SQL Server.
+> ⚠️ **No corras el `PROmaderasDB_NEW.sql` de la raíz.** Es el diseño aprobado en SC-603 y se conserva únicamente como referencia histórica; le faltan tablas y columnas que la aplicación necesita hoy. **No se corre y no se edita.**
 
-Esto crea la base `PROmaderasDB_NEW` con:
+El seed es obligatorio: hay tablas (`Departamento`, `Puesto`, `dbo.Rol`, `dbo.Usuario`) que la aplicación no puede crear desde ninguna pantalla. Sin ellas no se pueden dar de alta empleados ni emitir facturas.
 
-* Tablas del sistema (Cliente, TipoTarima, OrdenCompra, Factura, planilla, etc.)
-* Relaciones y llaves foráneas
-* Roles base (`Administrador`, `Gerente`, `Contador`, `Operador de Planta`, `Vendedor`)
-* Departamentos, puestos y empleado administrador
-* Catálogo inicial de tipos de tarima
-* Parámetros y deducciones de planilla
+### 3. Configurar la cadena de conexión
 
----
+`PROmaderas/appsettings.json` **no está en el repositorio** (está en `.gitignore`, porque cada quien tiene su propia instancia). Hay que crearlo. El contenido exacto está en [`scripts/README.md`](scripts/README.md), paso 5.
 
-## 3. Verificar la cadena de conexión
-
-El archivo `PROmaderas/appsettings.json` ya apunta a una instancia local por defecto:
-
-```json
-"ConnectionStrings": {
-  "DefaultConnection": "Server=localhost;Database=PROmaderasDB_NEW;Trusted_Connection=True;TrustServerCertificate=True;MultipleActiveResultSets=true;Encrypt=False"
-}
-```
-
-Si tu SQL Server local está en otra instancia (por ejemplo `localhost\SQLEXPRESS` o un nombre distinto), edita el `Server=` antes de arrancar.
-
-Si usas autenticación SQL en lugar de Windows, reemplaza por:
-
-```text
-Server=localhost;Database=PROmaderasDB_NEW;User Id=sa;Password=TuPassword;TrustServerCertificate=True;
-```
-
----
-
-## 4. Restaurar dependencias y arrancar
+### 4. Restaurar dependencias y arrancar
 
 ```powershell
 dotnet restore
+dotnet build
 dotnet run --project PROmaderas
 ```
 
-O desde Visual Studio:
-
-* Presiona **F5**
-* Ejecuta el perfil `https` o `http`
-
-La aplicación queda disponible en:
-
-```text
-https://localhost:7xxx
-http://localhost:5xxx
-```
-
-(ver `Properties/launchSettings.json` para los puertos exactos)
+O desde Visual Studio: **F5** con el perfil `https`.
+Los puertos están en `PROmaderas/Properties/launchSettings.json`.
 
 ---
 
-# Usuarios y roles de prueba
+## Usuarios de prueba
 
-## Roles disponibles
+Los siembra `IdentitySeeder.cs` en cada arranque de la aplicación.
 
-| Rol                  | Descripción                                             |
-| -------------------- | ------------------------------------------------------- |
-| `Administrador`      | Acceso total al sistema                                 |
-| `Gerente`            | Supervisión de clientes, órdenes, inventario y reportes |
-| `Contador`           | Gestión de facturación, pagos y planilla                |
-| `Operador de Planta` | Producción e inventario                                 |
-| `Vendedor`           | Gestión de clientes y órdenes de compra                 |
+⚠️ **El dominio lleva `PRO` en MAYÚSCULA**: `@PROmaderas.local`. Es el error más común al intentar entrar.
 
----
+| Correo | Contraseña | Rol |
+|---|---|---|
+| `admin@PROmaderas.local` | `Admin123!` | Administrador |
+| `gerente@PROmaderas.local` | `Gerente123!` | Gerente |
+| `contador@PROmaderas.local` | `Contador123!` | Contador |
+| `operador@PROmaderas.local` | `Operador123!` | Operador de Planta |
+| `vendedor@PROmaderas.local` | `Vendedor123!` | Vendedor |
 
-## Usuario administrador inicial (seed automático)
-
-| Campo          | Valor por defecto        |
-| -------------- | ------------------------ |
-| **Email**      | `admin@promaderas.local` |
-| **Contraseña** | `Admin123!`              |
-| **Rol**        | `Administrador`          |
-
-Estos valores pueden modificarse antes de arrancar la aplicación agregando en `appsettings.json`:
+El correo y la contraseña del administrador se pueden cambiar antes del primer arranque agregando esto al `appsettings.json`:
 
 ```json
 "IdentitySeed": {
@@ -120,120 +105,69 @@ Estos valores pueden modificarse antes de arrancar la aplicación agregando en `
 }
 ```
 
+> Si lo cambiás, ajustá también el correo del admin en `scripts/PROmaderasDB_SEED.sql`. La aplicación relaciona al usuario logueado con la tabla de negocio `dbo.Usuario` **por el correo**; si no coinciden, emitir facturas falla.
+
+### Roles
+
+| Rol | Alcance |
+|---|---|
+| `Administrador` | Acceso total |
+| `Gerente` | Supervisión de clientes, órdenes, inventario y reportes |
+| `Contador` | Facturación, pagos y planilla |
+| `Operador de Planta` | Producción e inventario |
+| `Vendedor` | Clientes y órdenes de compra |
+
+Los clientes **no** son usuarios del sistema: el registro público está deshabilitado.
+
 ---
 
-## Crear usuarios adicionales con rol Administrador (opcional)
+## Arquitectura
 
-Usa el script incluido en:
+Tres capas en proyectos separados:
 
 ```text
-scripts/
+PROmaderas/                      UI — Controllers, Views, wwwroot
+PROmaderas.Abstracciones/        Modelos (sufijo AD), catálogos, DTOs e interfaces
+PROmaderas.AccesoADatos/         DbContext (clase Contexto) y repositorios
+PROmaderas.LogicaDeNegocio/      Servicios de negocio
 ```
 
-```powershell
-cd scripts
-.\Crear-AdminIdentity.ps1
-```
+Convenciones que conviene conocer antes de tocar el código:
 
-Con parámetros personalizados:
-
-```powershell
-.\Crear-AdminIdentity.ps1 -Correo "nuevo.admin@promaderas.com" -NombreCompleto "Ana López" -Telefono "88991234"
-```
-
-Los demás usuarios pueden registrarse desde la pantalla de administración interna del sistema.
+- **Los modelos llevan sufijo `AD`** (`EmpleadoAD`, `FacturaAD`, ...).
+- **Algunos modelos se mapean a tablas con otro nombre** vía Fluent API (por ejemplo `ProductoAD` → tabla `TipoTarima`). El mapeo vive en `PROmaderas.AccesoADatos/Contexto.cs`.
+- **Los catálogos de literales** (estados de factura, formas de pago, motivos de salida) están en `PROmaderas.Abstracciones/Catalogos`, no en la UI. Varias de esas columnas no tienen `CHECK` en la base: el catálogo es la única defensa contra un typo.
+- **El esquema lo gobiernan los scripts SQL**, no las migraciones de EF. No corras `dotnet ef database update` sobre el contexto de Negocio. `Program.cs` migra únicamente el contexto de Identity, y eso es intencional. El detalle está en [`scripts/README.md`](scripts/README.md).
+- **`AspNetUsers` (login) y `dbo.Usuario` (negocio) son tablas distintas.** El puente entre ambas es el correo.
 
 ---
 
-# Módulos del sistema
+## Tecnologías
 
-* Gestión de usuarios y roles
-* Gestión de clientes
-* Inventario y producción de tarimas
-* Órdenes de compra
-* Facturación
-* Planilla
-* Reportes administrativos
-* Dashboard general
+**Backend:** ASP.NET Core 8 MVC · Entity Framework Core 8 · ASP.NET Identity · C#
+**Base de datos:** SQL Server · SSMS
+**Frontend:** HTML5 · CSS3 · Bootstrap · JavaScript
+**Herramientas:** Visual Studio 2022 · Git · GitHub
 
 ---
 
-# Arquitectura del proyecto
+## Documentos del proyecto (SC-603)
 
-```text
-PROmaderas/
-PROmaderas.Abstracciones/
-PROmaderas.AccesoADatos/
-PROmaderas.LogicaDeNegocio/
-```
+IN01 Alcance · IN02 Factibilidad · AN01 Requerimientos · DN01 Arquitectura · Capa Final (mockups)
 
 ---
 
-# Tecnologías utilizadas
+## Integrantes
 
-## Backend
+- Mattias Jiménez Bogantes
+- Angie Melissa Borbón Arias
+- Yasser Enrique Mora León
+- Allison Daniela Murillo Delgado
 
-* ASP.NET Core MVC
-* Entity Framework Core
-* ASP.NET Identity
-* C#
-
-## Base de Datos
-
-* SQL Server
-* SSMS
-
-## Frontend
-
-* HTML5
-* CSS3
-* Bootstrap
-* JavaScript
-
-## Herramientas
-
-* Visual Studio 2022
-* Git
-* GitHub
+**Universidad Fidélitas** — Ingeniería en Sistemas de Computación
 
 ---
 
-# Estado actual del proyecto (Sprint 0 — PL01)
-
-* Esquema de base de datos `PROmaderasDB_NEW` aprobado y aplicado.
-* Mapeo de Entity Framework reapuntado a las tablas reales (`TipoTarima`,
-  `Cliente`, `OrdenCompra`, `OrdenCompraDetalle`, `Factura`).
-* Roles internos sincronizados con el AN01: `Administrador`, `Gerente`,
-  `Contador`, `Operador de Planta`, `Vendedor`. El registro público de
-  clientes está deshabilitado (los clientes no son usuarios del sistema).
-* Módulos solo-lectura en este sprint: Productos (catálogo), Clientes
-  (listado), Pedidos (listado), Facturación (listado).
-* Módulos pendientes (vista "En construcción" en esta entrega):
-  * Crear / editar / eliminar productos (requiere conectar `TipoTarima` y
-    `InventarioMovimiento`).
-  * Crear / editar / cancelar pedidos (requiere generar `NumeroOrden` y
-    conectar `IdVendedor`).
-  * Crear / editar facturas y registrar pagos.
-  * Planilla (modelo relacional `PlanillaPeriodo` + `PlanillaDetalle`).
-
----
-
-# Integrantes
-
-* Mattias Jiménez Bogantes
-* Angie Melissa Borbón Arias
-* Yasser Enrique Mora León
-* Allison Daniela Murillo Delgado
-
----
-
-# Institución
-
-Universidad Fidélitas
-Ingeniería en Sistemas de Computación
-
----
-
-# Licencia
+## Licencia
 
 Proyecto desarrollado con fines académicos.
