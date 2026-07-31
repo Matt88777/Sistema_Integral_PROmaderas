@@ -83,6 +83,44 @@
         <input asp-for="Correo" class="form-control" type="email" />
         <span asp-validation-for="Correo" class="text-danger small"></span>
     </div>
+
+    <hr class="my-4" />
+    <h5><i class="bi bi-heart-pulse me-2" style="color:#c9a03c"></i>Contacto de emergencia y salud</h5>
+
+    <div class="row g-3">
+        <div class="col-md-5">
+            <label asp-for="ContactoEmergenciaNombre" class="form-label"></label>
+            <input asp-for="ContactoEmergenciaNombre" class="form-control" maxlength="150" />
+            <span asp-validation-for="ContactoEmergenciaNombre" class="text-danger small"></span>
+        </div>
+        <div class="col-md-4">
+            <label asp-for="ContactoEmergenciaTelefono" class="form-label"></label>
+            <input asp-for="ContactoEmergenciaTelefono" class="form-control" maxlength="25" />
+            <span asp-validation-for="ContactoEmergenciaTelefono" class="text-danger small"></span>
+        </div>
+        <div class="col-md-3">
+            <label asp-for="ContactoEmergenciaParentesco" class="form-label"></label>
+            <input asp-for="ContactoEmergenciaParentesco" class="form-control" maxlength="50"
+                   placeholder="Ej: Madre, Cónyuge" />
+            <span asp-validation-for="ContactoEmergenciaParentesco" class="text-danger small"></span>
+        </div>
+    </div>
+
+    <div class="row g-3 mt-1">
+        <div class="col-md-6">
+            <label asp-for="Alergias" class="form-label"></label>
+            <textarea asp-for="Alergias" class="form-control" rows="3" maxlength="500"></textarea>
+            <span asp-validation-for="Alergias" class="text-danger small"></span>
+            <div class="form-text">Opcional. Dejar en blanco si no aplica.</div>
+        </div>
+        <div class="col-md-6">
+            <label asp-for="Medicamentos" class="form-label"></label>
+            <textarea asp-for="Medicamentos" class="form-control" rows="3" maxlength="500"></textarea>
+            <span asp-validation-for="Medicamentos" class="text-danger small"></span>
+            <div class="form-text">Medicamentos de uso permanente. Opcional.</div>
+        </div>
+    </div>
+
     <hr class="my-4" />
     <h5><i class="bi bi-cash-coin me-2" style="color:#c9a03c"></i>Información salarial</h5>
 

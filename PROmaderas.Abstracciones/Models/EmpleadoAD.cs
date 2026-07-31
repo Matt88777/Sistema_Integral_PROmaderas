@@ -53,4 +53,38 @@ public class EmpleadoAD
 
     [MaxLength(50)]
     public string? MotivoSalida { get; set; }
+
+    // Sprint 5: datos de emergencia y salud. Son INFORMATIVOS: no alimentan ningún cálculo,
+    // no tienen catálogo y no afectan planilla ni liquidación.
+    //
+    // Todos nullable: los empleados que ya están en la base no los tienen, y son opcionales
+    // por naturaleza. Los StringLength calzan EXACTO con las columnas que creó
+    // scripts/PROmaderasDB_SPRINT5.sql (bloque 4): 150 / 25 / 50 / 500 / 500.
+    //
+    // El parentesco es texto libre a propósito, NO un combo: un <select> cuyas opciones no
+    // cubran el valor que ya está en la BD cae en la opción vacía y al guardar borra el dato.
+    // Es el bug que ya se comió JornadaLaboral y Departamento.
+    //
+    // PRIVACIDAD: alergias y medicamentos son datos de salud. EmpleadosController es
+    // [Authorize(Roles = Roles.Administrador)], así que quedan restringidos al Administrador.
+
+    [StringLength(150)]
+    [Display(Name = "Nombre del contacto de emergencia")]
+    public string? ContactoEmergenciaNombre { get; set; }
+
+    [StringLength(25)]
+    [Display(Name = "Teléfono del contacto")]
+    public string? ContactoEmergenciaTelefono { get; set; }
+
+    [StringLength(50)]
+    [Display(Name = "Parentesco")]
+    public string? ContactoEmergenciaParentesco { get; set; }
+
+    [StringLength(500)]
+    [Display(Name = "Alergias")]
+    public string? Alergias { get; set; }
+
+    [StringLength(500)]
+    [Display(Name = "Medicamentos")]
+    public string? Medicamentos { get; set; }
 }

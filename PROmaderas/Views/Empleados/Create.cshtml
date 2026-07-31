@@ -82,6 +82,37 @@
                     <input asp-for="Correo" class="form-control" />
                 </div>
 
+                <hr class="my-4" />
+                <h5>Contacto de emergencia y salud</h5>
+
+                <div class="mb-3">
+                    <label asp-for="ContactoEmergenciaNombre" class="form-label"></label>
+                    <input asp-for="ContactoEmergenciaNombre" class="form-control" maxlength="150" />
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="ContactoEmergenciaTelefono" class="form-label"></label>
+                    <input asp-for="ContactoEmergenciaTelefono" class="form-control" maxlength="25" />
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="ContactoEmergenciaParentesco" class="form-label"></label>
+                    <input asp-for="ContactoEmergenciaParentesco" class="form-control" maxlength="50"
+                           placeholder="Ej: Madre, Cónyuge" />
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Alergias" class="form-label"></label>
+                    <textarea asp-for="Alergias" class="form-control" rows="3" maxlength="500"></textarea>
+                    <div class="form-text">Opcional. Dejar en blanco si no aplica.</div>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Medicamentos" class="form-label"></label>
+                    <textarea asp-for="Medicamentos" class="form-control" rows="3" maxlength="500"></textarea>
+                    <div class="form-text">Medicamentos de uso permanente. Opcional.</div>
+                </div>
+
                 <button type="submit" class="btn btn-primary">
                     Guardar
                 </button>
