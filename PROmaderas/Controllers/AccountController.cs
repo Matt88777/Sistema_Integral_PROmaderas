@@ -338,14 +338,5 @@ namespace PROmaderas.UI.Controllers
             TempData["Mensaje"] = "Perfil actualizado correctamente.";
             return RedirectToAction(nameof(Perfil));
         }
-
-        // ── solo desarrollo)
-        [AllowAnonymous]
-        public async Task<IActionResult> ResetAdminPrueba()
-        {
-            var totalIdentity = _userManager.Users.Count();
-            var conexion = _identityContext.Database.GetDbConnection().ConnectionString;
-            return Content($"Total usuarios: {totalIdentity}\nConexion: {conexion}");
-        }
     }
 }
