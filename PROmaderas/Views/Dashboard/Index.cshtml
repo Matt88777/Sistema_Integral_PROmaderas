@@ -193,7 +193,7 @@
 
     <div class="row g-3 dashboard-grid">
 
-        @if (User.IsInRole("Administrador") || User.IsInRole("Gerente") || User.IsInRole("Operador de Planta"))
+        @if (User.IsInRole(Roles.Administrador) || User.IsInRole(Roles.Gerente) || User.IsInRole(Roles.OperadorDePlanta))
         {
             <div class="col-sm-6 col-xl-3">
                 <div class="card pm-dash-card h-100">
@@ -216,47 +216,58 @@
             </div>
         }
 
-        <div class="col-sm-6 col-xl-3">
-            <div class="card pm-dash-card h-100">
-                <div class="card-body d-flex flex-column p-4">
-                    <div class="pm-dash-icon mb-3">
-                        <i class="bi bi-people"></i>
+        @* ClientesController es [Authorize(Roles = Administrador + Gerente + Vendedor)].
+           La tarjeta no tenia guarda: la veia cualquier autenticado. *@
+        @if (User.IsInRole(Roles.Administrador) || User.IsInRole(Roles.Gerente) || User.IsInRole(Roles.Vendedor))
+        {
+            <div class="col-sm-6 col-xl-3">
+                <div class="card pm-dash-card h-100">
+                    <div class="card-body d-flex flex-column p-4">
+                        <div class="pm-dash-icon mb-3">
+                            <i class="bi bi-people"></i>
+                        </div>
+
+                        <h5 class="pm-dash-title">Clientes</h5>
+
+                        <p class="pm-dash-text flex-grow-1">
+                            Gestión del registro y seguimiento de clientes.
+                        </p>
+
+                        <a asp-controller="Clientes" asp-action="Index" class="btn btn-warning mt-3 w-100">
+                            Ir a Clientes
+                        </a>
                     </div>
-
-                    <h5 class="pm-dash-title">Clientes</h5>
-
-                    <p class="pm-dash-text flex-grow-1">
-                        Gestión del registro y seguimiento de clientes.
-                    </p>
-
-                    <a asp-controller="Clientes" asp-action="Index" class="btn btn-warning mt-3 w-100">
-                        Ir a Clientes
-                    </a>
                 </div>
             </div>
-        </div>
+        }
 
-        <div class="col-sm-6 col-xl-3">
-            <div class="card pm-dash-card h-100">
-                <div class="card-body d-flex flex-column p-4">
-                    <div class="pm-dash-icon mb-3">
-                        <i class="bi bi-cart3"></i>
+        @* PedidosController deja pasar a los 6 roles, asi que en la practica se ve igual.
+           La guarda se agrega por consistencia: si algun dia se recorta ese [Authorize],
+           la tarjeta no queda huerfana. *@
+        @if (User.IsInRole(Roles.Administrador) || User.IsInRole(Roles.Gerente) || User.IsInRole(Roles.Contador) || User.IsInRole(Roles.OperadorDePlanta) || User.IsInRole(Roles.Vendedor) || User.IsInRole(Roles.Usuario))
+        {
+            <div class="col-sm-6 col-xl-3">
+                <div class="card pm-dash-card h-100">
+                    <div class="card-body d-flex flex-column p-4">
+                        <div class="pm-dash-icon mb-3">
+                            <i class="bi bi-cart3"></i>
+                        </div>
+
+                        <h5 class="pm-dash-title">Órdenes de compra</h5>
+
+                        <p class="pm-dash-text flex-grow-1">
+                            Creación y seguimiento de órdenes.
+                        </p>
+
+                        <a asp-controller="Pedidos" asp-action="Index" class="btn btn-warning mt-3 w-100">
+                            Ir a Órdenes
+                        </a>
                     </div>
-
-                    <h5 class="pm-dash-title">Órdenes de compra</h5>
-
-                    <p class="pm-dash-text flex-grow-1">
-                        Creación y seguimiento de órdenes.
-                    </p>
-
-                    <a asp-controller="Pedidos" asp-action="Index" class="btn btn-warning mt-3 w-100">
-                        Ir a Órdenes
-                    </a>
                 </div>
             </div>
-        </div>
+        }
 
-        @if (User.IsInRole("Administrador"))
+        @if (User.IsInRole(Roles.Administrador))
         {
             <div class="col-sm-6 col-xl-3">
                 <div class="card pm-dash-card h-100">
@@ -279,7 +290,7 @@
             </div>
         }
 
-        @if (User.IsInRole("Administrador") || User.IsInRole("Gerente") || User.IsInRole("Contador"))
+        @if (User.IsInRole(Roles.Administrador) || User.IsInRole(Roles.Gerente) || User.IsInRole(Roles.Contador))
         {
             <div class="col-sm-6 col-xl-3">
                 <div class="card pm-dash-card h-100">
@@ -302,7 +313,9 @@
             </div>
         }
 
-        @if (User.IsInRole("Administrador") || User.IsInRole("Gerente") || User.IsInRole("Contador"))
+        @* PlanillaController es [Authorize(Roles = Administrador + Contador)]: el Gerente
+           veia la tarjeta y recibia AccessDenied al entrar. *@
+        @if (User.IsInRole(Roles.Administrador) || User.IsInRole(Roles.Contador))
         {
             <div class="col-sm-6 col-xl-3">
                 <div class="card pm-dash-card h-100">
@@ -325,7 +338,9 @@
             </div>
         }
 
-        @if (User.IsInRole("Administrador") || User.IsInRole("Gerente"))
+        @* ReportesController tambien deja entrar al Contador: se le estaba escondiendo
+           una tarjeta que si puede usar. *@
+        @if (User.IsInRole(Roles.Administrador) || User.IsInRole(Roles.Gerente) || User.IsInRole(Roles.Contador))
         {
             <div class="col-sm-6 col-xl-3">
                 <div class="card pm-dash-card h-100">
