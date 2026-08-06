@@ -119,7 +119,7 @@
             : $"Empleado #{l.IdEmpleado}";
 
         <div class="modal fade modal-pm" id="modalAnular-@l.IdLiquidacion" tabindex="-1">
-            <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-dialog" style="margin-top:8vh;max-height:84vh;overflow-y:auto;">
                 <form asp-action="Anular" method="post" class="modal-content">
                     @Html.AntiForgeryToken()
                     <input type="hidden" name="id" value="@l.IdLiquidacion" />
@@ -179,6 +179,14 @@
     // el viewport. Moverlos a <body> los devuelve al viewport.
     document.addEventListener('DOMContentLoaded', function () {
         document.querySelectorAll('.modal-pm').forEach(function (m) {
+            document.body.appendChild(m);
+        });
+    });
+</script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.modal-pm').forEach(function(m) {
             document.body.appendChild(m);
         });
     });

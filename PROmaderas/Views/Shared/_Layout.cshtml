@@ -356,6 +356,21 @@
     </div>
 
     <script>
+            // Arregla el posicionamiento de CUALQUIER modal Bootstrap del sistema:
+            // mientras esté abierto, se quita el backdrop-filter del panel para que
+            // position:fixed del modal se ancle a la ventana, no al panel.
+            document.addEventListener('show.bs.modal', function() {
+                document.body.classList.add('pm-modal-open');
+            });
+            document.addEventListener('hidden.bs.modal', function() {
+                document.body.classList.remove('pm-modal-open');
+            });
+    </script>
+
+    <script>
+            function confirmarAccion(mensaje) {
+
+    <script>
             function confirmarAccion(mensaje) {
                 return new Promise((resolve) => {
                     const modalEl = document.getElementById('modalConfirmarAccion');

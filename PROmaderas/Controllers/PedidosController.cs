@@ -182,6 +182,19 @@ namespace PROmaderas.UI.Controllers
             if (!vm.Detalles.Any())
                 ModelState.AddModelError("", "Debe agregar al menos un producto al pedido.");
 
+            if (vm.ClienteId <= 0)
+            {
+                ModelState.AddModelError("ClienteId", "Debe seleccionar un cliente válido de la lista.");
+            }
+            else
+            {
+                var clienteExiste = await _contexto.Clientes
+                    .AnyAsync(c => c.Id == vm.ClienteId && c.Estado == true);
+
+                if (!clienteExiste)
+                    ModelState.AddModelError("ClienteId", "El cliente seleccionado no existe o está inactivo.");
+            }
+
             if (!ModelState.IsValid)
             {
                 await CargarViewBagCreate();

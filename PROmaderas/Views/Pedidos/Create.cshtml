@@ -39,7 +39,7 @@
                             <input type="text" id="clienteBuscar" class="form-control"
                                    placeholder="Escriba para buscar cliente..."
                                    autocomplete="off" />
-                            <input type="hidden" asp-for="ClienteId" id="ClienteId" />
+                            <input type="hidden" name="ClienteId" id="ClienteId" value="" />
                             <ul id="clienteDropdown"
                                 class="list-group shadow"
                                 style="display:none;position:absolute;top:100%;left:0;right:0;
@@ -278,10 +278,11 @@
             div.style.display = 'none';
             const errores = [];
 
-            if(!document.getElementById('ClienteId').value){
-                document.getElementById('clienteError').textContent = 'Seleccione un cliente de la lista.';
-                errores.push('Debe seleccionar un cliente.');
-            }
+            const clienteIdVal = document.getElementById('ClienteId').value;
+if(!clienteIdVal || clienteIdVal === '0'){
+    document.getElementById('clienteError').textContent = 'Seleccione un cliente de la lista.';
+    errores.push('Debe seleccionar un cliente.');
+}
 
             const filas = document.querySelectorAll('.fila-detalle');
             if(filas.length === 0){

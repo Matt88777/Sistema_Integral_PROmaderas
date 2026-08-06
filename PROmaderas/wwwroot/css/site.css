@@ -1975,3 +1975,12 @@ footer {
     .pm-confirm-modal .modal-footer {
         border-top: 1px solid rgba(201,168,76,0.15);
     }
+
+/* Mientras un modal Bootstrap está abierto, se desactiva el backdrop-filter
+   del panel: backdrop-filter crea un "containing block" que rompe
+   position:fixed en los descendientes (los modales quedan mal ubicados
+   y hay que hacer zoom out para verlos). */
+body.pm-modal-open .app-content-panel {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+}
