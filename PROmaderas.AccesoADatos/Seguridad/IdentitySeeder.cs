@@ -187,56 +187,6 @@ UserManager<UsuarioIdentity> userManager)
             if (!await userManager.IsInRoleAsync(usuario, "Usuario"))
                 await userManager.AddToRoleAsync(usuario, "Usuario");
         }
-
-        public static async Task SeedUsuarioDanielaAsync(
-        UserManager<UsuarioIdentity> userManager)
-        {
-            var correo = "dmurillo@promadera.local";
-            var password = "Dmurillo123!";
-
-            var usuario = await userManager.FindByEmailAsync(correo);
-            if (usuario == null)
-            {
-                usuario = new UsuarioIdentity
-                {
-                    UserName = correo,
-                    Email = correo,
-                    EmailConfirmed = true,
-                    NombreCompleto = "Daniela Murillo"
-                };
-                var result = await userManager.CreateAsync(usuario, password);
-                if (!result.Succeeded)
-                    throw new Exception("Error creando usuario Daniela: " +
-                    string.Join(", ", result.Errors.Select(e => e.Description)));
-            }
-            if (!await userManager.IsInRoleAsync(usuario, "Usuario"))
-                await userManager.AddToRoleAsync(usuario, "Usuario");
-        }
-
-        public static async Task SeedUsuarioAborbonAsync(
-        UserManager<UsuarioIdentity> userManager)
-        {
-            var correo = "testeo@gmail.com";
-            var password = "Testeo123!";
-
-            var usuario = await userManager.FindByEmailAsync(correo);
-            if (usuario == null)
-            {
-                usuario = new UsuarioIdentity
-                {
-                    UserName = correo,
-                    Email = correo,
-                    EmailConfirmed = true,
-                    NombreCompleto = "aborbon"
-                };
-                var result = await userManager.CreateAsync(usuario, password);
-                if (!result.Succeeded)
-                    throw new Exception("Error creando usuario aborbon: " +
-                    string.Join(", ", result.Errors.Select(e => e.Description)));
-            }
-            if (!await userManager.IsInRoleAsync(usuario, "Usuario"))
-                await userManager.AddToRoleAsync(usuario, "Usuario");
-        }
     }
 }
 

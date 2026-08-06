@@ -6,7 +6,7 @@ namespace PROmaderas.UI.Controllers.Api
 {
 	[ApiController]
 	[Route("api/productos")]
-	//[Authorize]
+	[Authorize]
 	public class ProductosApiController : ControllerBase
 	{
 		private readonly IProductoLogica _productoLogica;
@@ -18,7 +18,6 @@ namespace PROmaderas.UI.Controllers.Api
 
         
         [HttpGet("buscar")]
-        [AllowAnonymous]
 		public async Task<IActionResult> Buscar([FromQuery] string q)
 		{
 			if (string.IsNullOrWhiteSpace(q))

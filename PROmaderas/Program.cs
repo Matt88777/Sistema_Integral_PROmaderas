@@ -1,4 +1,3 @@
-using Microsoft.Extensions.FileProviders;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
@@ -184,20 +183,29 @@ using (var scope = app.Services.CreateScope())
 // DbSeeder.SeedClientes(contexto);
 // DbSeeder.SeedProductos(contexto);
 
+// Los métodos Seed* hacen throw y corren ANTES de que se construya el pipeline de
+// errores: un fallo transitorio contra Azure SQL en el arranque en frío dejaría el
+// sitio en 500 sin página de error. Se registra la excepción y el arranque continúa.
 using (var scope = app.Services.CreateScope())
 {
-    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<UsuarioIdentity>>();
+    try
+    {
+        var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<UsuarioIdentity>>();
 
-    await IdentitySeeder.SeedRolesAsync(roleManager);
-    await IdentitySeeder.SeedUsuarioAdministradorAsync(userManager, builder.Configuration);
-    await IdentitySeeder.SeedUsuarioVendedorAsync(userManager, builder.Configuration);
-    await IdentitySeeder.SeedUsuarioGerenteAsync(userManager);
-    await IdentitySeeder.SeedUsuarioContadorAsync(userManager);
-    await IdentitySeeder.SeedUsuarioOperadorAsync(userManager);
-    await IdentitySeeder.SeedUsuarioGenericoAsync(userManager);
-    await IdentitySeeder.SeedUsuarioAborbonAsync(userManager);
-    await IdentitySeeder.SeedUsuarioDanielaAsync(userManager);
+        await IdentitySeeder.SeedRolesAsync(roleManager);
+        await IdentitySeeder.SeedUsuarioAdministradorAsync(userManager, builder.Configuration);
+        await IdentitySeeder.SeedUsuarioVendedorAsync(userManager, builder.Configuration);
+        await IdentitySeeder.SeedUsuarioGerenteAsync(userManager);
+        await IdentitySeeder.SeedUsuarioContadorAsync(userManager);
+        await IdentitySeeder.SeedUsuarioOperadorAsync(userManager);
+        await IdentitySeeder.SeedUsuarioGenericoAsync(userManager);
+    }
+    catch (Exception ex)
+    {
+        var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "Fallo el seed de roles/usuarios de Identity. La aplicación continúa el arranque.");
+    }
 }
 
 
@@ -215,14 +223,6 @@ app.UseStatusCodePagesWithReExecute("/Error/{0}");
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-
-//Metodo para extraer imagenes
-app.UseStaticFiles(new StaticFileOptions
-{
-    FileProvider = new PhysicalFileProvider(
-        Path.Combine(builder.Environment.ContentRootPath, "..", "Imagenes")),
-    RequestPath = "/imagenes"
-});
 
 app.UseRouting();
 
