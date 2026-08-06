@@ -180,7 +180,7 @@ namespace PROmaderas.UI.Controllers
             }
         }
 
-        [Authorize(Roles = Roles.Administrador)]
+        [Authorize(Roles = Roles.Administrador + "," + Roles.Gerente)]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null) return NotFound();
@@ -206,7 +206,7 @@ namespace PROmaderas.UI.Controllers
         }
 
         [HttpPost, ValidateAntiForgeryToken]
-        [Authorize(Roles = Roles.Administrador)]
+        [Authorize(Roles = Roles.Administrador + "," + Roles.Gerente)]
         public async Task<IActionResult> Edit(int id, TipoTarimaCrearDTO modelo)
         {
             ViewBag.ProductoId = id;
