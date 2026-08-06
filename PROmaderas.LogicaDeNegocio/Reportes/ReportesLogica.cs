@@ -51,5 +51,16 @@ namespace PROmaderas.LogicaDeNegocio.Reportes
                 Periodos = periodos
             };
         }
+        public async Task<ReporteInventarioResultadoDTO> GenerarReporteInventario()
+        {
+            var existencias = await _reportesRepositorio.ObtenerExistenciasInventario();
+            var movimientos = await _reportesRepositorio.ObtenerMovimientosInventario();
+
+            return new ReporteInventarioResultadoDTO
+            {
+                Existencias = existencias,
+                Movimientos = movimientos
+            };
+        }
     }
 }

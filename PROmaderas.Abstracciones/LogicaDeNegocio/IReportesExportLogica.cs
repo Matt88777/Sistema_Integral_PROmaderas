@@ -10,5 +10,7 @@ namespace PROmaderas.Abstracciones.LogicaDeNegocio
         Task<byte[]> GenerarPlanillaPdf();
         Task<byte[]> GenerarVentasExcel(string tipoPeriodo, DateTime fechaInicio, DateTime fechaFin);
         Task<byte[]> GenerarVentasPdf(string tipoPeriodo, DateTime fechaInicio, DateTime fechaFin);
+        Task<byte[]> GenerarInventarioExcelAdmin();
+        Task<byte[]> GenerarInventarioPdfAdmin();
     }
 }

@@ -103,5 +103,34 @@ namespace PROmaderas.UI.Controllers
             var bytes = await _reportesExportLogica.GenerarVentasPdf(periodo, inicio, fin);
             return File(bytes, "application/pdf", $"Ventas_{DateTime.Now:yyyyMMdd}.pdf");
         }
+        //Historia REP-HU-002
+        public async Task<IActionResult> Inventario()
+        {
+            var modelo = new ReporteInventarioViewModel();
+
+            try
+            {
+                modelo.Resultado = await _reportesLogica.GenerarReporteInventario();
+                modelo.ConsultaRealizada = true;
+            }
+            catch (ArgumentException ex)
+            {
+                modelo.MensajeError = ex.Message;
+            }
+
+            return View(modelo);
+        }
+
+        public async Task<IActionResult> ExportarInventarioExcelAdmin()
+        {
+            var bytes = await _reportesExportLogica.GenerarInventarioExcelAdmin();
+            return File(bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"Inventario_{DateTime.Now:yyyyMMdd}.xlsx");
+        }
+
+        public async Task<IActionResult> ExportarInventarioPdfAdmin()
+        {
+            var bytes = await _reportesExportLogica.GenerarInventarioPdfAdmin();
+            return File(bytes, "application/pdf", $"Inventario_{DateTime.Now:yyyyMMdd}.pdf");
+        }
     }
 }

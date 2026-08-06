@@ -13,5 +13,12 @@ namespace PROmaderas.Abstracciones.LogicaDeNegocio
         /// El resultado trae <c>HayDatos = false</c> cuando no existen ventas (Escenario 3).
         /// </summary>
         Task<VentasReporteResultadoDTO> GenerarReporteVentas(string? tipoPeriodo, DateTime? fechaInicio, DateTime? fechaFin);
+
+        /// <summary>
+        /// Genera el reporte de inventario con existencias actuales (Escenario 1),
+        /// movimientos de entradas/salidas (Escenario 2) y el resumen de productos
+        /// con bajo stock (Escenario 3).
+        /// </summary>
+        Task<ReporteInventarioResultadoDTO> GenerarReporteInventario();
     }
 }
